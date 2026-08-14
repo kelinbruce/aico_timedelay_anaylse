@@ -24,6 +24,14 @@ const datasets = {
     recipeDs: "deepseek_old/dsv4_2_recipe_ds.jsonl",
     qwen: "deepseek_old/qwen3_2.jsonl",
   },
+  data3: {
+    label: "dsv_modify_0814",
+    outputName: "AICO_Agent调用时延报告_dsv_modify_0814.xlsx",
+    directory: "dsv_modify_0814",
+    aico: "dsv_modify_0814/dsv4_3_aico.jsonl",
+    recipeDs: "dsv_modify_0814/dsv4_3_recipe_ds.jsonl",
+    qwen: "dsv_modify_0814/qwen_3.jsonl",
+  },
 };
 const datasetConfig = datasets[dataset];
 if (!datasetConfig) throw new Error(`未知数据集：${dataset}`);
@@ -578,8 +586,10 @@ summarySheet.getRange(`B${summaryStartRow}:F${summaryEndRow}`).format.numberForm
 summarySheet.getRange(`B${qualityStartRow}:B${qualityEndRow}`).format.numberFormat = "#,##0";
 summarySheet.getRange("A:A").format.columnWidth = 30;
 summarySheet.getRange("B:B").format.columnWidth = 14;
-summarySheet.getRange("C:F").format.columnWidth = 22;
+summarySheet.getRange("C:C").format.columnWidth = 34;
+summarySheet.getRange("D:F").format.columnWidth = 22;
 summarySheet.getRange(`C${qualityStartRow}:C${qualityEndRow}`).format.wrapText = true;
+summarySheet.getRange(`A${qualityStartRow}:C${qualityEndRow}`).format.autofitRows();
 summarySheet.freezePanes.freezeRows(3);
 
 const inspection = await workbook.inspect({
