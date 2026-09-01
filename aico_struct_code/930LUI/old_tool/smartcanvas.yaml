@@ -1,0 +1,106 @@
+swagger: '2.0'
+info:
+  version: v1
+  title: SmartCanvas
+  description: |
+    NCEStudio服务
+
+    **服务SLA：**
+
+    |SLA项|定义|
+    |-----|-----|
+    |请求成功率| >=99%|
+    |可用性|Tier2|
+    |数据一致性|最终一致或不一致的时长 <1分钟|
+    |吞吐量|100tps|
+    |TP99请求时延|500ms|
+schemes:
+  - https
+basePath: /rest
+x-yamlfile: model/src/main/resources/rest-services-genui.yaml
+tags:
+  - name: GenUIService
+paths:
+  '/smartcanvas/v1/sse/action/generate/ui':
+    post:
+      description: 在线生成UI-SSE接口
+      tags:
+        - GenUIService
+      operationId: sseGenerateUI
+      x-iftype: serviceapi
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      x-imports: jakarta.ws.rs.core.StreamingOutput
+      parameters:
+        - in: body
+          name: GenerateUIRequestBody
+          description: 生成UI对应的请求体
+          required: true
+          schema:
+            $ref: '#/definitions/UIRequestDetail'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: 'StreamingOutput'
+definitions:
+  UIRequestDetail:
+    description: 生成UI接口对应的请求体
+    required:
+      - response
+    properties:
+      scenario:
+        description: 渲染场景。LUI表示渲染到AI对话框中；Canvas表示渲染到LUI左侧的画布中；Preview表示渲染为预览卡片；未传时默认按LUI处理。
+        type: string
+        default: LUI
+        enum:
+          - LUI
+          - Canvas
+          - Preview
+      extensionId:
+        description: UI生成扩展配置标识。
+        type: string
+        minLength: 1
+        maxLength: 128
+      userInput:
+        description: 用户输入的自然语言，作为intent参与模板命中标识构造与prompt组装；非UI生成场景可不传。
+        type: string
+        minLength: 1
+        maxLength: 4096
+      source:
+        description: 上游数据来源唯一标识，用于缓存UI生成结果进行复用；非UI生成场景可不传。
+        type: string
+        maxLength: 128
+      request:
+        description: 上游输入参数，如Skill工具调用入参或API请求参数；非UI生成场景可不传，用于辅助UI生成，如UI标题等。
+        type: object
+      response:
+        description: 生成UI的主要数据源，根据数据进行UI生成
+        type: object
+      suggestion:
+        description: example或者是额外约束的提示词，用于补充默认生成建议；无额外组件约束或示例要求时可不传。
+        type: string
+        minLength: 1
+        maxLength: 4096
+      title:
+        description: 两种场景下需要传值:1. iframe直出渲染时,作为iframe 页面标题; 2. scenario 为 Preview 或 Canvas 时,作为卡片标题;
+        type: string
+        maxLength: 32
+      templateId:
+        description: 指定UI模板ID。指定后不进行UI生成，直接模板渲染；未指定时按正常UI生成链路处理。
+        type: string
+        maxLength: 64
+      renderPiu:
+        description: 指定进行渲染的PIU。
+        type: string
+        maxLength: 64
+      renderPiuEventName:
+        description: 指定进行渲染的 PIU后，指定对应的Piu 事件名，有传入renderPiu时，该参数必传
+        type: string
+        maxLength: 64
+      iframeUrl:
+        description: 使用iframe加载指定URL渲染界面；仅iframe直出场景需要。
+        type: string
+        maxLength: 1024

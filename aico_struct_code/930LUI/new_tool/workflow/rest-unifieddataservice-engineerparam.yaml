@@ -1,0 +1,121 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: engineerparam
+  title: WATT EngineerParam Query API
+  x-en-title: WATT EngineerParam Query API
+  description: WATT工参查询API，通过网关调用
+  x-en-description: WATT engineer param query API via gateway
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: EngineerParamQuery
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - EngineerParamQuery
+      summary: "query_param"
+      x-en-summary: "query_param"
+      description: 工参查询工具，根据工参条件筛选小区或站点，查询工参信息
+      x-en-description: Engineer param query tool for filtering cells/sites and querying parameters
+      x-llm-friendly: true
+      x-llm-tag: engineer-param-query
+      x-function-category: 工参查询
+      x-question-example:
+        - question: 查询某小区的工参信息
+        - question: 筛选频段为LTE1800的小区
+      x-en-question-example:
+        - question: Query cell engineer parameters
+        - question: Filter cells with Band=LTE1800
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiAccessTag: interTest
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: EngineerParamQueryRequest
+          description: 工参查询请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/EngineerParamQueryRequest"
+      responses:
+        "200":
+          description: 工参查询结果
+          schema:
+            $ref: "#/definitions/EngineerParamQueryResponse"
+definitions:
+  EngineerParamQueryRequest:
+    description: 工参查询请求
+    type: object
+    required:
+      - model
+      - fields
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "QwQ-32B"
+      entityNames:
+        type: array
+        description: "查询对象名称列表（小区名或站点名，取决于dimension）。如果未指定，则为空列表。"
+        x-en-description: "Entity name list. Empty if not specified."
+        items:
+          type: string
+      dataPath:
+        type: string
+        description: "已筛选的entityNames列表的文件路径，如果前面没有进行筛选，则默认为空字符串"
+        x-en-description: "File path of pre-filtered entityNames list, default empty string"
+        default: ""
+      dimension:
+        type: string
+        description: "查询维度。CELL表示查询小区工参，SITE表示查询站点工参。默认CELL。"
+        x-en-description: "Query dimension. CELL for cell, SITE for site. Default CELL."
+        enum:
+          - CELL
+          - SITE
+      ratTypes:
+        type: array
+        description: "制式列表。可选值：NR、LTE。默认NR。"
+        x-en-description: "RAT type list. Options: NR, LTE. Default NR."
+        items:
+          type: string
+          enum:
+            - NR
+            - LTE
+      fields:
+        type: array
+        description: "要查询的工参字段名称列表，应填入英文列名。如果未指定，默认为空列表。"
+        x-en-description: "Engineer param field name list. Empty if not specified."
+        items:
+          type: string
+  EngineerParamQueryResponse:
+    description: 工参查询响应
+    x-en-description: Engineer param query response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data

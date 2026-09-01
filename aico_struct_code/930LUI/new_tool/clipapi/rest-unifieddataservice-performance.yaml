@@ -1,0 +1,77 @@
+---
+swagger: "2.0"
+info:
+  version: "v1"
+  title: "unifieddataservice"
+  description: "LUI性能数据查询接口"
+schemes:
+  - "https"
+basePath: "/rest/oss/inner/unifieddata"
+x-alias: PerformanceQueryService
+paths:
+  /pm:
+    post:
+      x-iftype: ir
+      summary: "Query performance data"
+      description: "Query performance data by condition"
+      tags:
+        - "PerformanceQueryService"
+      operationId: "queryPerformanceData"
+      x-filetransfertype: NA
+      x-audit:
+        level: MINOR
+        alwayslog: true
+        operation:
+          zh: '查询性能数据'
+          en: 'Query performance data'
+        target:
+          zh: '查询性能数据'
+          en: 'Query performance data'
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      x-annotations:
+        - name: "StreamTimeout(660000)"
+          schema:
+            $ref: "#/definitions/StreamTimeout"
+      x-exceptions:
+        - name: "ServiceException"
+          schema:
+            $ref: "#/definitions/ServiceException"
+      parameters:
+        - name: "pmQueryReq"
+          in: "body"
+          required: true
+          description: "性能数据查询请求体"
+          schema:
+            $ref: "#/definitions/PmQueryRequestBody"
+          x-wsf-pattern:
+            - XSS_ATTACK_VALIDATOR
+            - SQL_ATTACK_VALIDATOR
+      responses:
+        "200":
+          description: "性能数据查询结果"
+          schema:
+            $ref: "#/definitions/PmQueryResponseBody"
+        500:
+          description: "默认ServiceException异常码，应用内部错误"
+definitions:
+  ServiceException:
+    type: "object"
+    x-ref-external: "com.huawei.bsp.remoteservice.exception.ServiceException"
+  StreamTimeout:
+    type: "object"
+    x-ref-external: "com.huawei.maos.commons.rpc.annotation.StreamTimeout"
+  MediaType:
+    type: "object"
+    x-ref-external: "jakarta.ws.rs.core.MediaType"
+  JsonInBody:
+    type: "object"
+    x-ref-external: "com.huawei.maos.commons.rpc.annotation.JsonInBody"
+  PmQueryRequestBody:
+    type: "object"
+    x-ref-external: "com.huawei.oss.wireless.unifieddataservice.model.PmQueryRequestBody"
+  PmQueryResponseBody:
+    type: "object"
+    x-ref-external: "com.huawei.oss.wireless.unifieddataservice.model.PmQueryResponseBody"

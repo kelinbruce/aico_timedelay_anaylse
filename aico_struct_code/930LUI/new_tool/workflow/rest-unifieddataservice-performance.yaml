@@ -1,0 +1,160 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: performance
+  title: WATT PM Query API
+  x-en-title: WATT PM Query API
+  description: WATT PM性能指标查询API，通过网关调用
+  x-en-description: WATT PM performance query API via gateway
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: PMQuery
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - PMQuery
+      summary: "query_pm"
+      x-en-summary: "query_pm"
+      description: PM性能指标查询工具，查询指定时间范围内的小区或站点PM性能指标统计量
+      x-en-description: PM performance query tool for cell/site metrics
+      x-llm-friendly: true
+      x-llm-tag: pm-query
+      x-function-category: PM性能查询
+      x-question-example:
+        - question: 查询某小区的下行PRB利用率
+        - question: 查询站点的平均下行速率
+      x-en-question-example:
+        - question: Query cell downlink PRB utilization
+        - question: Query site average downlink rate
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiAccessTag: interTest
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: PMQueryRequest
+          description: PM性能指标查询请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/PMQueryRequest"
+      responses:
+        "200":
+          description: PM查询结果
+          schema:
+            $ref: "#/definitions/PMQueryResponse"
+definitions:
+  PMQueryRequest:
+    description: PM性能指标查询请求
+    type: object
+    required:
+      - model
+      - dimension
+      - metrics
+      - startTime
+      - endTime
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "Qwen2.5-32B"
+      entityNames:
+        type: array
+        description: "查询对象名称列表（小区名或站点名，取决于dimension）。如果未指定，则为空列表。"
+        x-en-description: "Entity name list. Empty if not specified."
+        items:
+          type: string
+      dataPath:
+        type: string
+        description: "已筛选的entityNames列表的文件路径，如果前面没有进行筛选，则默认为空字符串"
+        x-en-description: "File path of pre-filtered entityNames list, default empty string"
+        default: ""
+      dimension:
+        type: string
+        description: "查询维度。CELL表示按小区查询，SITE表示按站点查询。默认CELL。"
+        x-en-description: "Query dimension. CELL for cell, SITE for site. Default CELL."
+        enum:
+          - CELL
+          - SITE
+      metrics:
+        type: array
+        description: "需要查询的PM性能指标名称列表，名称需与PM指标名称对照表完全一致。如果未指定，则默认为空列表。"
+        x-en-description: "PM metric name list. Empty if not specified."
+        items:
+          type: string
+      startTime:
+        type: string
+        description: "起始时间，格式YYYY-MM-DD HH:mm:ss"
+        x-en-description: "Start time, format YYYY-MM-DD HH:mm:ss"
+      endTime:
+        type: string
+        description: "结束时间，格式YYYY-MM-DD HH:mm:ss"
+        x-en-description: "End time, format YYYY-MM-DD HH:mm:ss"
+      timePeriod:
+        type: string
+        description: "时间粒度。可选值：15MIN、1H、24H。默认15MIN。"
+        x-en-description: "Time period. Options: 15MIN, 1H, 24H. Default 15MIN."
+        enum:
+          - 15MIN
+          - 1H
+          - 24H
+      groupBy:
+        type: string
+        description: "分组方式。可选值：CELL、SITE、DATE、HOUR、None。默认None。"
+        x-en-description: "Group by. Options: CELL, SITE, DATE, HOUR, None. Default None."
+        enum:
+          - CELL
+          - SITE
+          - DATE
+          - HOUR
+          - None
+      aggregation:
+        type: string
+        description: "聚合方式。可选值：sum、average。默认average。"
+        x-en-description: "Aggregation. Options: sum, average. Default average."
+        enum:
+          - sum
+          - average
+      orderBy:
+        type: string
+        description: "排序方式。可选值：Desc、Asc、None。默认None。"
+        x-en-description: "Order by. Options: Desc, Asc, None. Default None."
+        enum:
+          - Desc
+          - Asc
+          - None
+      topN:
+        type: integer
+        description: "返回TopN数量。如果不限制，不填写。"
+        x-en-description: "TopN count. Omit if not limited."
+  PMQueryResponse:
+    description: PM查询响应
+    x-en-description: PM query response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data

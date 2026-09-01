@@ -1,0 +1,117 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: watt7
+  title: WATT Region Creation API
+  x-en-title: WATT Region Creation API
+  description: WATT工参筛选API，根据频段、带宽、经纬度等工参信息筛选小区
+  x-en-description: WATT engineer param filter API, filters cells by band, bandwidth, azimuth and other parameters
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: RegionCreation
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - RegionCreation
+      summary: "region_creation"
+      x-en-summary: "region_creation"
+      description: 工参筛选工具，根据频段、带宽、经纬度、频点等工参信息筛选出对应的小区或enodeb名称
+      x-en-description: Engineer param filter tool, filters cells or eNodeBs by band, bandwidth, azimuth and other parameters
+      x-llm-friendly: true
+      x-llm-tag: region-creation
+      x-function-category: 工参筛选
+      x-question-example:
+        - question: 筛选频段为LTE2600且电子下倾角大于5的小区
+        - question: 查询某小区的频段和带宽
+      x-en-question-example:
+        - question: Filter cells with Band=LTE2600 and ED_tilt>5
+        - question: Query cell band and bandwidth
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: RegionCreationRequest
+          description: 工参筛选请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/RegionCreationRequest"
+      responses:
+        "200":
+          description: 工参筛选结果
+          schema:
+            $ref: "#/definitions/RegionCreationResponse"
+definitions:
+  RegionCreationRequest:
+    description: 工参筛选请求
+    type: object
+    required:
+      - model
+      - tool_name
+      - arguments
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "Qwen3-32B"
+      tool_name:
+        type: string
+        description: "工具名称，固定为region_creation"
+        x-en-description: "Tool name, fixed as region_creation"
+        enum:
+          - region_creation
+      arguments:
+        type: object
+        $ref: "#/definitions/RegionCreationArguments"
+  RegionCreationArguments:
+    description: 工参筛选工具参数
+    x-en-description: Region creation tool arguments
+    type: object
+    properties:
+      data_path:
+        type: string
+        description: "需要筛选的小区文件路径，未指定则为空字符串"
+        x-en-description: "Pre-filtered cell file path, empty if not specified"
+        default: ""
+      query_col:
+        type: array
+        description: "用户要查询的工参名称列表"
+        x-en-description: "Engineer param column name list to query"
+        items:
+          type: string
+      filter:
+        type: string
+        description: "筛选条件字符串，分号;分隔多组(OR关系)，组内AND关系"
+        x-en-description: "Filter string, semicolon for OR groups, AND within group"
+  RegionCreationResponse:
+    description: 工参筛选响应
+    x-en-description: Region creation response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data

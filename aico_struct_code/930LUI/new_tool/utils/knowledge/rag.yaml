@@ -1,0 +1,11 @@
+apiVersion: resource.sop.huawei.com/v1
+kind: SOPPub
+metadata:
+  name: cloudsop.test.pub
+  namespace: sop
+spec:
+  pkgs:
+    - name: pub
+      version: 1.0.6
+      archRelated: false
+      type: km-knowledge

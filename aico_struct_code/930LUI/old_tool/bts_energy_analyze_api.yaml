@@ -1,0 +1,162 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: watt10
+  title: WATT BTS Energy Analyze API
+  x-en-title: WATT BTS Energy Analyze API
+  description: WATT能耗分析API，计算指定时间范围内的BTS基站能耗统计量
+  x-en-description: WATT BTS energy analysis API, calculates BTS base station energy consumption within a specified time range
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: BtsEnergyAnalyze
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - BtsEnergyAnalyze
+      summary: "bts_energy_analyze"
+      x-en-summary: "bts_energy_analyze"
+      description: 能耗分析工具，计算指定时间范围内的BTS基站能耗统计量，支持按RRU/enodeb/日期/小时分组
+      x-en-description: Energy analysis tool, calculates BTS energy consumption with groupBy by RRU/eNodeB/date/hour
+      x-llm-friendly: true
+      x-llm-tag: bts-energy-analyze
+      x-function-category: 能耗分析
+      x-question-example:
+        - question: 查询某基站的能耗统计
+        - question: 查询能耗最高的3个RRU
+      x-en-question-example:
+        - question: Query energy consumption for a base station
+        - question: Query top 3 RRU by energy consumption
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: BtsEnergyAnalyzeRequest
+          description: 能耗分析请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/BtsEnergyAnalyzeRequest"
+      responses:
+        "200":
+          description: 能耗分析结果
+          schema:
+            $ref: "#/definitions/BtsEnergyAnalyzeResponse"
+definitions:
+  BtsEnergyAnalyzeRequest:
+    description: 能耗分析请求
+    type: object
+    required:
+      - model
+      - tool_name
+      - arguments
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "Qwen3-32B"
+      tool_name:
+        type: string
+        description: "工具名称，固定为bts_energy_analyze"
+        x-en-description: "Tool name, fixed as bts_energy_analyze"
+        enum:
+          - bts_energy_analyze
+      arguments:
+        type: object
+        $ref: "#/definitions/BtsEnergyAnalyzeArguments"
+  BtsEnergyAnalyzeArguments:
+    description: 能耗分析工具参数
+    x-en-description: BTS energy analyze tool arguments
+    type: object
+    properties:
+      enodeb_name:
+        type: array
+        description: "enodeb名称列表，未指定则为空列表"
+        x-en-description: "eNodeB name list, empty if not specified"
+        items:
+          type: string
+      cn_srn_sn:
+        type: array
+        description: "柜框槽号列表，未指定则为空列表"
+        x-en-description: "Cabinet/Subrack/Slot list, empty if not specified"
+        items:
+          type: string
+      data_path:
+        type: string
+        description: "需要筛选的enodeb文件路径，未指定则为空字符串"
+        x-en-description: "Pre-filtered eNodeB file path, empty if not specified"
+        default: ""
+      start_time:
+        type: string
+        description: "起始时间，格式YYYY-mm-DD HH:MM"
+        x-en-description: "Start time, format YYYY-mm-DD HH:MM"
+        example: "2025-09-21 00:00"
+      end_time:
+        type: string
+        description: "结束时间，格式YYYY-mm-DD HH:MM"
+        x-en-description: "End time, format YYYY-mm-DD HH:MM"
+        example: "2025-09-21 23:59"
+      groupby_col:
+        type: string
+        description: "分组统计列名，可选值：All/RruId/eNodeB Name/Date/Hour"
+        x-en-description: "Group by column, options: All/RruId/eNodeB Name/Date/Hour"
+        enum:
+          - All
+          - RruId
+          - eNodeB Name
+          - Date
+          - Hour
+        default: All
+      statistics:
+        type: string
+        description: "统计方法，sum/average，默认sum"
+        x-en-description: "Statistics method, sum/average, default sum"
+        enum:
+          - sum
+          - average
+        default: sum
+      sort_order:
+        type: string
+        description: "排序方式，Desc/Asc/None"
+        x-en-description: "Sort order, Desc/Asc/None"
+        enum:
+          - Desc
+          - Asc
+          - None
+        default: None
+      top_N:
+        type: string
+        description: "返回TopN数量，未指定填None"
+        x-en-description: "TopN count, None if not specified"
+        default: None
+  BtsEnergyAnalyzeResponse:
+    description: 能耗分析响应
+    x-en-description: BTS energy analyze response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data

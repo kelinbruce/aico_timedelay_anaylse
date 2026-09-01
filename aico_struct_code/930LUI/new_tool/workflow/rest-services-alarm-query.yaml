@@ -1,0 +1,125 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: alarm
+  title: WATT Alarm Query API
+  x-en-title: WATT Alarm Query API
+  description: WATT告警查询API，通过网关调用
+  x-en-description: WATT alarm query API via gateway
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: AlarmQuery
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - AlarmQuery
+      summary: "query_alarm"
+      x-en-summary: "query_alarm"
+      description: 告警查询工具，查询指定维度和对象的告警信息
+      x-en-description: Alarm query tool for querying alarm info by dimension and entity
+      x-llm-friendly: true
+      x-llm-tag: alarm-query
+      x-function-category: 告警查询
+      x-question-example:
+        - question: 查询某站点的告警信息
+        - question: 查询紧急告警
+      x-en-question-example:
+        - question: Query alarm info for a site
+        - question: Query critical alarms
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiAccessTag: interTest
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: AlarmQueryRequest
+          description: 告警查询请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/AlarmQueryRequest"
+      responses:
+        "200":
+          description: 告警查询结果
+          schema:
+            $ref: "#/definitions/AlarmQueryResponse"
+definitions:
+  AlarmQueryRequest:
+    description: 告警查询请求
+    type: object
+    required:
+      - model
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "Qwen3-32B"
+      entityNames:
+        type: array
+        description: "查询对象名称列表（区域名或站点名，取决于dimension）。如果未指定，则为空列表。"
+        x-en-description: "Entity name list. Empty if not specified."
+        items:
+          type: string
+      dataPath:
+        type: string
+        description: "已筛选的entityNames列表的文件路径，如果前面没有进行筛选，则默认为空字符串"
+        x-en-description: "File path of pre-filtered entityNames list, default empty string"
+        default: ""
+      dimension:
+        type: string
+        description: "查询维度，必填。REGION表示按区域查询，SITE表示按站点查询。"
+        x-en-description: "Query dimension. REGION for region, SITE for site."
+        enum:
+          - REGION
+          - SITE
+      alarmCategories:
+        type: array
+        description: "告警类别列表。如果未指定，则查询所有类别。"
+        x-en-description: "Alarm category list. All categories if not specified."
+        items:
+          type: string
+      severities:
+        type: array
+        description: "告警级别列表，最大4项。可选值：1(紧急), 2(重要), 3(次要), 4(提示)。如果未指定，则查询所有级别。"
+        x-en-description: "Severity list. Options: 1(critical), 2(major), 3(minor), 4(warning). All if not specified."
+        items:
+          type: integer
+      startTime:
+        type: string
+        description: "起始时间，格式YYYY-MM-DD HH:mm:ss，默认当前时间-3天"
+        x-en-description: "Start time, format YYYY-MM-DD HH:mm:ss, default now-3d"
+      endTime:
+        type: string
+        description: "截止时间，格式YYYY-MM-DD HH:mm:ss，默认当前时间"
+        x-en-description: "End time, format YYYY-MM-DD HH:mm:ss, default now"
+  AlarmQueryResponse:
+    description: 告警查询响应
+    x-en-description: Alarm query response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data

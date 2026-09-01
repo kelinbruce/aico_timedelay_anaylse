@@ -1,0 +1,123 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: watt8
+  title: WATT Configuration Query API
+  x-en-title: WATT Configuration Query API
+  description: WATT配置查询API，查询小区的配置特性状态或按开关状态筛选小区
+  x-en-description: WATT configuration query API, queries cell configuration feature status or filters cells by switch status
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: ConfigurationQuery
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - ConfigurationQuery
+      summary: "configuration_query"
+      x-en-summary: "configuration_query"
+      description: 配置查询工具，查询小区的配置特性状态，或给定配置特性的开关状态查询对应的小区
+      x-en-description: Configuration query tool, queries cell feature status or filters cells by feature switch status
+      x-llm-friendly: true
+      x-llm-tag: configuration-query
+      x-function-category: 配置查询
+      x-question-example:
+        - question: 查询某小区的节能特性配置
+        - question: 查询开启了载波关断的小区
+      x-en-question-example:
+        - question: Query power saving feature config for a cell
+        - question: Query cells with carrier shutdown enabled
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: ConfigurationQueryRequest
+          description: 配置查询请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/ConfigurationQueryRequest"
+      responses:
+        "200":
+          description: 配置查询结果
+          schema:
+            $ref: "#/definitions/ConfigurationQueryResponse"
+definitions:
+  ConfigurationQueryRequest:
+    description: 配置查询请求
+    type: object
+    required:
+      - model
+      - tool_name
+      - arguments
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "Qwen3-32B"
+      tool_name:
+        type: string
+        description: "工具名称，固定为configuration_query"
+        x-en-description: "Tool name, fixed as configuration_query"
+        enum:
+          - configuration_query
+      arguments:
+        type: object
+        $ref: "#/definitions/ConfigurationQueryArguments"
+  ConfigurationQueryArguments:
+    description: 配置查询工具参数
+    x-en-description: Configuration query tool arguments
+    type: object
+    properties:
+      cell_name:
+        type: array
+        description: "小区名称列表，未指定则为空列表"
+        x-en-description: "Cell name list, empty if not specified"
+        items:
+          type: string
+      data_path:
+        type: string
+        description: "需要筛选的小区文件路径，未指定则为空字符串"
+        x-en-description: "Pre-filtered cell file path, empty if not specified"
+        default: ""
+      query_col:
+        type: array
+        description: "查询的MO或参数名称列表"
+        x-en-description: "MO or parameter name list to query"
+        items:
+          type: string
+      filter:
+        type: string
+        description: "可选项：小区筛选、开特性小区筛选、特性参数查询、未指定特性查询"
+        x-en-description: "Filter option"
+  ConfigurationQueryResponse:
+    description: 配置查询响应
+    x-en-description: Configuration query response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data

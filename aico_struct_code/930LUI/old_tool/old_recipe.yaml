@@ -1,0 +1,1874 @@
+name: WATT_Old_Tool_Test_v1
+description: 问数老工具全流程
+domain: WATT
+scene: old-tool-test
+lang: zh
+version: 1.0.0
+type: boot-recipe
+
+nodes:
+  start_node:
+    type: start-event
+    description: 用户问题入口
+    next:
+      preprocess:
+        condition: ''
+
+  # ── 预处理 ──
+  preprocess:
+    type: python
+    description: 预处理：清洗历史对话，构建查询文本
+    next:
+      parallel_search:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import re
+        import json
+
+        question = input_question
+        chat_history_key = [{'role': 'user', 'content': question}]
+
+        def remove_tool_call_blocks(text):
+            if not text:
+                return text
+            text = re.sub(r"<think[\s\S]*?\<\/think>", "", text, flags=re.IGNORECASE)
+            text = re.sub(r"###\s*🛠️\s*Tool\s*Call[\s\S]*?(?=###\s*🤖\s*Executor\s*Agent|###\s|\Z)", "", text, flags=re.IGNORECASE)
+            text = re.sub(r">\s*已执行工具[\s\S]*?(?=###\s|\Z)", "", text, flags=re.IGNORECASE)
+            text = re.sub(r"[ \t]+", " ", text)
+            text = re.sub(r"\n{2,}", "\n\n", text)
+            return text.strip()
+
+        query = " ".join([remove_tool_call_blocks(k['content']) for k in chat_history_key])
+        query += " " + question
+
+        result = {
+            "chat_history_key": chat_history_key,
+            "query": query
+        }
+        print(json.dumps(result, ensure_ascii=False))
+    outputs:
+      chat_history_key: ${python_result.chat_history_key}
+      query: ${python_result.query}
+
+  # ══════════════════════════════════════════════════════
+  # ── 并行7路 type-filtered RAG 检索 ──
+  # ══════════════════════════════════════════════════════
+  parallel_search:
+    type: parallel-gateway
+    description: 并行发起7路type-filtered检索
+    next:
+      build_search_kpi_body:
+        condition: ''
+      build_search_kpi_cn_body:
+        condition: ''
+      build_search_filter_body:
+        condition: ''
+      build_search_configure_body:
+        condition: ''
+      build_search_cell_body:
+        condition: ''
+      build_search_enodeb_body:
+        condition: ''
+      build_search_rru_body:
+        condition: ''
+      build_search_site_body:
+        condition: ''
+    inputs:
+      join_timeout: "120"
+      join_node: "parallel_search_join"
+
+  # ── 1. KPI 检索 ──
+  build_search_kpi_body:
+    type: python
+    description: 构建test_feature索引type=kpi的搜索请求体
+    next:
+      search_kpi:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import json
+        body = {
+            "query": input_question,
+            "max_num_results": 50,
+            "ranking_options": {"ranker": "merge"},
+            "termweight_options": {"termweighter": "none", "topn": 3},
+            "search_strategies": [{"strategy": "text", "top_k": 50}],
+            "filters": {"type": "and", "filters": [{"key": "metadata.type", "value": "kpi", "type": "equals"}]},
+        }
+        print(json.dumps(body, ensure_ascii=False))
+    outputs:
+      kpi_body: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  search_kpi:
+    type: restful
+    description: 检索test_feature索引中type=kpi的数据
+    next:
+      parallel_search_join:
+        condition: ''
+    inputs:
+      api_name: "search_feature"
+      verify_ssl: "false"
+      query: ${kpi_body.query}
+      max_num_results: ${kpi_body.max_num_results}
+      ranking_options: ${kpi_body.ranking_options}
+      termweight_options: ${kpi_body.termweight_options}
+      search_strategies: ${kpi_body.search_strategies}
+      filters: ${kpi_body.filters}
+    outputs:
+      kpi_response: ${api_response}
+      kpi_data: ${api_response.data}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  build_search_kpi_cn_body:
+    type: python
+    description: 构建test_feature索引type=kpi cn的搜索请求体
+    next:
+      search_kpi_cn:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import json
+        import re
+        chinese_groups = re.findall(r'[\u4e00-\u9fff]+', input_question)
+        chinese_query = ' '.join(chinese_groups)
+        body = {
+            "query": chinese_query,
+            "max_num_results": 50,
+            "ranking_options": {"ranker": "merge"},
+            "termweight_options": {"termweighter": "none", "topn": 3},
+            "search_strategies": [{"strategy": "text", "top_k": 50}],
+            "filters": {"type": "and", "filters": [{"key": "metadata.type", "value": "kpi", "type": "equals"}]},
+        }
+        print(json.dumps(body, ensure_ascii=False))
+    outputs:
+      kpi_body_cn: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  search_kpi_cn:
+    type: restful
+    description: 检索test_feature索引中type=kpi cn的数据
+    next:
+      parallel_search_join:
+        condition: ''
+    inputs:
+      api_name: "search_feature"
+      verify_ssl: "false"
+      query: ${kpi_body_cn.query}
+      max_num_results: ${kpi_body_cn.max_num_results}
+      ranking_options: ${kpi_body_cn.ranking_options}
+      termweight_options: ${kpi_body_cn.termweight_options}
+      search_strategies: ${kpi_body_cn.search_strategies}
+      filters: ${kpi_body_cn.filters}
+    outputs:
+      kpi_cn_response: ${api_response}
+      kpi_cn_data: ${api_response.data}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  # ── 2. Filter 检索 ──
+  build_search_filter_body:
+    type: python
+    description: 构建test_feature索引type=filter的搜索请求体
+    next:
+      search_filter:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import json
+        body = {
+            "query": input_question,
+            "max_num_results": 50,
+            "ranking_options": {"ranker": "merge"},
+            "termweight_options": {"termweighter": "none", "topn": 3},
+            "search_strategies": [{"strategy": "text", "top_k": 50}],
+            "filters": {"type": "and", "filters": [{"key": "metadata.type", "value": "filter", "type": "equals"}]},
+        }
+        print(json.dumps(body, ensure_ascii=False))
+    outputs:
+      filter_body: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  search_filter:
+    type: restful
+    description: 检索test_feature索引中type=filter的数据
+    next:
+      parallel_search_join:
+        condition: ''
+    inputs:
+      api_name: "search_feature"
+      verify_ssl: "false"
+      query: ${filter_body.query}
+      max_num_results: ${filter_body.max_num_results}
+      ranking_options: ${filter_body.ranking_options}
+      termweight_options: ${filter_body.termweight_options}
+      search_strategies: ${filter_body.search_strategies}
+      filters: ${filter_body.filters}
+    outputs:
+      filter_response: ${api_response}
+      filter_data: ${api_response.data}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  # ── 3. Configure 检索 ──
+  build_search_configure_body:
+    type: python
+    description: 构建test_feature索引type=configure的搜索请求体
+    next:
+      search_configure:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import json
+        body = {
+            "query": input_question,
+            "max_num_results": 50,
+            "ranking_options": {"ranker": "merge"},
+            "termweight_options": {"termweighter": "none", "topn": 3},
+            "search_strategies": [{"strategy": "text", "top_k": 50}],
+            "filters": {"type": "and", "filters": [{"key": "metadata.type", "value": "configure", "type": "equals"}]},
+        }
+        print(json.dumps(body, ensure_ascii=False))
+    outputs:
+      configure_body: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  search_configure:
+    type: restful
+    description: 检索test_feature索引中type=configure的数据
+    next:
+      parallel_search_join:
+        condition: ''
+    inputs:
+      api_name: "search_feature"
+      verify_ssl: "false"
+      query: ${configure_body.query}
+      max_num_results: ${configure_body.max_num_results}
+      ranking_options: ${configure_body.ranking_options}
+      termweight_options: ${configure_body.termweight_options}
+      search_strategies: ${configure_body.search_strategies}
+      filters: ${configure_body.filters}
+    outputs:
+      configure_response: ${api_response}
+      configure_data: ${api_response.data}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  # ── 4. Cell 检索 ──
+  build_search_cell_body:
+    type: python
+    description: 构建test_object索引type=cell的搜索请求体
+    next:
+      search_cell:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import json
+        body = {
+            "query": input_question,
+            "max_num_results": 50,
+            "ranking_options": {"ranker": "merge"},
+            "termweight_options": {"termweighter": "none", "topn": 3},
+            "search_strategies": [{"strategy": "text", "top_k": 50}],
+            "filters": {"type": "and", "filters": [{"key": "metadata.type", "value": "cell", "type": "equals"}]},
+        }
+        print(json.dumps(body, ensure_ascii=False))
+    outputs:
+      cell_body: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  search_cell:
+    type: restful
+    description: 检索test_object索引中type=cell的数据
+    next:
+      parallel_search_join:
+        condition: ''
+    inputs:
+      api_name: "search_object"
+      verify_ssl: "false"
+      query: ${cell_body.query}
+      max_num_results: ${cell_body.max_num_results}
+      ranking_options: ${cell_body.ranking_options}
+      termweight_options: ${cell_body.termweight_options}
+      search_strategies: ${cell_body.search_strategies}
+      filters: ${cell_body.filters}
+    outputs:
+      cell_response: ${api_response}
+      cell_data: ${api_response.data}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  # ── 5. Enodeb 检索 ──
+  build_search_enodeb_body:
+    type: python
+    description: 构建test_object索引type=enodeb的搜索请求体
+    next:
+      search_enodeb:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import json
+        body = {
+            "query": input_question,
+            "max_num_results": 50,
+            "ranking_options": {"ranker": "merge"},
+            "termweight_options": {"termweighter": "none", "topn": 3},
+            "search_strategies": [{"strategy": "text", "top_k": 50}],
+            "filters": {"type": "and", "filters": [{"key": "metadata.type", "value": "enodeb", "type": "equals"}]},
+        }
+        print(json.dumps(body, ensure_ascii=False))
+    outputs:
+      enodeb_body: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  search_enodeb:
+    type: restful
+    description: 检索test_object索引中type=enodeb的数据
+    next:
+      parallel_search_join:
+        condition: ''
+    inputs:
+      api_name: "search_object"
+      verify_ssl: "false"
+      query: ${enodeb_body.query}
+      max_num_results: ${enodeb_body.max_num_results}
+      ranking_options: ${enodeb_body.ranking_options}
+      termweight_options: ${enodeb_body.termweight_options}
+      search_strategies: ${enodeb_body.search_strategies}
+      filters: ${enodeb_body.filters}
+    outputs:
+      enodeb_response: ${api_response}
+      enodeb_data: ${api_response.data}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  # ── 6. RRU 检索 ──
+  build_search_rru_body:
+    type: python
+    description: 构建test_object索引type=rru的搜索请求体
+    next:
+      search_rru:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import json
+        body = {
+            "query": input_question,
+            "max_num_results": 50,
+            "ranking_options": {"ranker": "merge"},
+            "termweight_options": {"termweighter": "none", "topn": 3},
+            "search_strategies": [{"strategy": "text", "top_k": 50}],
+            "filters": {"type": "and", "filters": [{"key": "metadata.type", "value": "rru", "type": "equals"}]},
+        }
+        print(json.dumps(body, ensure_ascii=False))
+    outputs:
+      rru_body: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  search_rru:
+    type: restful
+    description: 检索test_object索引中type=rru的数据
+    next:
+      parallel_search_join:
+        condition: ''
+    inputs:
+      api_name: "search_object"
+      verify_ssl: "false"
+      query: ${rru_body.query}
+      max_num_results: ${rru_body.max_num_results}
+      ranking_options: ${rru_body.ranking_options}
+      termweight_options: ${rru_body.termweight_options}
+      search_strategies: ${rru_body.search_strategies}
+      filters: ${rru_body.filters}
+    outputs:
+      rru_response: ${api_response}
+      rru_data: ${api_response.data}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  # ── 7. Site 检索 ──
+  build_search_site_body:
+    type: python
+    description: 构建test_object索引type=site的搜索请求体
+    next:
+      search_site:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      script: |-
+        import json
+        body = {
+            "query": input_question,
+            "max_num_results": 50,
+            "ranking_options": {"ranker": "merge"},
+            "termweight_options": {"termweighter": "none", "topn": 3},
+            "search_strategies": [{"strategy": "text", "top_k": 50}],
+            "filters": {"type": "and", "filters": [{"key": "metadata.type", "value": "site", "type": "equals"}]},
+        }
+        print(json.dumps(body, ensure_ascii=False))
+    outputs:
+      site_body: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  search_site:
+    type: restful
+    description: 检索test_object索引中type=site的数据
+    next:
+      parallel_search_join:
+        condition: ''
+    inputs:
+      api_name: "search_object"
+      verify_ssl: "false"
+      query: ${site_body.query}
+      max_num_results: ${site_body.max_num_results}
+      ranking_options: ${site_body.ranking_options}
+      termweight_options: ${site_body.termweight_options}
+      search_strategies: ${site_body.search_strategies}
+      filters: ${site_body.filters}
+    outputs:
+      site_response: ${api_response}
+      site_data: ${api_response.data}
+      output_parser:
+        show_title: false
+        show_content: false
+
+  # ── 并行检索汇合 ──
+  parallel_search_join:
+    type: inclusive-gateway
+    description: 等待7路检索完成
+    next:
+      postprocess:
+        condition: ''
+    inputs:
+    outputs:
+      smsg2: node join...;
+
+  # ══════════════════════════════════════════════════════
+  # ── 后处理：解析各分类检索结果，filter_by_type 防御，结构化输出 ──
+  # ══════════════════════════════════════════════════════
+  postprocess:
+    type: python
+    description: 后处理：解析各分类检索结果，精确匹配，生成结构化recall_result
+    next:
+      build_nego_plan_messages:
+        condition: ''
+    inputs:
+      kpi_data: ${kpi_data}
+      kpi_cn_data: ${kpi_cn_data}
+      filter_data: ${filter_data}
+      configure_data: ${configure_data}
+      cell_data: ${cell_data}
+      enodeb_data: ${enodeb_data}
+      rru_data: ${rru_data}
+      site_data: ${site_data}
+      input_question: ${input_question}
+      script: |-
+        import json
+        import re
+
+        DATABASE_START = "2025-09-15 00:00"
+        DATABASE_END = "2025-09-22 00:00"
+        CURRENT_TIME = "2025-09-22 00:00"
+
+        def _extract_hits(data):
+            hits = []
+            if not isinstance(data, list):
+                return hits
+            for item in data:
+                if not isinstance(item, dict):
+                    continue
+                for c in item.get("content", []):
+                    if not isinstance(c, dict):
+                        continue
+                    props = c.get("properties", {})
+                    meta = props.get("metadata", {})
+                    if not isinstance(meta, dict):
+                        continue
+                    hits.append({
+                        "type": meta.get("type", ""),
+                        "map": meta.get("map", ""),
+                        "name": meta.get("name", ""),
+                        "knowledge": props.get("knowledge", ""),
+                    })
+            return hits
+
+        _kpi_hits = _extract_hits(kpi_data)
+        _kpi_cn_hits = _extract_hits(kpi_cn_data)
+        _filter_hits = _extract_hits(filter_data)
+        _configure_hits = _extract_hits(configure_data)
+        _cell_hits = _extract_hits(cell_data)
+        _enodeb_hits = _extract_hits(enodeb_data)
+        _rru_hits = _extract_hits(rru_data)
+        _site_hits = _extract_hits(site_data)
+
+        def safe_get(item, key):
+            v = item.get(key, "")
+            return str(v) if v is not None else ""
+
+        def filter_by_type(items, type_name):
+            return [x for x in items if safe_get(x, "type") == type_name]
+
+        _kpi_hits = filter_by_type(_kpi_hits, "kpi")
+        _kpi_cn_hits = filter_by_type(_kpi_cn_hits, "kpi")
+        _filter_hits = filter_by_type(_filter_hits, "filter")
+        _configure_hits = filter_by_type(_configure_hits, "configure")
+        _cell_hits = filter_by_type(_cell_hits, "cell")
+        _enodeb_hits = filter_by_type(_enodeb_hits, "enodeb")
+        _rru_hits = filter_by_type(_rru_hits, "rru")
+        _site_hits = filter_by_type(_site_hits, "site")
+
+        def remove_cn_en_spaces(text):
+            text = re.sub(r"([\u4e00-\u9fff])\s+([a-zA-Z0-9])", r"\1\2", text)
+            text = re.sub(r"([a-zA-Z0-9])\s+([\u4e00-\u9fff])", r"\1\2", text)
+            return text
+
+        def normalize_symbol_match(match):
+            return re.sub(r"[.\-()]+", "_", match.group()).strip("_")
+
+        SYMBOL_PATTERN = re.compile(
+            r"(?<![A-Za-z0-9_])"
+            r"(?=[A-Za-z0-9_.()\-]*[.\-()])"
+            r"[A-Za-z0-9_.()\-]+"
+            r"(?![A-Za-z0-9_])"
+        )
+
+        def preprocess_str(text):
+            if text is None:
+                return ""
+            text = str(text)
+            text = remove_cn_en_spaces(text)
+            text = SYMBOL_PATTERN.sub(normalize_symbol_match, text)
+            return text.lower()
+
+        def build_exact_matches(raw_values, processed_query):
+            exact = []
+            seen = set()
+            for value in raw_values:
+                value = str(value)
+                if not value:
+                    continue
+                if preprocess_str(value) in processed_query and value not in seen:
+                    exact.append(value)
+                    seen.add(value)
+            return exact
+
+        def dedupe_keep_order(items):
+          seen = set()
+          result = []
+          for item in items:
+              if item not in seen:
+                  seen.add(item)
+                  result.append(item)
+          return result
+
+        def normalize_spaces(text):
+            text = re.sub(r"\s+", " ", text).strip()
+            text = remove_cn_en_spaces(text)
+            return text
+
+        def match_aliases(question):
+            normalized = normalize_spaces(question)
+            normalized = re.sub(r"([A-Za-z0-9])\s+(?=[A-Za-z0-9])", r"\1", normalized)
+            normalized_upper = normalized.upper()
+
+            alias_5g = {
+                "覆盖": [
+                    "基于话统的弱覆盖占比",
+                    "基于MR的弱覆盖占比",
+                    "重叠覆盖率"
+                ],
+                "视频通话": [
+                    "VINR接通率",
+                    "VINR掉话率",
+                    "VINR上行丢包率"
+                ],
+                "下行": [
+                    "上下行低速占比",
+                    "用户下行平均吞吐率(速率)",
+                    "RLC层下行丢包率",
+                    "下行PRB利用率",
+                    "下行业务数据量(流量)",
+                    "小区RLC层下行丢包率"
+                ],
+                "上行": [
+                    "用户上行平均吞吐率(速率)",
+                    "上行平均干扰电平",
+                    "VONR上行丢包率",
+                    "上行PRB利用率",
+                    "上行业务数据量(流量)",
+                    "VINR上行丢包率",
+                    "5G上下行低速率占比"
+                ],
+                "语音通话": [
+                    "EPSFB成功率",
+                    "VoNR到VoLTE切换出成功率",
+                    "VONR接通率",
+                    "VONR掉话率",
+                    "VONR上行丢包率",
+                    "RLC层下行丢包率"
+                ],
+                "5G基础kpi": [
+                    "NR到LTE切换出成功率",
+                    "切换出成功率",
+                    "无线掉话率",
+                    "无线接通率"
+                ],
+                "速率": [
+                    "用户下行平均吞吐率(速率)",
+                    "用户上行平均吞吐率(速率)"
+                ],
+                "干扰": [
+                    "上行平均干扰电平"
+                ],
+                "系统间切换": [
+                    "VoNR到VoLTE切换出成功率",
+                    "NR到LTE切换出成功率"
+                ],
+                "切换": [
+                    "EPSFB成功率",
+                    "VoNR到VoLTE切换出成功率",
+                    "NR到LTE切换出成功率",
+                    "切换出成功率"
+                ],
+                "接通": [
+                    "VONR接通率",
+                    "无线接通率",
+                    "VINR接通率"
+                ],
+                "掉线": [
+                    "VONR掉话率",
+                    "切换出成功率"
+                ],
+                "负载": [
+                    "上行PRB利用率",
+                    "下行PRB利用率",
+                    "CCE利用率"
+                ],
+                "流量": [
+                    "下行业务数据量(流量)",
+                    "上行业务数据量(流量)"
+                ],
+                "丢包": [
+                    "RLC层下行丢包率"
+                ],
+                "上行负载": [
+                    "上行PRB利用率"
+                ],
+                "下行负载": [
+                    "下行PRB利用率"
+                ],
+                "VoNR掉话率": [
+                    "VONR掉话率"
+                ],
+                "5G下行平均速率": [
+                    "用户下行平均吞吐率(速率)"
+                ],
+                "5G上行平均速率": [
+                    "用户上行平均吞吐率(速率)"
+                ]
+            }
+            sorted_keys = sorted(alias_5g.keys(), key=lambda k: len(k), reverse=True)
+            all_matched = [k for k in sorted_keys if k.upper() in normalized_upper]
+            filtered = []
+            for k in all_matched:
+                is_substring = any(
+                    k in other and k != other
+                    for other in all_matched
+                )
+                if not is_substring:
+                    filtered.append(k)
+            matched_values = []
+            for key in filtered:
+                flag = 0
+                for value in alias_5g[key]:
+                    if value.upper() in normalized_upper:
+                        flag = 1
+                        break
+                if flag:
+                    continue
+                matched_values.append({
+                    "key": key,
+                    "value": alias_5g[key]
+                })
+            return matched_values
+
+        joined_question = input_question
+        joined_question_processed = preprocess_str(joined_question)
+
+        top_related_kpis = [safe_get(x, "map") for x in _kpi_hits if safe_get(x, "map")][:50]
+        top_related_kpis_cn = [safe_get(x, "map") for x in _kpi_cn_hits if safe_get(x, "map")][:50]
+        top_related_filters = [safe_get(x, "map") for x in _filter_hits if safe_get(x, "map")][:50]
+        top_related_configures = [safe_get(x, "name") for x in _configure_hits if safe_get(x, "name")][:50]
+        top_related_kpis = dedupe_keep_order(top_related_kpis + top_related_kpis_cn)
+
+        kpi_knowledge = [safe_get(x, "knowledge") for x in _kpi_hits if safe_get(x, "knowledge")][:50]
+        kpi_cn_knowledge = [safe_get(x, "knowledge") for x in _kpi_cn_hits if safe_get(x, "knowledge")][:50]
+        filter_knowledge = [safe_get(x, "knowledge") for x in _filter_hits if safe_get(x, "knowledge")][:50]
+        configure_knowledge = [safe_get(x, "knowledge") for x in _configure_hits if safe_get(x, "knowledge")][:50]
+        kpi_knowledge = dedupe_keep_order(kpi_knowledge + kpi_cn_knowledge)
+
+        raw_enodeb_names = [safe_get(x, "knowledge") for x in _enodeb_hits if safe_get(x, "knowledge")][:50]
+        raw_cell_names = [safe_get(x, "knowledge") for x in _cell_hits if safe_get(x, "knowledge")][:50]
+        raw_rru_names = [safe_get(x, "knowledge") for x in _rru_hits if safe_get(x, "knowledge")][:50]
+        raw_site_names = [safe_get(x, "knowledge") for x in _site_hits if safe_get(x, "knowledge")][:50]
+
+        exact_features = build_exact_matches(kpi_knowledge + filter_knowledge + configure_knowledge + ["能耗"], joined_question_processed)
+        exact_enodeb = build_exact_matches(raw_enodeb_names, joined_question_processed)
+        exact_cell = build_exact_matches(raw_cell_names, joined_question_processed)
+        exact_site = build_exact_matches(raw_site_names, joined_question_processed)
+        exact_rru = build_exact_matches(raw_rru_names, joined_question_processed)
+
+        # 黑话匹配：将alias对应的value（标准KPI名）追加到exact_features，使协商器判定feature完备
+        alias_matched = match_aliases(input_question)
+        alias_values = [v for a in alias_matched for v in a["value"]]
+        exact_features = dedupe_keep_order(exact_features + alias_values)
+
+        if "小区名称:Cell Name" not in top_related_filters and "小区" in input_question:
+            top_related_filters.insert(0, "小区名称:Cell Name")
+        if "enodeb名称:eNodeB Name" not in top_related_filters and ("基站" in input_question or "站点" in input_question or "enodeb" in input_question.lower()):
+            top_related_filters.insert(0, "enodeb名称:eNodeB Name")
+
+        recall_result = {
+            "candidate_kpis": top_related_kpis,
+            "candidate_filters": top_related_filters[:20],
+            "candidate_configures": top_related_configures[:20],
+            "candidate_features": dedupe_keep_order(top_related_kpis[:20] + top_related_filters[:20] + top_related_configures[:20] + alias_values),
+            "exact_features": exact_features,
+            "prompt_region_names": [],
+            "prompt_cell_names": raw_cell_names[:20],
+            "prompt_enodeb_names": raw_enodeb_names[:20],
+            "prompt_site_names": raw_site_names[:20],
+            "prompt_rruid_names": raw_rru_names[:20],
+            "exact_cell": exact_cell,
+            "exact_enodeb": exact_enodeb,
+            "exact_site": exact_site,
+            "exact_rruid": exact_rru,
+            "exact_region": [],
+
+            "time": {
+                "database_start": DATABASE_START,
+                "database_end": DATABASE_END,
+                "current_time": CURRENT_TIME,
+            },
+            "alias": alias_matched,
+        }
+
+        print(json.dumps(recall_result, ensure_ascii=False))
+    outputs:
+      recall_result: ${python_result}
+
+  # ── 协商规划 ──
+  build_nego_plan_messages:
+    type: python
+    description: 构建协商规划 LLM 的 messages 和调用参数
+    next:
+      call_nego_plan_llm:
+        condition: ''
+    inputs:
+      input_question: ${input_question}
+      recall_result: ${recall_result}
+      script: |-
+        import json
+
+        candidate_kpis = recall_result.get('candidate_kpis', [])[:60]
+        candidate_filters = recall_result.get('candidate_filters', [])[:20]
+        candidate_configures = recall_result.get('candidate_configures', [])[:20]
+
+        exact_features = recall_result.get('exact_features', [])
+        alias_info = recall_result.get('alias', [])
+
+        prompt_cell_names = recall_result.get('prompt_cell_names', [])[:20]
+        prompt_enodeb_names = recall_result.get('prompt_enodeb_names', [])[:20]
+        prompt_site_names = recall_result.get('prompt_site_names', [])[:20]
+        prompt_rruid_names = recall_result.get('prompt_rruid_names', [])[:20]
+        exact_cell = recall_result.get('exact_cell', [])
+        exact_enodeb = recall_result.get('exact_enodeb', [])
+        exact_site = recall_result.get('exact_site', [])
+        exact_rruid = recall_result.get('exact_rruid', [])
+        exact_region = recall_result.get('exact_region', [])
+
+        exact_summary = {
+          "feature": exact_features,
+          "enodeb": exact_enodeb,
+          "site": exact_site,
+          "cell": exact_cell,
+          "rruid": exact_rruid
+        }
+
+        alias_display = ""
+        if alias_info:
+            alias_lines = [f'  "{a["key"]}" -> {json.dumps(a["value"], ensure_ascii=False)}' for a in alias_info]
+            alias_display = "\n".join(alias_lines)
+
+        import json
+
+        nego_planner_prompt = f"""# 任务
+        你是无线网络问数系统的意图协商与任务规划智能体。请结合用户问题、精确匹配结果和候选列表，在内部识别任务涉及的业务类型，判断feature、object、time三个维度是否完备，并生成后续工具执行计划。任一必要维度不完备时，只输出一次性追问，不生成计划；全部完备时，输出确认信息和总体计划。禁止输出分析过程、业务分类结果、工具调用命令或虚构数据。
+        # 一、协商维度
+        先在内部判断基础业务，但禁止在输出中增加classification或business_type字段。KPI查询需要feature、object、time；能耗查询需要object、time，不需要feature；工参筛选或工参查询需要feature、object，不需要time；配置查询需要feature、object，不需要time。混合任务取所需维度的并集。绘图和增益属于后续操作，其协商维度由依赖的基础查询决定。无法判断用户具体要查询什么时，设置feature.required=true、feature.matched=false。
+        required=false的维度不参与完整性判断，统一输出matched=true并清空其他字段。任一required=true的维度matched=false时，plan必须为空字符串，message合并所有缺失项并以一个<Finished>结尾；全部必要维度matched=true时，plan必须非空，message只做简洁确认且不得包含<Finished>。
+
+        # 二、feature规则
+        feature只在required=true时判断，并根据业务类型分别使用对应候选：KPI只能使用KPI候选，工参只能使用工参候选，配置只能使用配置候选，禁止跨类型匹配。精确匹配结果优先级最高，已经精确识别的指标或参数必须直接采用；候选列表仅用于辅助判断和推荐，不代表系统完整支持范围。
+        用户明确说出具体且无歧义的指标，即使候选中没有完全相同的名称，也应matched=true，confirmed保留用户原始中文名称或唯一匹配到的标准中文名，禁止用近似KPI替换。用户使用“PRB利用率”“吞吐率”“流量”“用户数”“性能”等宽泛表达，且候选中存在上下行、平均/总量、成功率/次数等多个口径时，将可能存在的多个口径均进行查询和呈现，不得追问；用户已经明确上行、下行、平均、最大、总和、累计等方向或统计口径时，应优先匹配相同方向和口径，不得重复追问。多个指标必须全部明确才算匹配，部分明确时confirmed保留已确认项，只追问有歧义的部分。
+        以下别名视为等价：用户下行平均吞吐率=用户下行平均吞吐率(速率)。候选中同时存在平均吞吐率和总吞吐量且用户未明确口径时，必须追问。
+        工参或配置查询中，只要字段名称和条件表达明确即可；属性值不要求出现在候选列表中，例如Band=LTE1800、带宽=5M、电子下倾角=5、配置状态=ON均可视为完整。用户提到LTE1800、LTE2100、LTE800等频段时，应规划使用Band字段筛选，不得自行推导EARFCN；“波束带宽”不得直接等同于Bandwidth，字段不明确时需要追问。
+
+        # 二-B、黑话（alias）规则
+        用户问题中可能包含5G黑话（非标准KPI说法），alias字段提供了黑话到标准KPI中文名的映射。如果用户问题原文中的某个表述与alias中某个key匹配（即该表述是黑话），则应在总体计划中用标准KPI名称替换该表述。
+        一般地，用户语义没有指向性，则value列表中的所有标准KPI名称都必须完整、逐条替换黑话出现在计划的指标描述中，不应反复追问。如果用户语义有所特指，请从value列表中选择对应的标准KPI名称来替换。
+        如果用户问题原文中的KPI表述不是黑话（即alias中无对应key），则按正常KPI映射规则处理。
+
+        当前alias映射：
+        {alias_display}
+
+        # 三、object规则
+        object只在required=true时判断。精确匹配结果已经明确对象类型和名称时必须直接采用，不得重新猜测或改成其他类型。具体名称必须完整存在于对应候选列表中；匹配时可以忽略字母大小写以及下划线、点号、连字符等分隔符差异，但其他字母和数字必须一致。禁止仅凭前缀或子串匹配，也禁止根据小区名称推导enodeb、根据enodeb推导站点或根据站点推导enodeb。
+        用户未提及对象时默认查询全部对象，不追问：KPI、工参和配置查询默认“查询德国汉堡全部小区”，能耗查询默认“查询全部RRU”。用户通过工参条件、配置条件、区域、TopN或排序条件定义对象时，视为对象完整。用户说“某个小区”“某个基站”“指定RRU”等泛指对象，或者提供的具体名称不存在、拼写错误、只有前缀匹配时，必须追问并优先推荐相似候选。
+        KPI工具以小区为单元。用户查询enodeb、站点或区域下的KPI时，object可以匹配成功，但计划必须先调用region_creation获取小区，再调用compute_cell_kpi。能耗工具以RRU为单元，支持enodeb、RRU和柜框槽号，不支持通过具体小区名称直接查询；用户指定具体小区查询能耗时，应追问对应enodeb或RRU标识，不得自行从小区名称推导enodeb。
+
+        # 四、time规则
+        time只在required=true时判断。KPI和能耗查询必须有明确时间；若当前问题及可用上下文中都没有时间，time.matched=false并追问，不得自行使用默认一周绕过协商。工参和配置查询不要求时间。
+        用户只给日期时，按当天00:00至23:59处理；给出整点如17:00时，按17:00至17:59处理；0:00按00:00至00:59处理；未写年份默认2025年，未写月份默认2025年9月。昨天、前天、过去N小时、过去N天等相对时间按当前时间2025-09-22 00:00换算。晚上定义为18:00至次日00:00。时间统一输出为YYYY-mm-dd HH:MM。
+        用户只给小时但没有日期、使用非整点分钟、时间格式非法，或者查询时间部分或全部超出数据库范围时，time.matched=false并说明原因。非首轮问题应继承上文已经确认且未被用户覆盖的时间，不得重复追问。
+
+        # 五、可用工具
+        1. 小区过滤工具，根据频段、带宽、经纬度、频点等工程参数信息，筛选出对应的小区或enodeb名称，或者指定小区或enodeb名称查询某些工参信息。返回满足条件的小区或enodeb name的文件路径。
+        2. 网络性能指标汇聚工具，用于计算指定时间范围内的小区网络性能指标（KPI指标）的统计量（求和、均值）。支持按小区、日期或小时分组，支持排序，求TopN指标，并返回详细的统计结果。
+        3. BTS能耗统计工具，查询指定时间范围内的BTS基站能耗统计量。支持按enodeb、RRU、日期或小时分组求和/求平均，支持排序，并计算最大/最小的前n。可以指定柜框槽号以及enodeb名称，或指定rruid来查询指定的能耗指标。
+        4. 配置信息查询工具，查询小区的配置特性状态，或给定配置特性的开关状态查询对应的小区。请注意区分配置和工参信息。
+        5. 绘图工具，根据用户要求和给定数据，绘制饼图、柱状图、x-y图等普通图像。可通过画图描述数据分布和变化趋势。
+        6. 增益计算工具，计算增益值，适用于比较两个数值或两个表格中对应元素的增益情况，支持按增益率或增益量排序，求增益最高或最低的top_n。
+
+        # 六、计划格式与注意事项
+        仅在所有必要维度matched=true时生成plan，格式为"**总体计划：**\\n1. 调用xx工具，[业务任务描述]\\n2. 调用xx工具，[业务任务描述]"。每一步只描述工具名称和业务目标，禁止包含任何参数名、参数值、API格式或预期结果。
+        总体计划的每个步骤中应该尽量保留用户问题中的关键信息。比如要查询的具体指标名称、按什么分组、求和还是求均值、是否排序、排序顺序、是否求top_n等信息。只保留用户问题中明确指定的信息。
+        用户未提到的信息，禁止擅自添加。例如查询"上行业务数据量(流量)"等，未要求计算总和，则计划不能写"上行业务数据量(流量)总和"。
+        无依赖的工具可以并行描述，有路径或结果依赖的工具必须按顺序规划。
+        相同工具调用多次时，若查询连续时间或同一组对象，请适当合并为一个步骤（如连续三天的能耗查询应一次调用按日期分组）；若时间不连续或需要比较（如计算增益），则分开调用。
+        排序和top_n必须与分组操作规划为一个步骤，禁止先求出分组结果再单独排序。
+        涉及到小区过滤工具时，要将筛选条件之间的”与或”关系体现在步骤描述中。
+        查询与某小区同站点的其他小区信息时，需要分步：先调用小区过滤工具得到该小区所在站点，再调用小区过滤工具得到站点下的所有小区，进而查询其他信息。
+        所有业务结果必须来自工具真实返回，禁止模型计算KPI公式、估算数值或编造结果。用户未要求绘图时禁止调用draw_graphs，未要求增益时禁止调用calculate_gain。
+        "按指标排序求top_n后再筛选"必须先调用KPI工具求top_n，再用结果传入小区过滤工具，顺序不能乱。
+        当用户要求按两个维度（如时间+对象）分别列出结果时，单次工具调用只能按一个维度分组，因此需要按其中一个维度拆分为多次调用，每次调用按另一个维度分组。默认按时间拆分（对每个时间段分别调用工具，每次按对象分组），但如果语义上更强调对象维度则按对象拆分。例如"查询某几个小区在某两天的指标"，应分两次调用，每次查一天的数据并按小区分组。
+        "查询指标a的总和和指标b"，提到总和时，两个指标都求总和，"查询指标a和指标b"，没有提到总和时，两个指标默认都求均值
+
+        # 七、统计口径规则
+        核心判断：用户要的是「一个聚合值」还是「每个小区各自多少」。「统计/均值/总和」暗示聚合，「列出/各小区」暗示逐小区。
+        单次工具调用只能完成一种统计口径（总体均值、总体总和、分组均值、分组总和中的一种），多口径必须拆分为多次调用。
+        跨天查询时，「每天/逐日/各天」按日期分别查询；「期间平均/累计/总共」才允许聚合。多维度（如时间+对象）需拆分为多次调用，默认按时间拆分。
+        排序和top_n必须与分组操作合为一步，禁止先分组再单独排序。
+        用户询问多个小区的指标时，且没有指明求均值或总和，需区分两种情况决定是否分组：①用户列举具体小区名，则按小区名分组；②用户通过工参条件筛选出小区，则整体求均值/总和，默认求均值。
+
+        # 八、计划示例
+        【示例1】：
+        用户问题：9月15日上午9点，站点xx下，工参a为yy（不包含zz）的所有小区的abc指标均值是多少？
+        系统确认信息：已确认enodeb名称为xx。
+        总体计划：
+        1. 调用小区过滤工具，筛选出enodeb名称为xx，且工参a为yy，且工参a不为zz的小区。
+        2. 调用网络性能指标汇聚工具，计算2025-09-15 09:00时，步骤1中获取的所有小区的abc指标均值。
+
+        【示例2】：
+        用户问题：09-18相比前一天，xx指标增长量最高的小区是谁。
+        总体计划：
+        1. 调用网络性能指标汇聚工具，计算2025-09-18 00:00至2025-09-18 23:59期间小区xx指标的总和，按小区分组。
+        2. 调用网络性能指标汇聚工具，计算2025-09-17 00:00至2025-09-17 23:59期间小区xx指标的总和，按小区分组。
+        3. 调用增益计算工具，计算每个小区在9.18日相比9.17日的xx指标的增长量，并找出增长量最高的小区。
+
+        【示例3】：
+        用户问题：过去5小时中，RRUID为xxx的目标，其能耗最大值是多少？
+        总体计划：
+        1. 调用BTS能耗统计工具，查询2025-09-21 19:00到2025-09-21 23:59期间，RRUID为xxx的BTS能耗，按小时分组，降序排序取最大值。
+
+        【示例4】：
+        用户问题：小区a和小区b在9月20日的xx指标是多少？
+        总体计划：
+        1. 调用网络性能指标汇聚工具，查询2025-09-20 00:00到2025-09-20 23:59期间，小区名为a和b的xx指标，按小区分组。
+
+        【示例5】：
+        用户问题：统计工参a为abc的小区在9月20日的xx指标。
+        总体计划：
+        1. 调用小区过滤工具，筛选出工参a为abc的小区。
+        1. 调用网络性能指标汇聚工具，计算2025-09-20 00:00到2025-09-20 23:59期间，步骤1中小区的xx指标均值。（不分组）
+
+        【示例6】：
+        用户问题：请统计xx工参为aa的小区在9月18日的yy指标均值，并找出该日yy指标最高的3个小区。
+        总体计划：
+        1. 调用小区过滤工具，筛选出xx工参为aa的小区。
+        1. 调用网络性能指标汇聚工具，计算2025-09-18 00:00到2025-09-18 23:59期间，步骤一中小区的yy指标的均值。
+        2. 调用网络性能指标汇聚工具，计算2025-09-18 00:00到2025-09-18 23:59期间，步骤一中小区的yy指标，按小区分组，降序排序取前3。
+
+        【示例7】：
+        用户问题：小区a和小区b在9月19日和9月20日这两天每天的xx指标分别是多少，按小区分组。
+        总体计划：
+        1. 调用网络性能指标汇聚工具，查询2025-09-19 00:00到2025-09-19 23:59期间，小区名为a和b的xx指标，按小区分组。
+        2. 调用网络性能指标汇聚工具，查询2025-09-20 00:00到2025-09-20 23:59期间，小区名为a和b的xx指标，按小区分组。
+
+        【示例8】：
+        用户问题：查一下上行负载
+        alias映射：上行负载 -> ["上行PRB利用率"]
+        总体计划：
+        1. 调用网络性能指标汇聚工具，查询上行PRB利用率。
+
+        # 九、输出格式
+        最终只能输出一个可被json.loads直接解析的JSON对象，不得输出Markdown代码块、注释、分析过程或JSON之外的文字：
+
+        {{
+          "nego": {{
+            "feature": {{
+              "required": true,
+              "matched": true,
+              "confirmed": ["指标或参数中文名"],
+              "message": ""
+            }},
+            "object": {{
+              "required": true,
+              "matched": true,
+              "confirmed": "对象确认语句",
+              "message": ""
+            }},
+            "time": {{
+              "required": true,
+              "matched": true,
+              "start_time": "YYYY-mm-dd HH:MM",
+              "end_time": "YYYY-mm-dd HH:MM",
+              "message": ""
+            }}
+          }},
+          "plan": "总体计划文本，意图不完备时为空字符串",
+          "message": "给用户的确认或追问信息"
+        }}
+
+        required和matched必须使用JSON布尔值。三个维度必须全部输出；required=false时matched=true，并将confirmed、start_time、end_time和该维度message置空。维度不匹配时，应在对应维度message中记录具体缺失项或推荐选项。任一必要维度matched=false时，plan必须为""，顶层message应合并所有未匹配维度的message，礼貌且简洁，末尾必须且只能保留一个<Finished>。全部必要维度matched=true时，plan必须非空，顶层message可输出“已确认您的查询意图，正在为您执行任务”，不得包含<Finished>。
+
+        # 输入
+        用户问题：{input_question}
+
+        精确匹配结果：
+        {exact_summary}
+
+        指标候选：
+        - KPI指标：{candidate_kpis}
+        - 工参字段：{candidate_filters}
+        - 配置参数：{candidate_configures}
+
+        对象候选：
+        - 小区名称：{prompt_cell_names[:10]}
+        - enodeb名称：{prompt_enodeb_names[:10]}
+        - 站点/基站名称：{prompt_site_names[:10]}
+        - RRU标识：{prompt_rruid_names[:10]}
+
+        时间信息：
+        - 当前时间：2025-09-22 00:00
+        - 数据库范围：2025-09-15 00:00至2025-09-22 00:00
+        - 数据粒度：小时级
+        - “全部小区”“全网”“当前区域”“该区域”默认指德国汉堡范围
+
+        请严格依据以上规则处理，只输出一个JSON对象。
+        """
+
+        result = {
+            "messages": [{"role": "user", "content": nego_planner_prompt}],
+            "model": "deepseek-v3",
+            "max_tokens": 10000,
+            "temperature": 0.1,
+            "top_p": 0.7,
+            "chat_template_kwargs": {"enable_thinking": False},
+            "enable_thinking": False,
+        }
+        print(json.dumps(result, ensure_ascii=False))
+    outputs:
+      classify_result: ${python_result}
+
+  call_nego_plan_llm:
+    type: restful
+    description: 调用 LLM (协商规划) 通过 RESTful API
+    next:
+      parse_nego_planner:
+        condition: ''
+    inputs:
+      api_name: "chat_completions"
+      verify_ssl: "false"
+      timeout: "120"
+      model: ${classify_result.model}
+      messages: ${classify_result.messages}
+      max_tokens: ${classify_result.max_tokens}
+      temperature: ${classify_result.temperature}
+      top_p: ${classify_result.top_p}
+      chat_template_kwargs: ${classify_result.chat_template_kwargs}
+      enable_thinking: ${classify_result.enable_thinking}
+    outputs:
+      nego_planner_response: ${api_response}
+      nego_planner_llm_output: ${api_response.choices[0].message.content}
+
+  parse_nego_planner:
+    type: python
+    description: 解析协商规划结果
+    next:
+      display_nego:
+        condition: ${nego_res == "need_nego"}
+      init_tool_history:
+        condition: ${nego_res == "intent_complete"}
+    inputs:
+      nego_planner_llm_output: ${nego_planner_llm_output}
+      script: |-
+        import json
+        import re
+
+        response = (
+            nego_planner_llm_output
+            if isinstance(nego_planner_llm_output, str)
+            else json.dumps(nego_planner_llm_output, ensure_ascii=False)
+        )
+
+        def parse_json(text):
+            # 优先直接解析
+            try:
+                result = json.loads(text)
+                if isinstance(result, dict):
+                    return result
+            except Exception:
+                pass
+
+            # 尝试提取 Markdown 代码块
+            match = re.search(
+                r"```(?:json)?\s*(.*?)\s*```",
+                text,
+                re.DOTALL | re.IGNORECASE
+            )
+            if match:
+                try:
+                    result = json.loads(match.group(1))
+                    if isinstance(result, dict):
+                        return result
+                except Exception:
+                    pass
+
+            # 从文本中的左花括号开始尝试解析嵌套 JSON
+            decoder = json.JSONDecoder()
+            for index, char in enumerate(text):
+                if char == "{":
+                    try:
+                        result, _ = decoder.raw_decode(text[index:])
+                        if isinstance(result, dict):
+                            return result
+                    except Exception:
+                        pass
+
+            return {}
+
+        def to_bool(value):
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                return value.strip().lower() in ["true", "yes", "1"]
+            return bool(value)
+
+        def add_finished(message):
+            message = re.sub(
+                r"\s*<Finished>\s*",
+                "",
+                str(message or ""),
+                flags=re.IGNORECASE
+            ).strip()
+
+            if not message:
+                message = "您好，当前查询意图不完整，请补充缺失信息。"
+
+            return message + "<Finished>"
+
+        def remove_finished(message):
+            return re.sub(
+                r"\s*<Finished>\s*",
+                "",
+                str(message or ""),
+                flags=re.IGNORECASE
+            ).strip()
+
+        parsed = parse_json(response)
+        nego = parsed.get("nego", {}) if isinstance(parsed, dict) else {}
+
+        intent_complete = bool(parsed)
+
+        for name in ["feature", "object", "time"]:
+            item = nego.get(name, {})
+            required = to_bool(item.get("required", True))
+            matched = to_bool(item.get("matched", False))
+
+            if required and not matched:
+                intent_complete = False
+
+        plan = str(parsed.get("plan", "") or "").strip()
+        message = str(parsed.get("message", "") or "").strip()
+
+        # 意图完整但没有计划，也不允许继续执行
+        if intent_complete and plan:
+            nego_res = "intent_complete"
+            message = remove_finished(message)
+
+            if not message:
+                message = "已确认您的查询意图，正在为您执行任务"
+        else:
+            nego_res = "need_nego"
+            plan = ""
+            message = add_finished(message)
+
+        result = {
+            "nego_res": nego_res,
+            "plan": plan,
+            "message": message
+        }
+
+        print(json.dumps(result, ensure_ascii=False))
+    outputs:
+      nego_res: ${python_result.nego_res}
+      current_plan: ${python_result.plan}
+      nego_show_user_content: ${python_result.message}
+
+  # ── Display 节点 ──
+  display_nego:
+    type: display-content
+    description: 展示单项协商追问
+    next:
+      end_node:
+        condition: ''
+    inputs:
+      content: ${nego_show_user_content}
+    outputs:
+      fmsg: ${nego_show_user_content}
+      output_parser:
+        type: HTML
+
+  # ── Executor 循环 ──
+  init_tool_history:
+    type: python
+    description: 初始化工具调用历史为空列表，供 executor 循环使用
+    inputs:
+      script: |-
+        import json
+        result = {"loop_count": 0, "tool_history": []}
+        print(json.dumps(result))
+    outputs:
+      loop_count: ${python_result.loop_count}
+      tool_history: ${python_result.tool_history}
+    next:
+      build_exec_messages:
+        condition: ''
+
+  build_exec_messages:
+    type: python
+    description: 构建统一的 executor prompt 和 LLM 调用参数（含工具调用历史）
+    inputs:
+      current_plan: ${current_plan}
+      input_question: ${input_question}
+      nego_show_user_content: ${nego_show_user_content}
+      tool_history: ${tool_history}
+      loop_count: ${loop_count}
+      candidate_kpis: ${recall_result.candidate_kpis}
+      candidate_filters: ${recall_result.candidate_filters}
+      candidate_configures: ${recall_result.candidate_configures}
+      candidate_alias: ${recall_result.alias}
+      param_to_json_str: "true"
+      script: |-
+        import json
+        
+        tool_history = json.loads(tool_history)
+        candidate_kpis = json.loads(candidate_kpis)
+        candidate_filters = json.loads(candidate_filters)
+        candidate_configures = json.loads(candidate_configures)
+        candidate_alias = json.loads(candidate_alias)
+
+        cur_task = input_question
+        confirm_info = nego_show_user_content if nego_show_user_content else ''
+
+        openai_tool_schema1 = {
+            "type": "function",
+            "function": {
+                "name": "region_creation",
+                "description": "小区过滤工具。根据频段、带宽、经纬度、频点等工参信息，筛选出对应的小区或enodeb名称，或者指定小区或enodeb名称查询某些工参信息。返回满足条件的小区或enodeb的文件路径。",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "data_path": {
+                            "type": "string",
+                            "description": "需要筛选的小区的文件路径，如果用户问题没有指定，则为空字符串"
+                        },
+                        "query_col": {
+                            "type": "array",
+                            "description": "用户问题要查询的工参名称列表，例如['参数1','参数2']，应当填入英文列名而不是中文，如果用户没有指定，默认为空列表，不用填写任何内容。"
+                        },
+                        "filter": {
+                            "type": "string",
+                            "description": "筛选条件字符串，使用分号;分隔多个条件组。组与组之间是或关系（满足任一组即可），组内多个条件是与关系（AND，必须同时满足）。示例格式：'条件1 AND 条件2; 条件3 AND 条件4'，表示（条件1 AND 条件2）OR（条件3 AND 条件4）。支持的操作符：>、<、>=、<=、=、==、!=、in（多个值用逗号分隔）、not in。例如：'Band in LTE1800,LTE2100 AND Bandwidth>15; Band==LTE2100'。该参数禁止为空，请注意，不需要使用额外的符号（如'）处理 取值。 "
+                        },
+                    },
+                    "required": ['filter'],
+                    "additionalProperties": False,
+                    "returns": {
+                        "type": "string",
+                        "description": "返回筛选后的小区列表的文件路径或数据统计描述"
+                    }
+                }
+            }
+        }
+
+        openai_tool_schema2 = {
+            "type": "function",
+            "function": {
+                "name": "configuration_query",
+                "description": "配置信息查询工具。查询小区的配置特性状态，或给定配置特性的开关状态查询对应的小区",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "cell_name": {
+                            "type": "array",
+                            "description": "小区名称列表，比如['HH1940_XX-XX-……-C']，无法提取到小区名称时为空列表。"
+                        },
+                        "data_path": {
+                            "type": "string",
+                            "description": "需要筛选的小区的文件路径，如果用户问题没有指定，则为空字符串"
+                        },
+                        "query_col": {
+                            "type": "array",
+                            "description": "查询的MO或参数名称"
+                        },
+                        "filter": {
+                            "type": "string",
+                            "description": "可选项：小区筛选、开特性小区筛选、特性参数查询、未指定特性查询。如果用户意图的查询与开启XX特性的小区有关，则属于开特性小区筛选。如果用户意图为未开启XX特性的小区相关，则属于小区筛选，如果用户意图为查询指定特性的状态（可选指定小区）等，则属于特性参数查询，如果用户意图为指定小区开启了哪些特性等，则属于未指定特性查询（有小区名没特性名）。"
+                        },
+                    },
+                    "required": [],
+                    "additionalProperties": False,
+                    "returns": {
+                        "type": "string",
+                        "description": "输出是小区列表以及对应的节能特性的状态。"
+                    }
+                }
+            }
+        }
+
+        openai_tool_schema3 = {
+            "type": "function",
+            "function": {
+                "name": "bts_energy_analyze",
+                "description": "BTS能耗统计工具。计算指定时间范围内的BTS基站能耗统计量。注意：当用户问题以'总和是多少'、'总能耗'、'总计'等表述时，不需要进行分组分析，应使用groupby_col='All'直接计算整体总量。支持按enodeb、RRU、日期或小时分组，支持排序，并计算最大/最小的前n。可以指定柜框槽号以及网元名称来查询指定的能耗指标。",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "enodeb_name": {
+                            "type": "array",
+                            "description": "enodeb名称。可以有多个，如果用户意图没有指定enodeb名，则为空列表。若用户意图指定了rruid，rruid为enodeb名_柜号_框号_槽号的形式（例如HHxx_xx-xxx_xx_0_131_0），除去最后三项表示的柜号_框号_槽号（0_131_0），即为enodeb名（HHxx_xx-xxx_xx）。注意：enodeb名称本身可能包含多个下划线和数字（如HH1393_Hamburg-Eilbek-0_73571862），此时应保留完整的enodeb名称部分，不要错误地按最后一个下划线截断。正确的做法是：完整RRUID格式为enodeb名_柜号_框号_槽号，柜框槽号必定是三个由下划线连接的数字，据此进行准确的分割。"
+                        },
+                        "cn_srn_sn": {
+                            "type": "array",
+                            "description": "柜框槽号。可以有多个，如果用户没有指定柜框槽号和rruid，则为空列表。rruid为enodeb名_柜号_框号_槽号的形式（例如HHxx_xx-xxx_xx_0_131_0），截取其中最后三项柜号_框号_槽号的部分（0_131_0）。如其中某一项未提供则以x代替，例如'x_1_x'。"
+                        },
+                        "data_path": {
+                            "type": "string",
+                            "description": "需要筛选的enodeb的文件路径，如果用户问题没有指定，则为空字符串。"
+                        },
+                        "start_time": {
+                            "type": "string",
+                            "description": "起始时间，格式YYYY-mm-DD HH:MM，如2025-01-01 00:00。"
+                        },
+                        "end_time": {
+                            "type": "string",
+                            "description": "结束时间，格式YYYY-mm-DD HH:MM，如2025-01-01 23:00。"
+                        },
+                        "groupby_col": {
+                            "type": "string",
+                            "description": "分组统计时使用的列名。可选值：'All'（默认值，不进行分组，计算整体总量）、'RruId'（按RRU分组）、'eNodeB Name'（按enodeb分组）、'Date'（按日期分组）、'Hour'（按小时分组）。\n\n【重要】判断规则：\n- 当用户问题的目标是查询'总和'、'总量'、'总计'、'平均值'等整体指标时，必须使用'All'，不进行分组。\n- 例如：'所有RRU的能耗总和是多少' → All；'整个站点的总能耗' → All；'求平均能耗' → All。\n\n- 只有当用户需要分别查看每个单位的详细数据时，才使用分组：\n  * '哪些RRU/每个RRU/前x个RRU/RRU能耗排行' → RruId\n  * '哪些enodeb/每个enodeb/前x个enodeb/enodeb能耗排行' → eNodeB Name\n  * '哪一天/哪几天/每天/按日期统计' → Date\n  * '哪几个小时/每个小时/按小时统计' → Hour",
+                            "enum": ["All", "RruId", "eNodeB Name", "Date", "Hour"]
+                        },
+                        "statistics": {
+                            "type": "string",
+                            "description": "统计方法。可选值：'sum'（求和）、'average'（平均值）。如果未指定，则默认使用'sum'。",
+                            "enum": ["sum", "average"]
+                        },
+                        "sort_order": {
+                            "type": "string",
+                            "description": "排序方式。可选值：'Desc'（降序）、'Asc'（升序）、'None'（不排序）。如果问最大/最高的几个，填'Desc'；如果问最小/最低的几个，填'Asc'。如果未指定，则默认不排序，填'None'。",
+                            "enum": ["Desc", "Asc", "None"]
+                        },
+                        "top_N": {
+                            "type": "string",
+                            "description": "需要返回的TopN数量（整数，以字符串形式）。【关键】用户未明确指定返回数量限制时，必须填写'None'（字符串，不是空的''或null），表示不限制返回数量。只有当用户明确说明'前x个'、'Top N'、'最多x个'、'x个最高/最低'等数量限制词时，才填写具体数字。示例对比：\n- '所有RRU的能耗总和是多少' → 填'None'（因为问的是'所有'和'总和'，不需要限制数量）\n- '能耗最高的3个RRU' → 填'3'（因为明确说了'前3个'）\n- '查看能耗排名前5' → 填'5'（因为明确说了'前5'）\n- '每小时的具体数值' → 填'None'（没有数量限制，要显示所有小时的数据）"
+                        },
+                    },
+                    "required": ['start_time', 'end_time'],
+                    "additionalProperties": False,
+                    "returns": {
+                        "type": "string",
+                        "description": "指定日期区间所有enodeb的能耗总和、能耗topN的enodeb、能耗bottomN的enodeb"
+                    }
+                }
+            }
+        }
+
+        openai_tool_schema4 = {
+            "type": "function",
+            "function": {
+                "name": "compute_cell_kpi",
+                "description": "网络性能指标汇聚工具。计算指定时间范围内的小区网络性能指标统计量。支持按小区、日期或小时分组，支持排序，求TopN指标，并返回详细的统计结果。输入支持指定小区名，或者，输入需要进行计算的小区文件路径，如果都不填写，默认所有小区。",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "cell_name": {
+                            "type": "array",
+                            "description": "需要计算的小区名称列表。如果未指定，则默认为空列表。注意：只能填写具体的小区编号，不能填写区域名称。"
+                        },
+                        "data_path": {
+                            "type": "string",
+                            "description": "已经筛选后、需要进行计算的小区的文件路径，如果前面没有进行小区筛选，则默认为空字符串。"
+                        },
+                        "kpi_array": {
+                            "type": "array",
+                            "description": "需要计算的小区性能指标中文名称列表。如果未指定，则默认为空列表。注意指标名称需要填写中文名称而不是英文公式，比如“计算指标A（axxa）”，只需填“指标A”"
+                        },
+                        "start_time": {
+                            "type": "string",
+                            "description": "起始时间，格式YYYY-mm-DD HH:MM，例如：2025-01-01 00:00"
+                        },
+                        "end_time": {
+                            "type": "string",
+                            "description": "结束时间，格式YYYY-mm-DD HH:MM，例如：2025-01-01 23:00"
+                        },
+                        "groupby_col": {
+                            "type": "string",
+                            "description": "分组统计的列名。可选值：'All'（默认值，不进行分组）、'Cell_Name'（按小区分组）、'Date'（按日期分组）、'Hour'（按小时分组）。根据用户需求选择合适的分组方式。仅在用户问'哪些小区/每个小区/前x个小区'时填Cell_Name（即用户需要输出结果以小区为单位），'哪一天/哪几天'或'每天'时填Date（用户需要结果统计量以天为单位），'哪几个小时/每个小时'填Hour（用户需要结果统计量以小时为单位）。如果**没有指明统计维度**，仅查询某个时间段内的总体统计值，比如'查询过去三天的速率'/'查询过去3小时的速率'，则填All!",
+                            "enum": ["All", "Cell_Name", "Date", "Hour"]
+                        },
+                        "statistics": {
+                            "type": "string",
+                            "description": "统计方法。可选值：'sum'（求和）、'average'（平均值）。如果未指定，则默认使用'average'。",
+                            "enum": ["sum", "average"]
+                        },
+                        "sort_order": {
+                            "type": "string",
+                            "description": "排序方式。可选值：'Desc'（降序）、'Asc'（升序）、'None'（不排序）。如果问最大/最高的几个，填'Desc'；如果问最小/最低的几个，填'Asc'。如果未指定，则默认不排序，填'None'。",
+                            "enum": ["Desc", "Asc", "None"]
+                        },
+                        "top_N": {
+                            "type": "string",
+                            "description": "需要返回的TopN数量，整数。如果未指定，则填写'None'。"
+                        },
+                    },
+                    "required": ["start_time", "end_time", "kpi_array"],
+                    "additionalProperties": False,
+                    "returns": {
+                        "type": "string",
+                        "description": "返回小区网络性能指标的统计结果，包括：1）统计结果文件路径；2）小区总数；3）指标统计结果。"
+                    }
+                }
+            }
+        }
+
+        openai_tool_schema5 = {
+            "type": "function",
+            "function": {
+                "name": "calculate_gain",
+                "description": "增益计算工具。计算增益值，适用于比较两个数值或两个表格中对应元素的增益情况，支持排序，求增益最高或最低的top_n，通常在网络指标汇聚工具或者BTS能耗统计工具之后调用此工具。注意：本工具不支持同比、环比等其他类型分析，也不支持求两个数据之间的比值（如部分占总体的百分比）。",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "pre_value_or_path": {
+                            "type": "string",
+                            "description": "基准值或基准数据路径。当比较两个数值时，直接输入基准数值；当比较两个表格时，输入较早时间点的数据文件路径。"
+                        },
+                        "post_value_or_path": {
+                            "type": "string",
+                            "description": "比较值或比较数据路径。当比较两个数值时，直接输入比较数值；当比较两个表格时，输入较晚时间点的数据文件路径。"
+                        },
+                        "input_type": {
+                            "type": "string",
+                            "description": "输入数据类型。若比较两个表格文件，填写 'path'；若直接比较两个数值，填写 'value'。",
+                            "enum": ["path", "value"]
+                        },
+                        "top_N": {
+                            "type": "number",
+                            "description": "当 input_type 为 'path' 时，指定显示前 N 个增益最高的样本，默认值为 3。"
+                        },
+                        "order": {
+                            "type": "string",
+                            "description": "当 input_type 为 'path' 时，指定排序方式。'Desc' 表示降序（增益从高到低），'ASC' 表示升序（增益从低到高），默认值为 'Desc'。",
+                            "enum": ["Desc", "ASC"]
+                        },
+                    },
+                    "required": ["pre_value_or_path", "post_value_or_path", "input_type"],
+                    "additionalProperties": False,
+                    "returns": {
+                        "type": "string",
+                        "description": "返回当前分析总结结果。"
+                    }
+                }
+            }
+        }
+
+        openai_tool_schema6 = {
+            "type": "function",
+            "function": {
+                "name": "draw_graphs",
+                "description": "绘图工具。根据用户要求和给定数据，绘制饼图、柱状图、x-y图等普通图像。",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "data_path": {
+                            "type": "array",
+                            "description": "路径的列表。其中每个路径都应该是完整路径，使用英文的逗号','隔开不同的路径。格式为：['路径1','路径2']"
+                        },
+                        "intent": {
+                            "type": "string",
+                            "description": "用户意图",
+                        },
+                        "graph_type": {
+                            "type": "string",
+                            "description": "用户指定的绘图类型，饼图，折线图",
+                        }
+                    },
+                    "required": ["data_path", "intent"],
+                    "additionalProperties": False,
+                    "returns": {
+                        "type": "string",
+                        "description": "返回当前分析总结结果"
+                    }
+                }
+            }
+        }
+
+        openai_tool_schema = [openai_tool_schema1, openai_tool_schema2, openai_tool_schema3, openai_tool_schema4, openai_tool_schema5, openai_tool_schema6]
+
+
+        _count = loop_count if isinstance(loop_count, int) else 0
+
+        executor_system = f"""===== Executor规则 =====
+        永远记住，您是executor，我是planner。切勿颠倒角色！切勿指导我！您必须利用您可用的工具解决我分配的任务。我们共同关注的是合作成功完成一个复杂的任务。 
+        我将根据您的专长和我的需求提供任务的总体计划，总体计划分为多个步骤，您必须利用您可用的工具，逐步调用工具处理这些步骤，任务完成后，请简要总结。
+        在总体计划的所有步骤全部处理结束之前，请不要中途停止，而是继续执行下一个步骤。
+        总体计划的所有步骤完成后，应简要总结，要求：
+        - 如果整体任务成功得到解决，只需简要总结任务处理结果即可。如果整体任务解决失败，需表明任务失败并简要分析失败原因。
+        - 总结应简短精炼，直入主题，尽可能一两句话点明重点。
+        - 如果工具执行结果是一个明确的结论加上表格展示，请直接以该结论为准；如果结论模糊或只有表格，你应该简练地总结表格中的关键信息，**禁止直接重复该表格**。
+        - 如果工具执行结果是一个明确结论和一个结果保存路径，直接总结该结论即可，不必要复述文件路径；如果只有文件路径，请简单引入，例如“详细结果保存路径为：……”。
+        - 如果总体任务中包含通过画图分析数据趋势，请根据工具调用结果，简要描述一下数据的趋势。
+        - 工具调用结果中有确切数据的部分，将工具执行的参数、公式和量化结果都加粗显示，结果路径不用加粗显示。
+        - 在展示结果路径时，**请将路径转换为对应的html代码**，我们的路径结构为：本地保存结果文件夹(xxresult_data)、session_id、结果文件（例如.csv)。输出html的时候，<a>标签内应使用本地的ip一级对应的session_id和文件名称。
+        - 例如，保存路径为 D:/...result_data/number/cell_status.csv，则应该输出 “D:/...result_data/number/cell_status.csv <a href='http://ip_addresses:agent_port/xx/cell_status.csv' download>点击下载</a> ”
+
+        【时间相关规则】
+        如果工具的参数涉及时间，请根据我提供的时间信息进行填参，当前的时间是：2025年9月22日 0:00
+        已知道信息： 2025年9月21日是星期天，9月22日是星期一。一个星期有7天。
+        工具对时间区间是按左闭右开区间处理的，因此起始时间和结束时间的填参要注意：如果是“0点到2点”，则填参为00:00到02:00，如果是“0点到2点的三个小时”，则填参为00:00到02:59。
+
+        **请注意，我们的整体任务可能非常复杂。以下是一些可能帮助您解决任务的提示：**
+        <tips>
+        - 请按照总体计划，调用计划中指定的工具，禁止调用其他工具。
+        - 如果一种方式未能提供答案，请尝试其他方式或方法。答案确实存在。
+        - 不要过于自信您自己的知识。调用工具可以提供更专业的视角，并帮助验证现有知识。请尽量减少您自己生成的内容。
+        - 当工具运行失败时，永远不要假设它返回了正确的结果并继续基于这种假设进行推理，因为假设的结果不能引导您得到正确的答案。正确的做法是考虑错误的原因并再次尝试。
+        - 调用工具出现报错信息时，可以调整填参后重新尝试，最多3次，3次后仍未成功则视为失败，请立即停止运行，禁止死循环！
+        - **每一步都需要确认参数，如果任务没有提到额外参数，或者提到的参数与工具现有的参数库不匹配，不用填参，使用默认参数（参数填为空即可）。**
+        - 确保保留工具result返回结果的源格式。
+        - 禁止编造结果路径，请严格根据工具执行结果给出回答。若工具没有提到结果保存路径，说明结果不是以csv等文件形式保存，只是文字结果。
+        - 增益计算工具求减少率最高的top_n，即为求增益率最低的top_n，所以要注意填参时的排序顺序。
+        - 注意区分 rruid 和 enodeb。rruid 为 enodeb_柜号_框号_槽号的形式（例如HHxx_xx-xxx_xx_0_131_0），最后三项表示柜号_框号_槽号（0_131_0），前面为enodeb名（HHxx_xx-xxx_xx）。
+        - 部分kpi指标请区分“上行”和“下行”
+        - 查询kpi指标时，如果用户未指明求均值还是总和，默认求均值。例如“某天的xx数据量”、“xx流量”、“xx次数”等，只要用户未明确指定求总和，就不要擅自填写groupby为sum，而应为average。
+        - 当使用网络性能指标汇聚工具时，计划步骤中的kpi名称可能不准确，请确保工具填参的kpi指标名称与“kpi名称-公式对照表”中的名称完全一致，确保准确无误。
+        - 当使用网络性能指标汇聚工具时，若计划步骤中的kpi指标名称是英文或公式，填参应为“kpi名称-公式对照表”中对应的**中文名称**。
+        - 以下是kpi名称-公式对照表：{candidate_kpis}
+        - 当使用小区过滤工具时，请确保工具填参的参数列名称与“工参名称表”中的**英文列名**完全一致，禁止填写中文名称。
+        - 以下是工参名称表：{candidate_filters}
+        - 当使用配置信息查询工具时，请确保工具填参的配置项名称与”配置名称表”中的名称完全一致。
+        - 以下是配置名称表：{candidate_configures}
+        - 当计划中的指标名称来自alias映射时，请将alias.key对应的所有value（标准KPI中文名）完整传入kpi_array，禁止自行筛选或丢弃。以下是alias映射表：{candidate_alias}
+        </tips>
+        这是我们的整体任务：<task>{cur_task}</task>。永远不要忘记我们的任务！
+        系统确认信息为：<confirm>{confirm_info}</confirm>
+
+        当前需要执行的计划步骤：
+        {current_plan}
+        """
+
+        _msgs = [{"role": "user", "content": executor_system}]
+        _history = tool_history if isinstance(tool_history, list) else []
+        for h in _history:
+            step = h.get('step', '?')
+            tname = h.get('tool_name', 'unknown')
+            if isinstance(tname, str):
+                tname = tname.strip('"')
+            targs = h.get('tool_args', {})
+            tresult = h.get('tool_result', {})
+            args_display = {k: v for k, v in targs.items() if k != 'tool_name' and v is not None}
+            _msgs.append({
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{
+                    "id": f"call_{step}",
+                    "type": "function",
+                    "function": {
+                        "name": tname,
+                        "arguments": json.dumps(args_display, ensure_ascii=False)
+                    }
+                }]
+            })
+            _msgs.append({
+                "role": "tool",
+                "tool_call_id": f"call_{step}",
+                "content": json.dumps(tresult, ensure_ascii=False) if isinstance(tresult, (dict, list)) else str(tresult)
+            })
+
+        result = {
+            "messages": _msgs,
+            "tools": openai_tool_schema,
+            "loop_count": _count,
+            "model": "deepseek-v3",
+            "max_tokens": 10000,
+            "temperature": 0.1,
+            "top_p": 0.8,
+            "chat_template_kwargs": {"enable_thinking": False},
+            "enable_thinking": False,
+            "stream": True,
+        }
+        print(json.dumps(result, ensure_ascii=False))
+    outputs:
+      exec_result: ${python_result}
+      output_parser:
+        show_title: false
+        show_content: false
+    next:
+      call_exec_llm:
+        condition: ''
+
+  call_exec_llm:
+    type: restful
+    description: 调用 executor LLM
+    inputs:
+      api_name: "chat_completions"
+      verify_ssl: "false"
+      timeout: "120"
+      model: ${exec_result.model}
+      messages: ${exec_result.messages}
+      max_tokens: ${exec_result.max_tokens}
+      temperature: ${exec_result.temperature}
+      top_p: ${exec_result.top_p}
+      tools: ${exec_result.tools}
+      tool_choice: "auto"
+      chat_template_kwargs: ${exec_result.chat_template_kwargs}
+      enable_thinking: ${exec_result.enable_thinking}
+    outputs:
+      exec_response: ${api_response}
+      exec_llm_output: ${api_response.choices[0].message.content}
+      exec_llm_tool_calls: ${api_response.choices[0].message.tool_calls}
+    next:
+      parse_exec_response:
+        condition: ''
+
+  parse_exec_response:
+    type: python
+    description: 解析 executor LLM 响应：提取工具调用参数或直接回答
+    inputs:
+      exec_llm_output: ${exec_llm_output}
+      exec_llm_tool_calls: ${exec_llm_tool_calls}
+      script: |-
+        import json
+        tc = exec_llm_tool_calls
+        if tc:
+            if isinstance(tc, str):
+                try:
+                    tc = json.loads(tc)
+                except Exception:
+                    tc = None
+        if tc and isinstance(tc, list) and len(tc) > 0:
+            first = tc[0]
+            if isinstance(first, dict):
+                fn = first.get("function", {})
+                n = fn.get("name", "")
+                args_str = fn.get("arguments", "{}")
+                try:
+                    api_params = json.loads(args_str) if isinstance(args_str, str) else args_str
+                except Exception:
+                    api_params = {}
+                tool_args = api_params
+                model_map = {"compute_cell_kpi": "Qwen3-32B", "region_creation": "Qwen3-32B", "draw_graphs": "Qwen3-32B", "calculate_gain": "Qwen3-32B", "bts_energy_analyze": "Qwen3-32B", "configuration_query": "Qwen3-32B"}
+                _model = model_map.get(n, "Qwen3-32B")
+                args_lines = [f"- {k}: {v}" for k, v in api_params.items()]
+                args_str = " ".join(args_lines)
+                tool_display = f"> 执行工具 {n} | 参数: {args_str} "
+                r = {
+                    "exec_has_tool_call": "yes",
+                    "exec_direct_answer": "",
+                    "tool_name": n,
+                    "tool_args": tool_args,
+                    "model": _model,
+                    "tool_display_text": tool_display,
+                }
+            else:
+                r = {"exec_has_tool_call": "no", "exec_direct_answer": exec_llm_output if isinstance(exec_llm_output, str) else str(exec_llm_output), "tool_name": "", "tool_args": ""}
+        else:
+            r = {"exec_has_tool_call": "no", "exec_direct_answer": exec_llm_output if isinstance(exec_llm_output, str) else str(exec_llm_output), "tool_name": "", "tool_args": ""}
+        print(json.dumps(r, ensure_ascii=False))
+    outputs:
+      exec_has_tool_call: ${python_result.exec_has_tool_call}
+      exec_direct_answer: ${python_result.exec_direct_answer}
+      tool_name: ${python_result.tool_name}
+      tool_args: ${python_result.tool_args}
+      model: ${python_result.model}
+      tool_display_text: ${python_result.tool_display_text}
+    next:
+      display_exec_direct_answer:
+        condition: ${exec_has_tool_call == "no"}
+      route_tool:
+        condition: ${exec_has_tool_call == "yes"}
+
+  display_exec_direct_answer:
+    type: display-content
+    description: 展示 executor 的直接回答（无工具调用）
+    inputs:
+      content: ${exec_direct_answer}
+    outputs:
+      fmsg: ${exec_direct_answer}
+      output_parser:
+        type: HTML
+    next:
+      display_final_result:
+        condition: ''
+
+  # ── 工具路由（exclusive gateway）──
+  route_tool:
+    type: display-content
+    description: 根据 tool_name 路由到对应工具的 restful 调用
+    inputs:
+    outputs:
+      smsg2: dummy
+    next:
+      call_kpi:
+        condition: ${tool_name == "compute_cell_kpi"}
+      call_param:
+        condition: ${tool_name == "region_creation"}
+      call_draw:
+        condition: ${tool_name == "draw_graphs"}
+      call_gain:
+        condition: ${tool_name == "calculate_gain"}
+      call_energy:
+        condition: ${tool_name == "bts_energy_analyze"}
+      call_config:
+        condition: ${tool_name == "configuration_query"}
+
+  # ── 1. KPI 工具 ──
+  call_kpi:
+    type: restful
+    description: 调用 KPI 指标汇聚 API
+    next:
+      update_tool_history:
+        condition: ''
+    inputs:
+      api_name: "compute_cell_kpi"
+      verify_ssl: "false"
+      timeout: "120"
+      model: ${model}
+      tool_name: "compute_cell_kpi"
+      arguments: ${tool_args}
+    outputs:
+      tool_result: ${api_response}
+      tool_display_text: ${tool_display_text}
+
+  # ── 2. 工参筛选工具 ──
+  call_param:
+    type: restful
+    description: 调用工参筛选 API
+    next:
+      update_tool_history:
+        condition: ''
+    inputs:
+      api_name: "region_creation"
+      verify_ssl: "false"
+      timeout: "600"
+      model: ${model}
+      tool_name: "region_creation"
+      arguments: ${tool_args}
+    outputs:
+      tool_result: ${api_response}
+      tool_display_text: ${tool_display_text}
+
+  # ── 3. 绘图工具 ──
+  call_draw:
+    type: restful
+    description: 调用绘图 API
+    next:
+      update_tool_history:
+        condition: ''
+    inputs:
+      api_name: "draw_graphs"
+      verify_ssl: "false"
+      timeout: "600"
+      model: ${model}
+      tool_name: "draw_graphs"
+      arguments: ${tool_args}
+    outputs:
+      tool_result: ${api_response}
+      tool_display_text: ${tool_display_text}
+
+  # ── 4. 增益计算工具 ──
+  call_gain:
+    type: restful
+    description: 调用增益计算 API
+    next:
+      update_tool_history:
+        condition: ''
+    inputs:
+      api_name: "calculate_gain"
+      verify_ssl: "false"
+      timeout: "600"
+      model: ${model}
+      tool_name: "calculate_gain"
+      arguments: ${tool_args}
+    outputs:
+      tool_result: ${api_response}
+      tool_display_text: ${tool_display_text}
+
+  # ── 5. 能耗分析工具 ──
+  call_energy:
+    type: restful
+    description: 调用能耗分析 API
+    next:
+      update_tool_history:
+        condition: ''
+    inputs:
+      api_name: "bts_energy_analyze"
+      verify_ssl: "false"
+      timeout: "600"
+      model: ${model}
+      tool_name: "bts_energy_analyze"
+      arguments: ${tool_args}
+    outputs:
+      tool_result: ${api_response}
+      tool_display_text: ${tool_display_text}
+
+  # ── 6. 配置查询工具 ──
+  call_config:
+    type: restful
+    description: 调用配置查询 API
+    next:
+      update_tool_history:
+        condition: ''
+    inputs:
+      api_name: "configuration_query"
+      verify_ssl: "false"
+      timeout: "600"
+      model: ${model}
+      tool_name: "configuration_query"
+      arguments: ${tool_args}
+    outputs:
+      tool_result: ${api_response}
+      tool_display_text: ${tool_display_text}
+
+  update_tool_history:
+    type: python
+    description: 将本次工具调用+结果追加到 tool_history，更新 loop_count
+    inputs:
+      tool_name: ${tool_name}
+      tool_args: ${tool_args}
+      tool_result: ${tool_result}
+      loop_count: ${loop_count}
+      tool_history: ${tool_history}
+      current_plan: ${current_plan}
+      param_to_json_str: "true"
+      script: |-
+        import json
+
+        tool_args=json.loads(tool_args)
+        tool_result=json.loads(tool_result)
+        tool_history=json.loads(tool_history)
+
+        _count = int(loop_count) if isinstance(loop_count, (int, str)) and str(loop_count).isdigit() else 0
+
+        _count += 1
+        _history = tool_history if isinstance(tool_history, list) else []
+        _record = {
+            "step": _count,
+            "tool_name": tool_name,
+            "tool_args": tool_args if isinstance(tool_args, dict) else {},
+            "tool_result": tool_result if isinstance(tool_result, (dict, list)) else str(tool_result),
+        }
+        _new_history = _history + [_record]
+
+        _reached_max = "yes" if _count >= 10 else "no"
+        result = {
+            "loop_count": _count,
+            "tool_history": _new_history,
+            "current_plan": current_plan,
+            "reached_max_loop": _reached_max
+        }
+        print(json.dumps(result, ensure_ascii=False))
+    outputs:
+      loop_count: ${python_result.loop_count}
+      tool_history: ${python_result.tool_history}
+      current_plan: ${python_result.current_plan}
+      reached_max_loop: ${python_result.reached_max_loop}
+    next:
+      display_max_loop_warning:
+        condition: ${reached_max_loop == "yes"}
+      build_exec_messages:
+        condition: ${reached_max_loop == "no"}
+
+  display_max_loop_warning:
+    type: display-content
+    description: 达到最大执行步数限制
+    inputs:
+      content: 已达到最大执行步数限制（10步），当前结果如下
+    outputs:
+      fmsg: 已达到最大执行步数限制（10步），当前结果如下
+    next:
+      display_final_result:
+        condition: ''
+
+  display_final_result:
+    type: display-content
+    description: 展示最终结果
+    inputs:
+      content: ${exec_direct_answer}
+    outputs:
+      fmsg: ${exec_direct_answer}
+      output_parser:
+        type: HTML
+    next:
+      end_node:
+        condition: ''
+
+  end_node:
+    type: end-event
+    description: 问答结束

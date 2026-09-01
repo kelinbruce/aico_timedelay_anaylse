@@ -1,0 +1,162 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: watt9
+  title: WATT Compute Cell KPI API
+  x-en-title: WATT Compute Cell KPI API
+  description: WATT KPI指标汇聚API，计算指定时间范围内的小区网络性能指标统计量
+  x-en-description: WATT KPI aggregation API, calculates cell network performance metrics within a specified time range
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: ComputeCellKpi
+paths:
+  /chat/completions:
+    post:
+      operationId: compute_cell_kpi
+      tags:
+        - ComputeCellKpi
+      summary: "compute_cell_kpi"
+      x-en-summary: "compute_cell_kpi"
+      description: KPI指标汇聚工具，计算指定时间范围内的小区网络性能指标统计量，支持按小区、日期或小时分组，支持排序和TopN
+      x-en-description: KPI aggregation tool, calculates cell network performance metrics with groupBy, sorting and TopN support
+      x-llm-friendly: true
+      x-llm-tag: compute-cell-kpi
+      x-function-category: KPI指标汇聚
+      x-question-example:
+        - question: 查询某小区过去3天的下行PRB利用率
+        - question: 查询过去3小时每小时的平均用户数
+      x-en-question-example:
+        - question: Query cell downlink PRB utilization for the past 3 days
+        - question: Query hourly average user count for the past 3 hours
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: ComputeCellKpiRequest
+          description: KPI指标汇聚请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/ComputeCellKpiRequest"
+      responses:
+        "200":
+          description: KPI查询结果
+          schema:
+            $ref: "#/definitions/ComputeCellKpiResponse"
+definitions:
+  ComputeCellKpiRequest:
+    description: KPI指标汇聚请求
+    type: object
+    required:
+      - model
+      - tool_name
+      - arguments
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "Qwen3-32B"
+      tool_name:
+        type: string
+        description: "工具名称，固定为compute_cell_kpi"
+        x-en-description: "Tool name, fixed as compute_cell_kpi"
+        enum:
+          - compute_cell_kpi
+      arguments:
+        type: object
+        $ref: "#/definitions/ComputeCellKpiArguments"
+  ComputeCellKpiArguments:
+    description: KPI指标汇聚工具参数
+    x-en-description: KPI aggregation tool arguments
+    type: object
+    properties:
+      cell_name:
+        type: array
+        description: "需要计算的小区名称列表，未指定则为空列表"
+        x-en-description: "Cell name list, empty if not specified"
+        items:
+          type: string
+      data_path:
+        type: string
+        description: "已筛选小区的文件路径，未指定则为空字符串"
+        x-en-description: "Pre-filtered cell file path, empty if not specified"
+        default: ""
+      kpi_array:
+        type: array
+        description: "需要计算的小区性能指标中文名称列表"
+        x-en-description: "KPI Chinese name list to calculate"
+        items:
+          type: string
+      start_time:
+        type: string
+        description: "起始时间，格式YYYY-mm-DD HH:MM"
+        x-en-description: "Start time, format YYYY-mm-DD HH:MM"
+        example: "2025-09-20 00:00"
+      end_time:
+        type: string
+        description: "结束时间，格式YYYY-mm-DD HH:MM"
+        x-en-description: "End time, format YYYY-mm-DD HH:MM"
+        example: "2025-09-20 23:59"
+      groupby_col:
+        type: string
+        description: "分组统计列名，可选值：All(默认)、Cell_Name、Date、Hour"
+        x-en-description: "Group by column, options: All/Cell_Name/Date/Hour"
+        enum:
+          - All
+          - Cell_Name
+          - Date
+          - Hour
+        default: All
+      statistics:
+        type: string
+        description: "统计方法，sum/average，默认average"
+        x-en-description: "Statistics method, sum/average, default average"
+        enum:
+          - sum
+          - average
+        default: average
+      sort_order:
+        type: string
+        description: "排序方式，Desc/Asc/None"
+        x-en-description: "Sort order, Desc/Asc/None"
+        enum:
+          - Desc
+          - Asc
+          - None
+        default: None
+      top_N:
+        type: string
+        description: "返回TopN数量，未指定填None"
+        x-en-description: "TopN count, None if not specified"
+        default: None
+  ComputeCellKpiResponse:
+    description: KPI指标汇聚响应
+    x-en-description: KPI aggregation response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data

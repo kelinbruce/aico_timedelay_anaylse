@@ -1,0 +1,129 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: smartcanvas
+  title: WATT SmartCanvas API
+  x-en-title: WATT SmartCanvas API
+  description: WATT智能画图API，调用SSE生成UI
+  x-en-description: WATT smart canvas API for SSE-based UI generation
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest
+tags:
+  - name: SmartCanvas
+paths:
+  /smartcanvas/v1/sse/action/generate/ui:
+    post:
+      tags:
+        - SmartCanvas
+      operationId: sseGenerateUI
+      summary: "smartcanvas"
+      x-en-summary: "smartcanvas"
+      description: 智能画图工具，根据用户意图和已有数据生成可视化图表
+      x-en-description: Smart canvas tool for generating visual charts based on user intent and data
+      x-llm-friendly: true
+      x-llm-tag: smartcanvas
+      x-function-category: 画图
+      x-question-example:
+        - question: 画一个折线图展示趋势
+        - question: 用柱状图展示数据对比
+      x-en-question-example:
+        - question: Draw a line chart to show trends
+        - question: Use a bar chart for data comparison
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiAccessTag: interTest
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: GenerateUIRequestBody
+          description: 生成UI对应的请求体
+          required: true
+          schema:
+            $ref: "#/definitions/UIRequestDetail"
+      responses:
+        "200":
+          description: OK
+definitions:
+  UIRequestDetail:
+    description: 生成UI接口对应的请求体
+    type: object
+    required:
+      - response
+    properties:
+      scenario:
+        type: string
+        description: "渲染场景。LUI表示渲染到AI对话框中；Canvas表示渲染到LUI左侧的画布中；Preview表示渲染为预览卡片；未传时默认按LUI处理。"
+        x-en-description: "Render scenario. LUI for AI dialog, Canvas for left canvas, Preview for preview card. Default LUI."
+        default: LUI
+        enum:
+          - LUI
+          - Canvas
+          - Preview
+      extensionId:
+        type: string
+        description: "UI生成扩展配置标识"
+        x-en-description: "UI generation extension configuration ID"
+        minLength: 1
+        maxLength: 128
+      userInput:
+        type: string
+        description: "用户输入的自然语言，作为intent参与模板命中标识构造与prompt组装"
+        x-en-description: "Natural language input from user for intent matching and prompt assembly"
+        minLength: 1
+        maxLength: 4096
+      source:
+        type: string
+        description: "上游数据来源唯一标识，用于缓存UI生成结果进行复用"
+        x-en-description: "Unique identifier of upstream data source for UI result caching"
+        maxLength: 128
+      request:
+        type: object
+        description: "上游输入参数，用于辅助UI生成"
+        x-en-description: "Upstream input parameters for UI generation assistance"
+      response:
+        type: object
+        description: "生成UI的主要数据源"
+        x-en-description: "Primary data source for UI generation"
+      suggestion:
+        type: string
+        description: "额外约束的提示词，用于补充默认生成建议"
+        x-en-description: "Additional constraint prompts to supplement default suggestions"
+        minLength: 1
+        maxLength: 4096
+      title:
+        type: string
+        description: "iframe直出渲染时作为页面标题；scenario为Preview或Canvas时作为卡片标题"
+        x-en-description: "Title for iframe rendering or card title when scenario is Preview/Canvas"
+        maxLength: 32
+      templateId:
+        type: string
+        description: "指定UI模板ID，指定后不进行UI生成，直接模板渲染"
+        x-en-description: "UI template ID. When specified, template rendering is used directly"
+        maxLength: 64
+      renderPiu:
+        type: string
+        description: "指定进行渲染的PIU"
+        x-en-description: "PIU for rendering"
+        maxLength: 64
+      renderPiuEventName:
+        type: string
+        description: "指定渲染PIU后对应的Piu事件名，有renderPiu时必传"
+        x-en-description: "PIU event name when renderPiu is specified"
+        maxLength: 64
+      iframeUrl:
+        type: string
+        description: "使用iframe加载指定URL渲染界面"
+        x-en-description: "URL for iframe rendering"
+        maxLength: 1024

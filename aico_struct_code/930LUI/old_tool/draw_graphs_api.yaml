@@ -1,0 +1,116 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: watt12
+  title: WATT Draw Graphs API
+  x-en-title: WATT Draw Graphs API
+  description: WATT绘图API，根据用户要求和给定数据绘制饼图、柱状图、折线图等图像
+  x-en-description: WATT drawing API, renders pie charts, bar charts, line charts based on user requirements and data
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: DrawGraphs
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - DrawGraphs
+      summary: "draw_graphs"
+      x-en-summary: "draw_graphs"
+      description: 绘图工具，根据用户要求和给定数据绘制饼图、柱状图、折线图等图像
+      x-en-description: Drawing tool, renders pie/bar/line charts based on user requirements and data
+      x-llm-friendly: true
+      x-llm-tag: draw-graphs
+      x-function-category: 绘图
+      x-question-example:
+        - question: 绘制每小时下行PRB利用率趋势图
+        - question: 画一个饼图展示各小区占比
+      x-en-question-example:
+        - question: Draw hourly downlink PRB utilization trend chart
+        - question: Draw a pie chart showing cell proportions
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: DrawGraphsRequest
+          description: 绘图请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/DrawGraphsRequest"
+      responses:
+        "200":
+          description: 绘图结果
+          schema:
+            $ref: "#/definitions/DrawGraphsResponse"
+definitions:
+  DrawGraphsRequest:
+    description: 绘图请求
+    type: object
+    required:
+      - model
+      - tool_name
+      - arguments
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "Qwen3-32B"
+      tool_name:
+        type: string
+        description: "工具名称，固定为draw_graphs"
+        x-en-description: "Tool name, fixed as draw_graphs"
+        enum:
+          - draw_graphs
+      arguments:
+        type: object
+        $ref: "#/definitions/DrawGraphsArguments"
+  DrawGraphsArguments:
+    description: 绘图工具参数
+    x-en-description: Draw graphs tool arguments
+    type: object
+    properties:
+      data_path:
+        type: array
+        description: "数据文件路径列表"
+        x-en-description: "Data file path list"
+        items:
+          type: string
+      intent:
+        type: string
+        description: "用户意图描述"
+        x-en-description: "User intent description"
+      graph_type:
+        type: string
+        description: "用户指定的绘图类型，如饼图、折线图、柱状图"
+        x-en-description: "Graph type specified by user, e.g. pie, line, bar"
+  DrawGraphsResponse:
+    description: 绘图响应
+    x-en-description: Draw graphs response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data

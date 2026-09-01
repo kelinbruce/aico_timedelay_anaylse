@@ -1,0 +1,179 @@
+# 告警查询接口定义
+---
+swagger: "2.0"
+info:
+  version: v1
+  title: IncidentRCA
+  description: 告警查询接口
+schemes:
+  - https
+basePath: /rest
+paths:
+  /oss/inner/incident-rca/v1/alarms/query:
+    post:
+      tags:
+        - "AlarmQueryController"
+      summary: "查询当前告警"
+      operationId: "queryAlarms"
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      x-filetransfertype: NA
+      x-iftype: ir
+      parameters:
+        - name: "request"
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/AlarmQueryRequest"
+      responses:
+        200:
+          description: "操作成功。"
+          schema:
+            $ref: "#/definitions/AlarmQueryResponse"
+        400:
+          description: "参数错误。"
+        401:
+          description: "未经授权，accessSession失效或非法。"
+        403:
+          description: "请求方没有访问权限。详细信息请参见实际响应消息体。"
+        500:
+          description: "应用内部错误。"
+
+definitions:
+  AlarmQueryRequest:
+    type: "object"
+    properties:
+      cellNames:
+        type: "array"
+        description: "小区名称列表，最大100项"
+        minItems: 0
+        maxItems: 100
+        items:
+          type: "string"
+          minLength: 0
+          maxLength: 128
+      areaNames:
+        type: "array"
+        description: "区域名称列表，最大50项"
+        minItems: 0
+        maxItems: 50
+        items:
+          type: "string"
+          minLength: 0
+          maxLength: 128
+      stationNames:
+        type: "array"
+        description: "基站名称列表，最大50项，cellNames非空时必填"
+        minItems: 0
+        maxItems: 50
+        items:
+          type: "string"
+          minLength: 0
+          maxLength: 128
+      severities:
+        type: "array"
+        description: "告警级别列表，最大4项，可选值: 1(紧急), 2(重要), 3(次要), 4(提示)"
+        minItems: 0
+        maxItems: 4
+        items:
+          type: "integer"
+          minimum: 0
+          maximum: 4
+      startTime:
+        type: "integer"
+        format: "int64"
+        description: "起始时间(epoch毫秒)，默认当前时间-3天"
+        minimum: 0
+        maximum: 9223372036854775807
+      endTime:
+        type: "integer"
+        format: "int64"
+        description: "截止时间(epoch毫秒)，默认当前时间"
+        minimum: 0
+        maximum: 9223372036854775807
+      pageSize:
+        type: "integer"
+        description: "分页大小，默认20，范围[1,2000]"
+        minimum: 1
+        maximum: 2000
+      currentPage:
+        type: "integer"
+        description: "当前页码，默认1，最小1"
+        minimum: 1
+        maximum: 2000
+
+  AlarmQueryResponse:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        description: "响应码，200表示成功"
+      msg:
+        type: "string"
+        description: "失败消息"
+      totalCount:
+        type: "integer"
+        description: "总记录数"
+      pageSize:
+        type: "integer"
+        description: "分页大小"
+      currentPage:
+        type: "integer"
+        description: "当前页码"
+      tableDatas:
+        type: "array"
+        description: "告警数据列表"
+        items:
+          $ref: "#/definitions/AlarmQueryResult"
+
+  AlarmQueryResult:
+    type: "object"
+    properties:
+      csn:
+        type: "integer"
+        format: "int64"
+        description: "告警流水号"
+      alarmId:
+        type: "integer"
+        format: "int32"
+        description: "告警ID"
+      alarmName:
+        type: "string"
+        description: "告警名称"
+      severity:
+        type: "string"
+        description: "告警级别(1/2/3/4)"
+      severityName:
+        type: "string"
+        description: "告警级别名称(紧急/重要/次要/提示)"
+      occurUtc:
+        type: "integer"
+        format: "int64"
+        description: "告警发生时间(epoch毫秒)"
+      latestOccurUtc:
+        type: "integer"
+        format: "int64"
+        description: "最近一次发生时间(epoch毫秒)"
+      cleared:
+        type: "string"
+        description: "是否已清除(0=未清除,1=已清除)"
+      moi:
+        type: "string"
+        description: "管理对象实例"
+      meName:
+        type: "string"
+        description: "网元名称"
+      nativeMeDn:
+        type: "string"
+        description: "网元FDN"
+      nativeMoDn:
+        type: "string"
+        description: "管理对象FDN"
+      alarmCategory:
+        type: "string"
+        description: "告警分类(maeCategory)"
+      additionalInformation:
+        type: "string"
+        description: "附加信息"

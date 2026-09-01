@@ -1,0 +1,234 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: retrieve
+  title: WATT RAG Search API
+  x-en-title: WATT RAG Search API
+  description: WATT RAG知识检索API，支持test_feature和test_object索引搜索
+  x-en-description: WATT RAG knowledge search API for test_feature and test_object indexes
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /
+tags:
+  - name: RAGSearch
+paths:
+  /rest/naie/km/v1/vector_stores/lui8_feature/search:
+    post:
+      operationId: search_dim_feature
+      tags:
+        - RAGSearch
+      summary: "search_dim_feature"
+      x-en-summary: "search_dim_feature"
+      description: 搜索test_feature索引，返回KPI指标、评估参数和配置参数
+      x-en-description: Search test_feature index for KPIs, filters and configurations
+      x-llm-friendly: true
+      x-llm-tag: rag-search
+      x-function-category: 知识检索
+      x-question-example:
+        - question: 查询会话列表_questionExample中文_1
+        - question: 查询会话列表_questionExample中文_2
+        - question: 查询会话列表_questionExample中文_3
+        - question: 查询会话列表_questionExample中文_4
+      x-en-question-example:
+        - question: 查询会话列表_questionExampleEN_1
+        - question: 查询会话列表_questionExampleEN_2
+        - question: 查询会话列表_questionExampleEN_3
+        - question: 查询会话列表_questionExampleEN_4
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR # 南向驱动调用方式，走产品自己的卡片；如果是INNER_APIGW则为北向访问方式，走AgentCore自己的卡片
+        apiAccessTag: interTest # 访问实例名-系统名称
+        apiDriver: MasterCoreSystem # 平台驱动管理卡片上的产品名称
+      parameters:
+        - in: body
+          name: SearchRequest
+          description: 搜索请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/SearchRequest"
+      responses:
+        "200":
+          description: 搜索结果
+          schema:
+            $ref: "#/definitions/SearchResponse"
+  /rest/naie/km/v1/vector_stores/lui8_cell/search:
+    post:
+      operationId: search_dim_cell
+      tags:
+        - RAGSearch
+      summary: "search_dim_cell"
+      x-en-summary: "search_dim_cell"
+      description: 搜索test_object索引，返回小区、基站、RRU、站点等对象
+      x-en-description: Search test_object index for cells, eNodeBs, RRUs and sites
+      x-llm-friendly: true
+      x-llm-tag: rag-search
+      x-function-category: 知识检索
+      x-question-example:
+        - question: 查询会话列表_questionExample中文_1
+        - question: 查询会话列表_questionExample中文_2
+        - question: 查询会话列表_questionExample中文_3
+        - question: 查询会话列表_questionExample中文_4
+      x-en-question-example:
+        - question: 查询会话列表_questionExampleEN_1
+        - question: 查询会话列表_questionExampleEN_2
+        - question: 查询会话列表_questionExampleEN_3
+        - question: 查询会话列表_questionExampleEN_4
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR # 南向驱动调用方式，走产品自己的卡片；如果是INNER_APIGW则为北向访问方式，走AgentCore自己的卡片
+        apiAccessTag: interTest # 访问实例名-系统名称
+        apiDriver: MasterCoreSystem # 平台驱动管理卡片上的产品名称
+      parameters:
+        - in: body
+          name: SearchRequest
+          description: 搜索请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/SearchRequest"
+      responses:
+        "200":
+          description: 搜索结果
+          schema:
+            $ref: "#/definitions/SearchResponse"
+  /rest/naie/km/v1/vector_stores/lui8_region/search:
+    post:
+      operationId: search_dim_region
+      tags:
+        - RAGSearch
+      summary: "search_dim_region"
+      x-en-summary: "search_dim_region"
+      description: 搜索test_object索引，返回小区、基站、RRU、站点等对象
+      x-en-description: Search test_object index for cells, eNodeBs, RRUs and sites
+      x-llm-friendly: true
+      x-llm-tag: rag-search
+      x-function-category: 知识检索
+      x-question-example:
+        - question: 查询会话列表_questionExample中文_1
+        - question: 查询会话列表_questionExample中文_2
+        - question: 查询会话列表_questionExample中文_3
+        - question: 查询会话列表_questionExample中文_4
+      x-en-question-example:
+        - question: 查询会话列表_questionExampleEN_1
+        - question: 查询会话列表_questionExampleEN_2
+        - question: 查询会话列表_questionExampleEN_3
+        - question: 查询会话列表_questionExampleEN_4
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR # 南向驱动调用方式，走产品自己的卡片；如果是INNER_APIGW则为北向访问方式，走AgentCore自己的卡片
+        apiAccessTag: interTest # 访问实例名-系统名称
+        apiDriver: MasterCoreSystem # 平台驱动管理卡片上的产品名称
+      parameters:
+        - in: body
+          name: SearchRequest
+          description: 搜索请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/SearchRequest"
+      responses:
+        "200":
+          description: 搜索结果
+          schema:
+            $ref: "#/definitions/SearchResponse"
+definitions:
+  SearchRequest:
+    description: test_feature索引搜索请求
+    required:
+      - query
+    properties:
+      query:
+        type: string
+        description: 查询文本
+        x-en-description: Query text
+      max_num_results:
+        type: integer
+        description: 最大返回结果数
+        x-en-description: Maximum number of results
+        default: 50
+      ranking_options:
+        $ref: "#/definitions/RankingOptions"
+      termweight_options:
+        $ref: "#/definitions/TermweightOptions"
+      search_strategies:
+        type: array
+        description: 搜索策略列表
+        x-en-description: Search strategy list
+        items:
+          $ref: "#/definitions/SearchStrategy"
+    type: object
+  RankingOptions:
+    description: 排序选项
+    properties:
+      ranker:
+        type: string
+        description: 排序器类型
+        x-en-description: Ranker type
+        default: "merge"
+    type: object
+  TermweightOptions:
+    description: 词权重选项
+    properties:
+      termweighter:
+        type: string
+        description: 词权重计算方式
+        x-en-description: Term weighter
+        default: "none"
+      topn:
+        type: integer
+        description: 返回的topN
+        x-en-description: Top N results
+        default: 3
+    type: object
+  SearchStrategy:
+    description: 搜索策略
+    properties:
+      strategy:
+        type: string
+        description: 策略类型（text/vector）
+        x-en-description: Strategy type
+        default: "text"
+      top_k:
+        type: integer
+        description: 检索topK
+        x-en-description: Top K for retrieval
+        default: 50
+    type: object
+  SearchResponse:
+    description: 搜索响应
+    properties:
+      hits:
+        type: array
+        description: 命中结果列表
+        items:
+          type: object
+          properties:
+            _id:
+              type: string
+            _score:
+              type: number
+            _source:
+              type: object
+    type: object

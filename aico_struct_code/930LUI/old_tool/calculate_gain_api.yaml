@@ -1,0 +1,130 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  x-owner-id: watt11
+  title: WATT Calculate Gain API
+  x-en-title: WATT Calculate Gain API
+  description: WATT增益计算API，计算两个数值或两个表格之间的增益率
+  x-en-description: WATT gain calculation API, calculates gain rate between two values or two tables
+  x-namespace: WATT
+  x-llm-spec-version: this_is_llm_spec_version2.0
+schemes:
+  - https
+host: localhost.com
+basePath: /rest/netrsn/v1
+tags:
+  - name: CalculateGain
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - CalculateGain
+      summary: "calculate_gain"
+      x-en-summary: "calculate_gain"
+      description: 增益计算工具，计算两个数值或两个表格之间的增益率，支持排序和TopN
+      x-en-description: Gain calculation tool, calculates gain rate between two values or tables with sorting and TopN
+      x-llm-friendly: true
+      x-llm-tag: calculate-gain
+      x-function-category: 增益计算
+      x-question-example:
+        - question: 计算两个值的增益
+        - question: 比较两天的指标增益最高的小区
+      x-en-question-example:
+        - question: Calculate gain between two values
+        - question: Compare gain between two days for top cells
+      x-is-registered: "N"
+      x-support-sdk: "N"
+      produces:
+        - application/json
+      x-info:
+        apiGroup:
+          - this_is_group3
+        ownerService: this_is_ownerService
+        ownerSystemVersion: this_is_ownerSystemVersion_V100R25C10
+        accessType: INNER_IR
+        apiDriver: MasterCoreSystem
+      parameters:
+        - in: body
+          name: CalculateGainRequest
+          description: 增益计算请求参数
+          required: true
+          schema:
+            $ref: "#/definitions/CalculateGainRequest"
+      responses:
+        "200":
+          description: 增益计算结果
+          schema:
+            $ref: "#/definitions/CalculateGainResponse"
+definitions:
+  CalculateGainRequest:
+    description: 增益计算请求
+    type: object
+    required:
+      - model
+      - tool_name
+      - arguments
+    properties:
+      model:
+        type: string
+        description: "模型名称，用于网关路由"
+        x-en-description: "Model name for gateway routing"
+        example: "Qwen3-32B"
+      tool_name:
+        type: string
+        description: "工具名称，固定为calculate_gain"
+        x-en-description: "Tool name, fixed as calculate_gain"
+        enum:
+          - calculate_gain
+      arguments:
+        type: object
+        $ref: "#/definitions/CalculateGainArguments"
+  CalculateGainArguments:
+    description: 增益计算工具参数
+    x-en-description: Calculate gain tool arguments
+    type: object
+    properties:
+      pre_value_or_path:
+        type: string
+        description: "基准值或基准数据路径"
+        x-en-description: "Base value or base data path"
+      post_value_or_path:
+        type: string
+        description: "比较值或比较数据路径"
+        x-en-description: "Compare value or compare data path"
+      input_type:
+        type: string
+        description: "输入数据类型，value(比较两个数值)、path(比较两个表格文件)"
+        x-en-description: "Input type, value (compare numbers), path (compare table files)"
+        enum:
+          - value
+          - path
+      top_N:
+        type: number
+        description: "input_type为path时，显示前N个增益最高的样本，默认3"
+        x-en-description: "When input_type is path, show top N highest gain samples, default 3"
+        default: 3
+      order:
+        type: string
+        description: "排序方式，Desc(降序)/Asc(升序)，默认Desc"
+        x-en-description: "Sort order, Desc/Asc, default Desc"
+        enum:
+          - Desc
+          - Asc
+        default: Desc
+  CalculateGainResponse:
+    description: 增益计算响应
+    x-en-description: Calculate gain response
+    type: object
+    properties:
+      code:
+        type: integer
+        description: 响应码
+        x-en-description: Response code
+      message:
+        type: string
+        description: 响应消息
+        x-en-description: Response message
+      data:
+        type: object
+        description: 工具执行结果数据
+        x-en-description: Tool execution result data
