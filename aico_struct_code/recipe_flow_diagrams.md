@@ -1,5 +1,7 @@
 # Recipe 工作流 Mermaid 流程图
 
+> 注意：本文件比较的是 `930LUI/old_tool` 与 `930LUI/new_tool` 下的历史草稿，不代表 `aicoservice@27.68.169` 运行包中的 Recipe。完整包内当前版本实际为 31 个节点、7 个并行检索调用、4 类 Executor 动作、最多 4 轮工具循环；请以 [`aicoservice_import/pod-recipe-invocation.md`](./aicoservice_import/pod-recipe-invocation.md) 和包内 [`WATT_PLEX.yaml`](./aicoservice@27.68.169/agents/aico-agent-m/zh_CN/recipes/WATT_PLEX.yaml) 为准。
+
 ## 1. old_tool/old_recipe.yaml（WATT_Old_Tool_Test_v1）
 
 ```mermaid

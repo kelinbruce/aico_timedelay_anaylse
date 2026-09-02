@@ -1,397 +1,445 @@
-# Pod 内 Recipe 的实际调用过程
+# AICOService 调用链与 WATT_PLEX 工作原理还原
 
-## 1. 结论先行
+更新时间：2026-09-01
+分析对象：`aicoservice@27.68.169` 本地完整运行包、Deployment、历史模型请求与运行日志。
 
-在真实 Pod 中，AICOService **不是通过文件路径直接读取并执行** `recipe.yaml`。
+## 1. 新包带来的关键修正
 
-实际链路是：
+完整包证明，先前“Recipe 只存在于外部注册中心、Pod 不读取本地 YAML”的判断不成立。当前版本的真实情况是：
 
-1. `WATT_PLEX` 的 YAML 事先被导入 Workflow 注册中心；
-2. Pod 启动 AICOService/NextAgent Node.js 进程，并为 Agent 注册 `Skill`、`Workflow` 等能力；
-3. 用户请求进入 Agent 后，外层 LLM 先加载无线问数 Skill；
-4. `SKILL.md` 告诉 LLM 生成一个结构化的 `Workflow` tool call；
-5. Pod 内的 tool loop 接住该调用，按照 `recipeName: WATT_PLEX` 从当前 Agent scope 查找已注册的 recipe；
-6. Workflow execution service 创建 `executionId`，解析 recipe 节点并调度执行；
-7. Python 节点交给 sandbox，RESTful 节点交给 CLIP/API 网关，LLM 节点通过 model gateway 调用模型；
-8. recipe 的最终输出作为 `Workflow` tool result 返回外层 Agent，再由外层 Agent 返回用户。
+| 问题 | 当前代码能确认的答案 |
+|---|---|
+| `WATT_PLEX` 放在哪里？ | 包内有真实文件；启动时复制到 `/opt/share/agents/AICOServiceAgent/recipes/WATT_PLEX.yaml`。 |
+| 如何找到它？ | `WorkflowRecipeDefinitionSource` 扫描当前 Agent 的本地 `recipes/` 目录，以 YAML 中的 `recipeName` 建索引。 |
+| 如何触发它？ | 正常模型路径中，外层 LLM 发出 `Workflow({recipeName: "WATT_PLEX", ...})`；也可由路由约束直接执行。调用方不传文件路径。 |
+| 在哪里执行？ | 当前 `workflow-execution` 配置为 `LOCAL`，由 AICOService 进程内的 workflow engine 执行。 |
+| Python 节点在哪里跑？ | workflow engine 负责调度，脚本通过 remote sandbox 边界，经 IR sidecar UDS 执行。 |
+| RESTful 节点怎么跑？ | `api_name` 被解析为 CLIP capability，当前为 direct `clipc` 命令执行模式；CLIP 后面的具体服务路由不在本包 JS 中。 |
+| 外层模型怎么调用？ | `model-gateway` provider 经 `/opt/sidecar/ir/http.sock` 请求 `/rest/netrsn/v1/chat/completions`。 |
+| 是否每个请求都进 WATT_PLEX？ | 否。Quick QA 命中时直接执行 `quick-qa`；只有模型判断、显式指令或 `targetRecipe` 指向它时才执行 `WATT_PLEX`。 |
 
-最关键的一点是：
-
-> `SKILL.md` 只是提示 LLM “应该调用哪个 Workflow”；真正启动 recipe 的是 Pod 内的 `Workflow` capability、tool loop 和 workflow execution service。
+因此，“按注册名调用”与“Recipe 的物理来源”要分开理解：模型只传 `recipeName`，但 AICOService 会在进程内按该名称定位并读取本地 YAML。
 
 ---
 
-## 2. 启动阶段：Pod 如何把 AICOService 跑起来
+## 2. 当前部署的整体结构
 
-### 2.1 CSI 将运行包挂载到 Pod
+```mermaid
+flowchart LR
+    U[上游调用方] --> B[backend sidecar]
+    B -->|/opt/sidecar/backend/http.sock| C[agent-channel-aico<br/>Fastify UDS Server]
+    C --> R{Agent Routing}
+    R -->|Quick QA 命中| Q[本地 quick-qa Recipe]
+    R -->|显式 workflow / targetRecipe| W[本地 Recipe Engine]
+    R -->|普通请求| A[外层 Agent + LLM Tool Loop]
+    A -->|Skill -> Workflow tool| W
+    W -->|Python| S[remote sandbox]
+    W -->|RESTFUL api_name| P[本地 clipc 进程]
+    A -->|模型请求| M[model gateway]
+    S --> I[IR sidecar UDS]
+    M --> I
+    R -->|Quick QA RAG| I
+```
 
-Deployment 使用 `sop-csi-driver` 把软件包挂载到 `/opt/pkgs/`，主要版本包括：
+这里有两个容易混淆的 Unix Socket：
 
-- `upkg.aicoservice: 27.68.169`
-- `npkg.clip: 27.68.167`
-- `npkg.nodejs: 27.66.12`
-- `npkg.python: 27.66.12`
-- `npkg.pythonruntime: 27.66.12`
-- `npkg.agentsanbox: 27.68.167`
+- `/opt/sidecar/backend/http.sock`：AICOService 的 Fastify 监听地址，也是 A2A-T 请求进入 Node.js 进程的入口。配置见 [`default-system.yaml`](../aicoservice@27.68.169/config/default-system.yaml#L38-L43)。
+- `/opt/sidecar/ir/http.sock`：模型、sandbox、RAG、远程 API 等 IR 能力的 sidecar 通道。Deployment 中的 `SIDECAR_SOCKET` 与 `MODEL_GATEWAY_SOCKET_PATH` 都指向它，见 [`deployment.yaml`](./deployment.yaml#L108-L109) 和 [`deployment.yaml`](./deployment.yaml#L168-L177)。
 
-Deployment 将：
+`NEXTAGENT_DEPLOYMENT_MODE=remote` 不代表所有子系统都远程执行。各 gateway 自己还有独立的 `deploymentMode`；当前 workflow 明确是 `LOCAL`，sandbox、RAG、SkillHub、api-call 等则是 `REMOTE`，见 [`default-system.yaml`](../aicoservice@27.68.169/config/default-system.yaml#L60-L127)。
+
+---
+
+## 3. 启动阶段
+
+### 3.1 软件包挂载与进程入口
+
+Deployment 将 CSI 包挂载到 `/opt/pkgs`，并设置：
 
 ```text
 APP_ROOT=/opt/pkgs/aicoservice@27.68.169
-```
-
-并执行：
-
-```text
-c-init ... msctl start -t normal -- $(APP_ROOT)/bin/start.sh
-```
-
-证据：[`deployment.yaml`](./deployment.yaml#L55-L81)、[`deployment.yaml`](./deployment.yaml#L258-L261)、[`deployment.yaml`](./deployment.yaml#L317-L337)。
-
-### 2.2 start.sh 准备 Agent 并启动 Node.js 服务
-
-当前 Deployment 设置：
-
-```text
 PRODUCT_SCENE=MAE-M
 OSS_LANG=zh_CN
 ```
 
-因此 `start.sh` 选择 `aico-agent-m`，把对应语言的 Agent 内容复制到：
+容器最终执行：
 
 ```text
-/opt/share/agents/AICOServiceAgent/
+c-init ... msctl start -t normal -- ${APP_ROOT}/bin/start.sh
 ```
 
-随后执行真正的 Node.js 入口：
+证据：[`deployment.yaml`](./deployment.yaml#L53-L81)、[`deployment.yaml`](./deployment.yaml#L184-L197)、[`deployment.yaml`](./deployment.yaml#L317-L336)。
+
+### 3.2 Agent 目录不是静态挂载，而是启动时复制
+
+`PRODUCT_SCENE=MAE-M` 时，`start.sh` 选择 `aico-agent-m`，然后执行等价于：
+
+```text
+${APP_ROOT}/agents/aico-agent-m/zh_CN/*
+  -> /opt/share/agents/AICOServiceAgent/
+```
+
+所以包内的：
+
+```text
+agents/aico-agent-m/zh_CN/recipes/WATT_PLEX.yaml
+```
+
+运行时会变成：
+
+```text
+/opt/share/agents/AICOServiceAgent/recipes/WATT_PLEX.yaml
+```
+
+证据：[`start.sh`](../aicoservice@27.68.169/bin/start.sh#L43-L64)。
+
+### 3.3 Node.js 主入口
+
+`start.sh` 启动：
 
 ```text
 node ${APP_ROOT}/node_modules/@nextagent/agent-channel-aico/dist/entrypoints/start.js
 ```
 
-证据：[`bin/start.sh`](./bin/start.sh#L43-L64)、[`bin/start.sh`](./bin/start.sh#L66-L79)。
+见 [`start.sh`](../aicoservice@27.68.169/bin/start.sh#L66-L80)。入口完成数据库/发布同步初始化，注册 A2A-T、配置、BI 等路由，再启动 Remote Runtime Package 和 SkillHub 同步，见 [`start.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-channel-aico/dist/entrypoints/start.js#L37-L75)。
 
-### 2.3 运行时关键连接
-
-Deployment 中和本链路直接相关的环境变量有：
-
-| 环境变量 | 值 | 作用判断 |
-|---|---|---|
-| `UDS_ADDRESS` | `/opt/sidecar/backend/http.sock` | AICOService 与 backend sidecar 的 Unix Domain Socket 通道 |
-| `SIDECAR_SOCKET` | `/opt/sidecar/ir/http.sock` | Pod 内 IR/网关 sidecar 通道 |
-| `MODEL_GATEWAY_USE` | `true` | LLM 请求使用 model gateway |
-| `MODEL_GATEWAY_SOCKET_PATH` | `/opt/sidecar/ir/http.sock` | model gateway 的 socket |
-| `CLIP_HOME` | `/opt/pkgs/clip@27.68.167/bin` | CLIP 执行组件位置 |
-| `SANDBOX_MODE` | `remote` | Python 节点使用 remote sandbox |
-| `NEXTAGENT_DEPLOYMENT_MODE` | `remote` | NextAgent 以 remote 模式运行 |
-
-证据：[`deployment.yaml`](./deployment.yaml#L76-L109)、[`deployment.yaml`](./deployment.yaml#L168-L197)、[`bin/start.sh`](./bin/start.sh#L73-L79)。
+应用生命周期最终删除旧 socket 并在配置的 UDS 地址监听，而不是连接一个同名的远程 Workflow 服务，见 [`app-lifecycle-composition.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-app/dist/composition/app-lifecycle-composition.js#L148-L156)。
 
 ---
 
-## 3. Recipe 在调用之前放在哪里
+## 4. Recipe 如何被发现、校验和缓存
 
-`WATT_PLEX` 不需要作为 Deployment 的 ConfigMap 或普通文件挂载到容器中。仓库里的转换脚本表明，recipe YAML 会被包装为导入请求：
+Recipe 加载器已经给出完整实现：
 
-```json
-{
-  "ownerService": "test",
-  "recipeContentList": [
-    {
-      "recipeContent": "<完整 YAML 文本>",
-      "type": "yaml",
-      "lang": "zh"
-    }
-  ]
-}
+1. `agentRoot` 配置为 `/opt/share/agents`。
+2. 当前 Agent ID 是 `AICOServiceAgent`。
+3. `recipeDirectory(agentId)` 拼成 `${agentRoot}/${agentId}/recipes`。
+4. 加载器递归收集 `.yaml/.yml`，用 `readFileSync(..., 'utf8')` 读取并用 `js-yaml` 解析。
+5. 首先建立轻量索引；真正执行时再完整加载、规范化并校验定义。
+6. 完整定义按 `agentId + recipeName` 放入内存缓存，单 Agent 上限 100 条。
+
+核心证据：
+
+- provider 固定为 `local-recipes / LOCAL_DIRECTORY`：[`workflow-recipe-loader.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/workflow-recipe-loader.js#L13-L16)
+- 按名称查缓存、扫描目录并加载定义：[`workflow-recipe-loader.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/workflow-recipe-loader.js#L17-L76)
+- 读取 YAML 建索引：[`workflow-recipe-loader.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/workflow-recipe-loader.js#L137-L176)
+- Recipe 被发布为 `kind=WORKFLOW` 的 capability descriptor：[`workflow-recipe-loader.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/workflow-recipe-loader.js#L89-L135)
+
+错误文案里的“registered workflow recipe”在当前实现中表示“已进入当前 Agent 的 capability catalog”，其来源就是本地 Recipe 目录，不足以证明另有外部 Registry。
+
+仓库中的 `convert_recipe_yaml.py` 仍说明系统曾有 Recipe 导入/转换流程，但它不是这版 AICOService 运行时解析 `WATT_PLEX` 的必经路径。
+
+---
+
+## 5. 请求入口与返回通道
+
+A2A-T 主入口是：
+
+```http
+POST /rest/naie/aicoservice/v1/a2at/task
+Content-Type: application/json
+Accept: text/event-stream
 ```
 
-也就是说，`recipe.yaml` 是**部署前注册的 Workflow 资源**。运行时只通过 `recipeName` 查找它，而不是传递其磁盘路径。
+处理过程为：
 
-API YAML 也类似，会以 `ownerId + action: ADD + yamlContent` 的形式导入 API/CLIP 注册体系。Recipe 中的 `api_name` 因而可以按逻辑名称找到相应 API 定义。
+1. 校验 `A2atTaskRequestSchema` 和消息内容。
+2. 将请求投影成 `SUBMIT` 或 `ANSWER_PENDING`。
+3. 新请求调用 `runtime.submit(...)`；补充用户输入调用 `runtime.answerPendingInput(...)`。
+4. 从 session 事件流读取状态，并投影为 A2A-T `TaskResponse`。
+5. 通过 SSE 返回，30 秒发送一次 heartbeat；终态或 `USER_INPUT_REQUIRED` 时结束本次流。
 
-证据：[`convert_recipe_yaml.py`](../convert_recipe_yaml.py#L5-L22)、[`convert_api_yaml.py`](../convert_api_yaml.py#L18-L35)。
+真实实现见 [`task-forward.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-channel-aico/dist/a2at/routes/task-forward.js#L58-L133) 和 [`task-forward.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-channel-aico/dist/a2at/routes/task-forward.js#L158-L215)。
 
-> 当前材料只展示了“导入数据的格式”，没有包含真实环境中的注册接口地址、数据库表或注册中心实现。
+新请求投影还会从消息中抽取文本，并增加来源标记 `[来源]是A2A-T`，见 [`a2at-request.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-channel-aico/dist/a2at/projections/a2at-request.js#L31-L53)。
 
 ---
 
-## 4. 一次用户请求在 Pod 内的完整时序
+## 6. 路由层：并非所有问题都走外层 LLM
+
+`quick-qa-policy` 的优先级是：
+
+1. `$skill:<name>` 或 `$workflow:<name>` 显式指令。
+2. 上游给出的 `targetRecipe` 约束。
+3. Quick QA：先读配置，再请求 RAG；第一条结果 `vsScore > 0.8` 且有知识文本时，写入 `quick_qa_answer` 并直接选择 `quick-qa` Recipe。
+4. 未命中、关闭、无结果或异常时，回退 `MODEL_DRIVEN_LOOP`。
+
+见 [`quick-qa-policy/index.js`](../aicoservice@27.68.169/config/plugins/quick-qa-policy/index.js#L220-L323)。`DefaultAgent.executeRun` 对带 `recipeName` 的 `DETERMINISTIC_FLOW` 直接调用 `executeRecipeRoute`，不会先让外层模型生成 `Workflow` tool call，见 [`default-agent.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-core/dist/agent/default-agent.js#L32-L46)。
+
+因此存在三条实际路径：
+
+```text
+Quick QA 命中
+  -> quick-qa Recipe
+  -> 直接展示 quick_qa_answer
+
+显式 $workflow:WATT_PLEX 或 targetRecipe=WATT_PLEX
+  -> DefaultAgent.executeRecipeRoute
+  -> 本地 Workflow Engine
+
+普通无线查询且 Quick QA 未命中
+  -> 外层 LLM
+  -> Skill
+  -> Workflow tool
+  -> 本地 Workflow Engine
+```
+
+`quick-qa.yaml` 本身只有 `start -> display-content -> end`，见 [`quick-qa.yaml`](../aicoservice@27.68.169/agents/aico-agent-m/zh_CN/recipes/quick-qa.yaml#L1-L20)。
+
+---
+
+## 7. 普通无线查询：Skill 到 Workflow 的精确调用链
+
+正常模型路径中，执行顺序如下：
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as 用户/上游应用
-    participant Sidecar as backend sidecar<br/>UDS
-    participant Channel as agent-channel-aico<br/>Node.js 进程
-    participant Agent as NextAgent + 外层 LLM
-    participant Skill as Skill capability
-    participant ToolLoop as Workflow capability<br/>tool loop
-    participant Registry as Workflow 注册中心
-    participant Engine as workflow-execution-service
-    participant Sandbox as remote sandbox
-    participant Clip as CLIP / API gateway
-    participant ModelGW as model gateway
+    participant Agent as DefaultAgent / Tool Loop
+    participant LLM as 外层模型
+    participant Skill as wireless-search-net-fast-4-4
+    participant WT as Workflow Tool
+    participant RS as Local Recipe Source
+    participant WE as Local Workflow Engine
 
-    User->>Sidecar: 用户问题
-    Sidecar->>Channel: 通过 Pod 内通道转交请求
-    Channel->>Agent: 建立 Agent 会话并调用外层 LLM
-    Agent->>Skill: Skill(name=wireless-search-net-fast-4-4)
-    Skill-->>Agent: 返回并注入 SKILL.md 内容
-    Note over Agent: SKILL.md 要求调用 WATT_PLEX
-    Agent->>ToolLoop: Workflow({recipeName: WATT_PLEX,<br/>inputText: 补全后的问题,<br/>inputVariables: {}})
-    ToolLoop->>Registry: 在当前 Agent scope 按名称查找 WATT_PLEX
-    Registry-->>ToolLoop: 返回已注册的 recipe 定义
-    ToolLoop->>Engine: 创建并启动 workflow execution
-    Engine-->>ToolLoop: executionId / streaming events
-
-    loop 按 DAG 执行 recipe 节点
-        alt type = python
-            Engine->>Sandbox: 执行脚本节点
-            Sandbox-->>Engine: python_result
-        else type = restful，LLM 请求
-            Engine->>Clip: 按 api_name 调用 chat_completions
-            Clip->>ModelGW: 经网关/socket 请求模型
-            ModelGW-->>Clip: 模型响应
-            Clip-->>Engine: api_response
-        else type = restful，业务 API
-            Engine->>Clip: 按 api_name 调用 query_pm/query_param/query_alarm 等
-            Clip-->>Engine: api_response
-        end
-    end
-
-    Engine-->>ToolLoop: status + outputVariables + execution metadata
-    ToolLoop-->>Agent: Workflow tool result
-    Agent-->>Channel: 根据 Workflow 结果生成最终响应
-    Channel-->>Sidecar: 返回结果
-    Sidecar-->>User: 展示答案
+    Agent->>LLM: 用户问题 + capability catalog
+    LLM->>Agent: Skill(name=wireless-search-net-fast-4-4)
+    Agent->>Skill: 加载 SKILL.md
+    Skill-->>Agent: 指令：无线数据请求调用 WATT_PLEX
+    Agent->>LLM: 注入 Skill 内容后继续模型循环
+    LLM->>Agent: Workflow(recipeName=WATT_PLEX, inputText, inputVariables)
+    Agent->>WT: 校验并执行 tool call
+    WT->>RS: 在当前 Agent scope resolve/require WATT_PLEX
+    RS-->>WT: 本地 YAML 的 RecipeDefinition
+    WT->>WE: execute(request, signal, observer)
+    WE-->>WT: status + nodeResults + executionId
+    WT-->>Agent: Workflow capability result
+    Agent->>LLM: 将 tool result 加入上下文
+    LLM-->>Agent: 面向用户的最终回答
 ```
 
-### 关于第 7 步“按名称查找”的边界
+### 7.1 Skill 只负责告诉模型“该调用什么”
 
-工具描述明确要求：
+当前包内 Skill 明确规定：所有无线数据请求调用 `WATT_PLEX`，参数包括 `recipeName`、`inputText`、`inputVariables`。见 [`SKILL.md`](../aicoservice@27.68.169/agents/aico-agent-m/zh_CN/skills/wireless-search-net-fast-4-4/SKILL.md#L16-L35) 和 [`SKILL.md`](../aicoservice@27.68.169/agents/aico-agent-m/zh_CN/skills/wireless-search-net-fast-4-4/SKILL.md#L92-L104)。
 
-```text
-recipeName must be a registered workflow recipe in the current Agent scope
-```
-
-因此可以确认它是“按注册名和 Agent scope 查找”。但由于当前目录缺失完整的 `node_modules/@nextagent/...` 源码，尚不能确认实际函数名、类名、缓存方式，以及 Registry 请求走 HTTP 还是 UDS。
-
----
-
-## 5. 真正触发 Recipe 的那一刻
-
-外层 LLM 最终生成的结构化调用如下：
+历史模型记录也确实出现：先加载该 Skill，再输出：
 
 ```json
 {
   "name": "Workflow",
   "arguments": {
     "recipeName": "WATT_PLEX",
-    "inputText": "查询深圳大梅沙D-HRH-2小区的经度、纬度和方位角",
+    "inputText": "查询……",
     "inputVariables": {}
   }
 }
 ```
 
-这段 JSON 才是 recipe 的**直接触发点**。
+代表性记录：[`dsv4_212_1_aico.jsonl`](../../aico_timedelay_test_report/deepseek0731/dsv4_212_1_aico.jsonl)。
 
-它不是 Kubernetes API 调用，也不是 shell 命令，更不是：
+### 7.2 Workflow Tool 是直接触发点
 
-```text
-open("/some/path/recipe.yaml")
-```
+内建 `Workflow` tool 会：
 
-而是外层模型输出的一个 function/tool call。Node.js 进程中的 tool loop 识别 `name=Workflow` 后，将参数交给 Workflow capability。
+1. 校验 `recipeName/inputText/inputVariables`。
+2. 通过 capability resolver 确认当前 Agent scope 中存在同名 `WORKFLOW` capability。
+3. 调用受控的 `workflowExecution.execute(...)`。
 
-实际模型请求记录完整呈现了以下过程：
+见 [`workflow-tool.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-capability/dist/builtins/workflow/workflow-tool.js#L4-L49)。
 
-1. assistant 调用 `Skill(name=wireless-search-net-fast-4-4)`；
-2. tool 返回 `status=loaded`，并将 Skill 内容加入后续模型上下文；
-3. assistant 调用 `Workflow(recipeName=WATT_PLEX, ...)`；
-4. tool 返回 `status=succeeded`、`outputVariables`、`executionId` 和 `nodeResultCount`。
+随后 `createWorkflowToolPort` 再次通过 `agentId + recipeName` 取本地定义，将 session、request、run、identity 等上下文组装成执行请求，并把 engine 结果映射为 `SUCCEEDED/FAILED/waiting` tool result，见 [`workflow-tool-port.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/workflow-tool-port.js#L5-L49) 和 [`workflow-tool-port.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/workflow-tool-port.js#L128-L195)。
 
-代表性记录：[`dsv4_212_1_aico.jsonl`](../../aico_timedelay_test_report/deepseek0731/dsv4_212_1_aico.jsonl#L1-L3)。
+### 7.3 运行日志交叉验证
 
-对应 Skill 里的明确指令：[`new_tool/SKILL.md`](../930LUI/new_tool/SKILL.md#L83-L95)。
+静态代码与历史运行日志能够闭环：同一份日志中先出现 `workflow.execution.started`，其中 `recipeName=WATT_PLEX` 且生成 `workflow-...` execution ID；紧接着出现 `tool_loop.streaming.bridge`，`capabilityId=Workflow`。日志还记录了本地 Skill `wireless-search-net-fast-4-4` 被发现。见 [`nextagent-operational.log.2.jsonl`](../../e2e_delay/1/nextagent-operational.log.2.jsonl#L2-L4) 和 [`nextagent-operational.log.2.jsonl`](../../e2e_delay/1/nextagent-operational.log.2.jsonl#L72-L74)。
 
----
-
-## 6. Pod 接到 Workflow 调用后做了什么
-
-下面的伪代码只用于表达已观察到的逻辑关系，**不是从 AICOService 源码中反编译出的真实函数名**：
-
-```javascript
-async function handleWorkflowToolCall(args, agentScope) {
-  const recipe = await workflowRegistry.find({
-    name: args.recipeName,
-    scope: agentScope,
-  });
-
-  return workflowExecutionService.start({
-    recipe,
-    inputs: {
-      input_question: args.inputText,
-      ...args.inputVariables,
-    },
-  });
-}
-```
-
-可以确认的运行时事件包括：
-
-- `skill.discovery.registered`：注册 `wireless-search-net-fast-4-4`；
-- `tool_loop.streaming.bridge`，`capabilityId=Workflow`：tool loop 已接入 Workflow 的流式事件；
-- `workflow.execution.started`：Workflow execution service 启动 `WATT_PLEX`；
-- 事件中生成独立的 `executionId`、`runId` 和 `traceId`；
-- `aico_channel.registered` 且 `mode=remote`；
-- `workflow_rag_gateway_resolved`：Workflow/RAG 网关已解析。
-
-证据：[`nextagent-operational.log.2.jsonl`](../../e2e_delay/1/nextagent-operational.log.2.jsonl#L2-L3)、[`nextagent-operational.log.2.jsonl`](../../e2e_delay/1/nextagent-operational.log.2.jsonl#L74)、[`nextagent-operational.log.2.jsonl`](../../e2e_delay/1/nextagent-operational.log.2.jsonl#L10964)、[`nextagent-operational.log.2.jsonl`](../../e2e_delay/1/nextagent-operational.log.2.jsonl#L11081)。
+日志中的 `aico_channel.registered, mode=remote` 描述的是整个 remote runtime package/channel 模式，不能覆盖 gateway 级别的 `workflow-execution=LOCAL` 选择；二者处于不同配置层级。
 
 ---
 
-## 7. WATT_PLEX 内部如何执行
+## 8. 为什么能确定是本地 Workflow Engine
 
-当前 `workflow/recipe.yaml` 的主要 DAG 如下：
-
-```mermaid
-flowchart TD
-    A[接收 input_question] --> B[preprocess<br/>清洗并构建 query]
-    B --> C{parallel_search<br/>8 路并行 RAG}
-    C --> C1[PM / dim_feature]
-    C --> C2[EP / dim_feature]
-    C --> C3[ALARM / dim_feature]
-    C --> C4[CELL / dim_cell]
-    C --> C5[SITE / dim_cell]
-    C --> C6[REGION / dim_region]
-    C --> C7[GRID / dim_region]
-    C --> C8[POI / dim_region]
-    C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8 --> D[postprocess<br/>合并 recall_result]
-    D --> E[call_nego_plan_llm<br/>协商与规划]
-    E --> F{信息是否完整}
-    F -- 否 --> G[display_nego<br/>等待用户补充]
-    F -- 是 --> H[call_exec_llm<br/>Executor 生成 tool call]
-    H --> I{route_tool}
-    I --> J1[query_pm]
-    I --> J2[query_param]
-    I --> J3[query_alarm]
-    I --> J4[calculate_gain]
-    I --> J5[smartcanvas]
-    J1 & J2 & J3 & J4 & J5 --> K[update_tool_history]
-    K --> L{达到 10 步或已有答案?}
-    L -- 继续 --> H
-    L -- 完成 --> M[display_final_result]
-    M --> N[end_node]
-```
-
-主要节点证据：
-
-- recipe 名称与入口：[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L1-L18)
-- 8 路并行检索：[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L55-L80)
-- 协商规划 LLM：[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L911-L939)
-- Executor LLM 和 tool call 解析：[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L1425-L1499)
-- 工具路由：[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L1515-L1531)
-- PM/工参/告警调用：[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L1534-L1604)
-- 增益与 SmartCanvas：[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L1606-L1619)、[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L1837-L1853)
-- 最多循环 10 步并输出：[`workflow/recipe.yaml`](../930LUI/new_tool/workflow/recipe.yaml#L1855-L1930)
-
-### 不同节点由谁执行
-
-| Recipe 节点类型 | 实际执行方 | 典型数据流 |
-|---|---|---|
-| `python` | Workflow engine 调度的 remote sandbox | `inputs -> script -> python_result -> outputs` |
-| `restful` + `chat_completions` | CLIP/API 执行层，再经 model gateway | `api_name + model/messages -> api_response` |
-| `restful` + 业务 API | CLIP/API 执行层 | `api_name + 查询参数 -> api_response` |
-| `display-content` | Workflow runtime | 生成过程展示或最终 `display_content` |
-| `parallel-gateway` | Workflow runtime | 并发启动多个分支并在 join node 汇合 |
-| `end-event` | Workflow runtime | 结束 execution |
-
-日志中出现过 `call_exec_llm` 节点的 `type=RESTFUL` 和 `CLIP_EXECUTION_UNAVAILABLE`，这从失败路径反向证明了 RESTful 节点需要经过 CLIP execution boundary，而不是由 YAML 自己直接发请求。
-
----
-
-## 8. Recipe 结果怎样回到用户
-
-成功时，`Workflow` tool result 的核心结构类似：
+配置选择的是：
 
 ```json
 {
-  "recipeName": "WATT_PLEX",
-  "status": "succeeded",
-  "outputVariables": {
-    "display_content": "<最终答案>"
-  },
-  "capabilityResult": {
-    "metadata": {
-      "executionId": "workflow-...",
-      "nodeResultCount": 37
-    }
-  }
+  "gatewayId": "local-workflow",
+  "gatewayKind": "workflow-execution",
+  "deploymentMode": "LOCAL"
 }
 ```
 
-这个结果返回的方向是：
+见 [`default-system.yaml`](../aicoservice@27.68.169/config/default-system.yaml#L103-L107)。
 
-```text
-workflow execution service
-  -> Workflow capability/tool loop
-  -> 外层 LLM 的 tool result
-  -> agent-channel-aico
-  -> sidecar/上游调用方
-  -> 用户
-```
+`composeWorkflowExecutionLayer` 只有在 gateway 是 `REMOTE` 或显式 mode 为 `remote` 时才创建 `createRemoteWorkflowExecutionService`；否则调用 `createWorkflowExecutionService`，当前配置进入后者，见 [`workflow-composition.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-app/dist/composition/workflow-composition.js#L52-L69)。
 
-如果 recipe 返回协商状态，外层 Agent 将问题转交用户；如果成功，则基于 `display_content` 返回；如果失败，则按 Skill 中的规则决定是否重试一次。
+本地 engine 的职责包括：
 
----
+- 生成 `workflow-<uuid>` execution ID；
+- 按 `recipeName/version` 解析定义；
+- 初始化变量，并在未显式提供时把 `inputText` 注入 `input_question`；
+- 从 start node 开始按 `next + condition` 推进；
+- 并行分支用 Promise 并发执行，再按分支顺序合并；
+- 为节点生成 started/completed/failed 等事件，处理 retry、WAITING 和终态。
 
-## 9. 哪些是已确认的，哪些仍是推断
+实现见 [`engine/index.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/engine/index.js#L51-L129)、[`engine/index.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/engine/index.js#L135-L239) 和 [`engine/index.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/engine/index.js#L1023-L1029)。
 
-### 已确认
-
-- Pod 的真正业务入口是 `@nextagent/agent-channel-aico/dist/entrypoints/start.js`。
-- 无线问数 Skill 在运行时被注册和加载。
-- Skill 明确要求外层模型调用 `WATT_PLEX`。
-- 外层模型确实生成了 `Workflow` function/tool call。
-- Workflow tool loop 确实启动了名为 `WATT_PLEX` 的 execution。
-- execution 具有独立的 `executionId`，并把结果作为 tool result 返回。
-- RESTful 节点依赖 CLIP/API execution boundary。
-- 当前 Deployment 启用了 model gateway 和 remote sandbox。
-
-### 高可信推断
-
-- 运行时采用的是注册式/网关式 recipe，而不是按照本地 YAML 路径调用。
-- `workflow/recipe.yaml` 比直连版 `WATT_PLEX.yaml` 更符合该 Deployment：前者使用 `query_pm`、`query_param`、`query_alarm` 等逻辑 API 名，Deployment 同时启用了 CLIP 和 model gateway。
-
-### 当前无法从已有材料确认
-
-- Node.js 内部处理 `Workflow` tool call 的真实函数、类与源文件。
-- Workflow Registry 的实际服务地址、持久化方式和缓存机制。
-- Registry 查找是否最终通过 HTTP、UDS 或内部 SDK 完成。
-- 生产环境当前注册的 `WATT_PLEX` 与本地 `workflow/recipe.yaml` 是否逐字节一致。
-- 因两个本地 recipe 文件都叫 `WATT_PLEX`，仅凭运行日志无法确定生产 Registry 中具体注册了哪一份或哪个修订版本。
-
-若要把上述最后一段也精确还原，需要从运行 Pod 只读复制以下内容：
-
-```text
-/opt/pkgs/aicoservice@27.68.169/node_modules/@nextagent/
-/opt/pkgs/aicoservice@27.68.169/config/
-/opt/share/agents/AICOServiceAgent/
-```
-
-并导出当前 Agent scope 中 `WATT_PLEX` 的注册记录或内容摘要。
+包里确实也带有 remote workflow adapter，但那是可切换实现；当前 `LOCAL` 配置没有走它。不能因为整体部署模式叫 `remote` 就把 workflow execution 也判为远程。
 
 ---
 
-## 10. 一句话记忆
+## 9. 不同节点类型的真实执行边界
+
+| Recipe 节点 | Engine 中的处理 | 当前实际边界 |
+|---|---|---|
+| `start-event` / `end-event` | 建立或结束 execution | AICOService 进程内 |
+| `parallel-gateway` | 并行运行多个分支并汇合 | AICOService 进程内调度 |
+| `inclusive-gateway` | 条件分流/汇合 | AICOService 进程内 |
+| `display-content` | 生成可见事件和输出 | AICOService 进程内，随后投影到 SSE |
+| `python` | 解析变量，调用 `sandboxExecution.runPython` | remote sandbox，经 IR UDS |
+| `restful` | 将 `api_name + inputs` 交给 capability invocation | 当前解析到 CLIP capability，并执行 `clipc` |
+
+### 9.1 Python 节点
+
+Python handler 在存在 `sandboxExecution` 时调用 `runPython({code, timeout...})`，见 [`capability-nodes.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/nodes/capability-nodes.js#L283-L339)。Workflow sandbox port 再映射到 sandbox gateway，见 [`workflow-sandbox-execution-port.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-capability/dist/workflow-sandbox-execution-port.js#L1-L13)。
+
+当前 sandbox 配置为 remote；reference client 对 Unix endpoint 通过 socketPath POST `/rest/sandbox/v1/jobs`，见 [`reference-remote-sandbox.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-platform-gateway-remote/dist/sandbox/reference-remote-sandbox.js#L9-L18) 和 [`reference-remote-sandbox.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-platform-gateway-remote/dist/sandbox/reference-remote-sandbox.js#L140-L175)。
+
+### 9.2 RESTful/CLIP 节点
+
+RESTful handler 不直接调用任意 URL，而是要求 `api_name`，再执行 `capabilityInvocation.invoke(...)`，见 [`capability-nodes.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/nodes/capability-nodes.js#L87-L132)。
+
+当前 Agent 未配置 `CLIPMode: SANDBOX`，因此 capability composition 选择 direct mode，见 [`capability-composition.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-app/dist/composition/capability-composition.js#L32-L38)。CLIP executor 最终调用 runner，runner 使用 `clipc list/describe/execute`，见 [`clip-tool-source.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-capability/dist/clip/clip-tool-source.js#L224-L282) 和 [`direct-clip-command-runner.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-capability/dist/clip/direct-clip-command-runner.js#L13-L92)。底层以 `shell: false` 启动 `${CLIP_HOME}/clipc`，见 [`direct-clipc-port.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-platform-gateway-local/dist/sandbox/direct-clipc-port.js#L5-L20)。
+
+所以，对 WATT_PLEX 而言可以确认到的边界是：
 
 ```text
-Pod 启动 NextAgent
--> LLM 加载 Skill
--> Skill 促使 LLM 发出 Workflow tool call
--> tool loop 按 recipeName 从 Registry 找到 WATT_PLEX
--> workflow engine 调度 YAML 节点
--> sandbox / CLIP / model gateway 完成实际计算与查询
--> 结果作为 tool result 回到用户
+RESTFUL node
+-> capability resolver
+-> CLIP descriptor/executor
+-> 本地 clipc 进程
+-> CLIP 自己解析 api_name 并访问下游
+```
+
+`chat_completions` 也是 WATT_PLEX 的一个 `api_name`，因此 Recipe 内部的两次 LLM 调用先跨越 CLIP 边界。它最终是否与外层模型复用同一 model gateway socket，需要 CLIP 配置或流量日志才能确认，不能只凭本包的 Node.js 代码下结论。
+
+### 9.3 外层 Agent 模型
+
+外层 Agent 的模型调用则能明确确认：model gateway provider 请求 `/rest/netrsn/v1/chat/completions`，并使用 `MODEL_GATEWAY_SOCKET_PATH=/opt/sidecar/ir/http.sock`，见 [`gateway-provider.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-platform-gateway-remote/dist/model/gateway-provider.js#L21-L50) 和 [`gateway-provider.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-platform-gateway-remote/dist/model/gateway-provider.js#L102-L144)。
+
+配置中的 `remote-api-call` 是内建 `ApiCall` tool 的远程端口，不能与 WATT_PLEX 的 `restful -> CLIP` 路径混为一谈。
+
+---
+
+## 10. 当前包内 WATT_PLEX 的实际 DAG
+
+本次应以软件包里的 [`WATT_PLEX.yaml`](../aicoservice@27.68.169/agents/aico-agent-m/zh_CN/recipes/WATT_PLEX.yaml) 为准。它是 `version: 0.0.1`，共 31 个节点：
+
+- 1 个 `start-event`
+- 10 个 `python`
+- 1 个 `parallel-gateway`
+- 12 个 `restful`
+- 1 个 `inclusive-gateway`
+- 5 个 `display-content`
+- 1 个 `end-event`
+
+真实主流程为：
+
+```mermaid
+flowchart TD
+    A[start_node] --> B[preprocess]
+    B --> P{parallel_search}
+    P --> S1[search_feature<br/>search_dim_feature]
+    P --> S2[search_ep<br/>search_dim_feature]
+    P --> S3[search_cell<br/>search_dim_cell]
+    P --> S4[search_site<br/>search_dim_cell]
+    P --> S5[search_region<br/>search_dim_region]
+    P --> S6[search_grid<br/>search_dim_region]
+    P --> S7[search_poi<br/>search_dim_region]
+    S1 & S2 & S3 & S4 & S5 & S6 & S7 --> J[parallel_search_join]
+    J --> PP[postprocess]
+    PP --> BN[build_nego_plan_messages]
+    BN --> NL[call_nego_plan_llm<br/>chat_completions]
+    NL --> NP[parse_nego_planner]
+    NP -->|need_nego| DN[display_nego]
+    DN --> END[end_node]
+    NP -->|intent_complete| IH[init_tool_history]
+    IH --> BE[build_exec_messages]
+    BE --> EL[call_exec_llm<br/>chat_completions]
+    EL --> PE[parse_exec_response]
+    PE -->|无 tool call| DA[display_exec_direct_answer]
+    DA --> DF[display_final_result]
+    PE -->|有 tool call| RT{route_tool}
+    RT --> PM[queryPerformanceData]
+    RT --> EP[queryEngineerParam]
+    RT --> AL[queryAlarms]
+    RT --> GA[calculate_gain<br/>Python]
+    PM & EP & AL & GA --> CSV[extract_tool_csv]
+    CSV -->|有 CSV| SC[show_csv]
+    CSV -->|无 CSV| UH[update_tool_history]
+    SC --> UH
+    UH --> BE
+    DF --> END
+```
+
+有几处与旧分析不同：
+
+- 当前文件是 **7 个并行检索节点**，不是 8 个；它们落到 3 个逻辑检索 API：`search_dim_feature/cell/region`。见 [`WATT_PLEX.yaml`](../aicoservice@27.68.169/agents/aico-agent-m/zh_CN/recipes/WATT_PLEX.yaml#L113-L297)。
+- Executor 实际只路由 4 类动作：PM、工参、告警、增益。当前 Recipe 内没有 SmartCanvas 节点；SmartCanvas 规则位于外层 Skill。见 [`WATT_PLEX.yaml`](../aicoservice@27.68.169/agents/aico-agent-m/zh_CN/recipes/WATT_PLEX.yaml#L2227-L2313)。
+- 工具循环的 `reached_max_loop` 阈值是 **4**，不是旧稿中的 10。见 [`WATT_PLEX.yaml`](../aicoservice@27.68.169/agents/aico-agent-m/zh_CN/recipes/WATT_PLEX.yaml#L2602-L2645)。
+- 协商信息不完整时，当前图是 `display_nego -> end_node`，没有 `user-check` 节点，因此该 execution 会结束并把追问内容返回；下一轮用户输入会产生新的 Agent run，而不是在同一个 WATT_PLEX execution 内原地恢复。见 [`WATT_PLEX.yaml`](../aicoservice@27.68.169/agents/aico-agent-m/zh_CN/recipes/WATT_PLEX.yaml#L1614-L1728)。
+
+YAML 顶部描述仍写“5工具”，与当前实际路由的 4 个动作不一致，应视为元数据/注释未同步，而不是第五个节点被引擎隐式注入。
+
+---
+
+## 11. 结果怎样回到用户
+
+Workflow engine 返回 `executionId/status/nodeResults` 后，`mapWorkflowResult`：
+
+- `COMPLETED` -> tool 状态 `SUCCEEDED`，携带安全过滤后的 `outputVariables`、answer previews 和 metadata；
+- `WAITING` -> 返回 `status: waiting` 和 pending input；
+- `FAILED/INTERRUPTED` -> 映射安全错误；
+- metadata 中保留 `executionId` 和 `nodeResultCount`。
+
+见 [`workflow-tool-port.js`](../aicoservice@27.68.169/node_modules/@nextagent/agent-workflow/dist/workflow-tool-port.js#L128-L202)。
+
+在普通模型路径中，这个结果先作为 `Workflow` tool result 回到外层模型，模型再生成最终用户答复；在 deterministic Recipe 路径中，`DefaultAgent` 直接把 Recipe 可见输出投影到 run timeline。最终两者都由 A2A-T response projector 转成 TaskResponse 并通过 SSE 返回。
+
+---
+
+## 12. 已确认事实与剩余边界
+
+### 已由本地完整包确认
+
+- Pod 启动的真实入口、Agent 复制逻辑和 UDS 监听位置。
+- `WATT_PLEX.yaml` 是当前软件包内的本地 Recipe 文件。
+- Recipe provider 是 `LOCAL_DIRECTORY`，并真实执行 `readFileSync + js-yaml`。
+- `Workflow` tool 按 `recipeName` 在当前 Agent scope 解析本地 Recipe。
+- 当前 workflow execution 使用本地 engine，而不是 remote workflow gateway。
+- Python 节点走 remote sandbox；RESTful 节点走 CLIP/`clipc`。
+- Quick QA、显式 Recipe、模型驱动三条路由路径。
+- 当前 WATT_PLEX 的真实 31 节点结构、7 路并行检索、4 类执行动作和最多 4 轮工具循环。
+
+### 仍需外部材料才能确认
+
+- `clipc` 针对每个 `api_name` 最终映射到哪个服务 URL/UDS、鉴权和重试策略。
+- Recipe 内 `chat_completions` 是否最终复用外层 model gateway。
+- backend/IR sidecar 在 Pod 之外继续转发到哪些微服务。
+- 生产运行 Pod 中 `/opt/share/agents/AICOServiceAgent/recipes/WATT_PLEX.yaml` 是否与本次本地包逐字节一致；启动逻辑说明它应来自同版本包，但运行中仍可能被升级流程替换。
+
+---
+
+## 13. 一句话链路
+
+```text
+上游 A2A-T 请求
+-> backend UDS 上的 agent-channel-aico
+-> Quick QA / direct Recipe / model loop 路由
+->（普通路径）外层模型加载 Skill 并产生 Workflow(WATT_PLEX)
+-> 当前 Agent 的本地 recipes 目录按名称加载 YAML
+-> 进程内 Workflow Engine 调度 31 个节点
+-> Python 走 remote sandbox，RESTful 走 clipc
+-> Workflow 结果回到外层模型或 deterministic route
+-> timeline 投影为 A2A-T SSE 返回
 ```
