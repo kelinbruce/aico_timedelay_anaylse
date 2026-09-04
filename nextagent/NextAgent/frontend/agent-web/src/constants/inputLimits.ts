@@ -1,0 +1,3 @@
+export const LONG_TEXT_THRESHOLD = 2000;
+export const SKILL_SEARCH_KEYWORD_MAX_LENGTH = 512;
+export const SHARE_RUN_IDS_MAX_ITEMS = 100;

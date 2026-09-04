@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 48 48" fill="none" version="1.1" pluginData="%7B%22pluginID%22%3A%22mLPblskg8N2dCg5ADiieuw%22%2C%22key%22%3A%22__hiconInfo__%22%2C%22value%22%3A%22%7B%5C%22iconSize%5C%22%3A%5C%2220%5C%22%2C%5C%22defaultIconSize%5C%22%3A40%2C%5C%22storkeWidth%5C%22%3A3.6%2C%5C%22iconState%5C%22%3A%5C%22border%5C%22%2C%5C%22color1%5C%22%3A%5C%22%23191919%5C%22%2C%5C%22color2%5C%22%3A%5C%22%23AEAEAE%5C%22%2C%5C%22color3%5C%22%3A%5C%22%23F3F3F3%5C%22%2C%5C%22strokeWidth%5C%22%3A3.6%2C%5C%22model%5C%22%3A%5C%22border%5C%22%2C%5C%22type%5C%22%3A%5C%22iconPlus%5C%22%2C%5C%22version%5C%22%3A%5C%221.0.1%5C%22%2C%5C%22typeValue%5C%22%3A%5C%22stateColor%5C%22%2C%5C%22background%5C%22%3A%5C%22%5C%22%7D%22%7D">
+	<desc>
+			Created with Pixso.
+	</desc>
+	<defs>
+		<clipPath id="clip73_1681_ybhrwz11qsr261625">
+			<rect id="support_ybhrwz11qsr261625" width="48.000000" height="48.000000" fill="white" fill-opacity="0"/>
+		</clipPath>
+		<clipPath id="clip73_1685_ybhrwz11qsr261625">
+			<rect id="border_ybhrwz11qsr261625" width="48.000000" height="48.000000" fill="white" fill-opacity="0"/>
+		</clipPath>
+		<clipPath id="clip73_1687_ybhrwz11qsr261625">
+			<rect id="filled_ybhrwz11qsr261625" width="48.000000" height="48.000000" fill="white" fill-opacity="0"/>
+		</clipPath>
+		<clipPath id="clip73_1680_ybhrwz11qsr261625">
+			<rect id="resetting-重置/base/resetting_ybhrwz11qsr261625_ybhrwz11qsr261625" width="48.000000" height="48.000000" fill="white" fill-opacity="0"/>
+		</clipPath>
+	</defs>
+	<rect id="resetting-重置/base/resetting_ybhrwz11qsr261625_ybhrwz11qsr261625" width="48.000000" height="48.000000" fill="#FFFFFF" fill-opacity="0"/>
+	<g clip-path="url(#clip73_1680_ybhrwz11qsr261625)">
+		<g clip-path="url(#clip73_1681_ybhrwz11qsr261625)">
+			<path id="path_ybhrwz11qsr261625_ybhrwz11qsr2616251_ybhrwz11qsr261625" d="M0 23.98C0 20.23 -0.02 16.48 0 12.73C-0.02 10.91 0.22 9.1 0.66 7.35C1.64 3.63 4.06 1.42 7.78 0.55C9.64 0.15 11.56 -0.04 13.46 -9.54e-7C20.65 -9.54e-7 27.84 -9.54e-7 35.04 -9.54e-7C36.84 -0.02 38.66 0.18 40.43 0.61C44.26 1.55 46.56 3.98 47.43 7.8C47.83 9.6 48.01 11.44 47.99 13.29C47.99 20.56 47.99 27.83 47.99 35.09C48 36.89 47.8 38.68 47.38 40.43C46.44 44.27 44 46.55 40.18 47.43C38.32 47.83 36.41 48.02 34.5 47.99C27.35 47.99 20.19 47.99 13.03 47.99C11.2 48.01 9.38 47.8 7.59 47.38C3.75 46.45 1.44 44.01 0.56 40.16C0.11 38.22 0 36.27 0 34.3C0 30.86 0 27.42 0 23.98Z" fill="#FFFFFF" fill-opacity="0" fill-rule="evenodd"/>
+			<circle id="path_ybhrwz11qsr261625_ybhrwz11qsr2616252_ybhrwz11qsr261625" cx="24.000000" cy="24.000000" r="24.000000" fill="#FFFFFF" fill-opacity="0"/>
+		</g>
+		<g clip-path="url(#clip73_1685_ybhrwz11qsr261625)">
+			<path id="path_ybhrwz11qsr261625_ybhrwz11qsr261625" d="M20.08 40.62L23.99 46C11.84 46 2 36.15 2 23.99C2 11.84 11.84 2 23.99 2C36.15 2 46 11.84 46 23.99C46 29.66 43.85 34.83 40.33 38.73" stroke="#191919" stroke-opacity="1.000000" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/>
+		</g>
+		<g clip-path="url(#clip73_1687_ybhrwz11qsr261625)">
+			<path id="path_ybhrwz11qsr261625_ybhrwz11qsr261625" d="M19.77 43.58L18.47 41.79C17.81 40.89 18 39.66 18.91 39C19.81 38.34 21.04 38.53 21.7 39.44L25.61 44.82C25.94 45.27 26.06 45.76 25.97 46.31C25.88 46.85 25.62 47.29 25.17 47.61C25 47.74 24.81 47.83 24.61 47.9C24.41 47.96 24.21 48 23.99 48C20.68 48 17.61 47.41 14.78 46.24C11.95 45.07 9.37 43.31 7.02 40.97C4.68 38.62 2.92 36.04 1.75 33.21C0.58 30.38 0 27.31 0 23.99C0 20.68 0.58 17.61 1.75 14.78C2.92 11.95 4.68 9.37 7.02 7.02C9.37 4.68 11.95 2.92 14.78 1.75C17.61 0.58 20.68 -9.54e-7 23.99 0C27.31 0 30.38 0.58 33.21 1.75C36.04 2.92 38.62 4.68 40.97 7.02C43.31 9.37 45.07 11.95 46.24 14.78C47.41 17.61 48 20.68 48 23.99C48 27.08 47.48 29.97 46.44 32.65C45.41 35.32 43.87 37.79 41.82 40.07C41.07 40.9 39.82 40.96 38.99 40.21C38.16 39.46 38.1 38.22 38.85 37.39C40.56 35.49 41.84 33.44 42.7 31.21C43.56 28.97 44 26.57 44 23.99C44 21.23 43.51 18.67 42.53 16.32C41.55 13.96 40.09 11.81 38.14 9.85C36.18 7.9 34.03 6.44 31.67 5.46C29.32 4.48 26.76 4 23.99 4C21.23 4 18.67 4.48 16.32 5.46C13.96 6.44 11.81 7.9 9.85 9.85C7.9 11.81 6.44 13.96 5.46 16.32C4.48 18.67 4 21.23 4 23.99C4 26.76 4.48 29.32 5.46 31.67C6.44 34.03 7.9 36.18 9.85 38.14C11.81 40.09 13.96 41.55 16.32 42.53C17.42 42.99 18.57 43.34 19.77 43.58Z" fill="#FFFFFF" fill-opacity="0" fill-rule="evenodd"/>
+		</g>
+	</g>
+</svg>

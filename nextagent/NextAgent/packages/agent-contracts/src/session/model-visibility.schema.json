@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nextagent/agent-contracts/session/model-visibility.schema.json",
+  "title": "SessionMessage.metadata.modelVisibility",
+  "description": "Stable JSON shape for model-visibility metadata carried on SessionMessage.metadata.modelVisibility. Decouples page visibility (the `visible` field) from model visibility (context assembly exclusion). Owned by agent-contracts/session; consumed by agent-context-engine assembly.",
+  "type": "object",
+  "required": ["excluded", "reason"],
+  "additionalProperties": false,
+  "properties": {
+    "excluded": {
+      "type": "boolean",
+      "description": "When true, context assembly MUST exclude this message from the model context regardless of the `visible` field."
+    },
+    "reason": {
+      "type": "string",
+      "enum": ["RETRY_REPLACED", "EDIT_REPLACED", "CAPABILITY_GENERATED", "GUARD_BLOCKED", "SKILL_BODY"],
+      "description": "The VisibilityReason explaining why the message is force-included or force-excluded from the model context."
+    },
+    "included": {
+      "type": "boolean",
+      "description": "When true, context assembly MUST include this message in the model context even if the `visible` field is false. Inverse of `excluded`. Mutually exclusive with `excluded=true`. Canonical use case: a directed-Skill body persisted as a page-hidden USER message the model must see."
+    }
+  }
+}

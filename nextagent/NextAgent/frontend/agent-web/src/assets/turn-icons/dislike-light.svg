@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 48 48" fill="none" version="1.1" pluginData="%7B%22pluginID%22%3A%22mLPblskg8N2dCg5ADiieuw%22%2C%22key%22%3A%22__hiconInfo__%22%2C%22value%22%3A%22%7B%5C%22iconSize%5C%22%3A%5C%2220%5C%22%2C%5C%22defaultIconSize%5C%22%3A40%2C%5C%22storkeWidth%5C%22%3A3.6%2C%5C%22iconState%5C%22%3A%5C%22border%5C%22%2C%5C%22color1%5C%22%3A%5C%22%23191919%5C%22%2C%5C%22color2%5C%22%3A%5C%22%23AEAEAE%5C%22%2C%5C%22color3%5C%22%3A%5C%22%23F3F3F3%5C%22%2C%5C%22strokeWidth%5C%22%3A3.6%2C%5C%22model%5C%22%3A%5C%22border%5C%22%2C%5C%22type%5C%22%3A%5C%22iconPlus%5C%22%2C%5C%22version%5C%22%3A%5C%221.0.1%5C%22%2C%5C%22typeValue%5C%22%3A%5C%22stateColor%5C%22%2C%5C%22background%5C%22%3A%5C%22%5C%22%7D%22%7D">
+	<desc>
+			Created with Pixso.
+	</desc>
+	<defs/>
+	<path id="path1" d="M0 23.98C0 20.23 -0.01 16.48 0 12.73C-0.01 10.91 0.22 9.1 0.66 7.35C1.65 3.63 4.07 1.42 7.79 0.56C9.65 0.16 11.56 -0.03 13.46 0C20.65 0 27.84 0 35.04 0C36.85 -0.01 38.66 0.19 40.43 0.62C44.26 1.55 46.56 3.98 47.43 7.8C47.83 9.6 48.01 11.44 47.99 13.29C47.99 20.56 47.99 27.83 47.99 35.09C48 36.89 47.8 38.69 47.38 40.44C46.44 44.27 44 46.55 40.19 47.43C38.32 47.83 36.42 48.02 34.51 47.99C27.35 47.99 20.19 47.99 13.03 47.99C11.2 48.01 9.38 47.8 7.6 47.38C3.75 46.45 1.44 44.01 0.57 40.17C0.12 38.22 0 36.27 0 34.3C0 30.86 0 27.42 0 23.98Z" fill="#FFFFFF" fill-opacity="0" fill-rule="evenodd"/>
+	<circle id="path2" cx="24.000000" cy="24.000000" r="24.000000" fill="#FFFFFF" fill-opacity="0"/>
+	<path id="path3" d="M13 2L13 27.3L6 27.3C3.79 27.3 2 25.5 2 23.3L2 6C2 3.79 3.79 2 6 2L13 2Z" stroke="#191919" stroke-opacity="1.000000" stroke-width="3.6" stroke-linejoin="round"/>
+	<path id="path4" d="M31.95 2C39.41 2 41.27 2.43 43.12 5.64C44.97 8.86 49.12 27.54 41.92 27.54C36.59 27.54 30.54 27.54 27.76 27.54C27 27.54 26.46 28.29 26.69 29.02C27.5 31.58 28.98 36.83 28.6 39.7C28.09 43.6 25 46.87 22.6 45.79C20.2 44.7 21.09 39.08 19 34.84C16.9 30.59 13 27.54 13 27.54L13 2C13 2 24.5 2 31.95 2Z" stroke="#191919" stroke-opacity="1.000000" stroke-width="3.6" stroke-linejoin="round"/>
+	<mask id="mask250_11947" mask-type="alpha" maskUnits="userSpaceOnUse" x="0.000000" y="0.000000" width="48.000000" height="48.000000">
+		<path id="path" d="M0 0L11.4502 0L11.4502 48L0 48L0 0ZM14.4502 48L14.4502 0L48 0L48 48L14.4502 48Z" clip-rule="evenodd" fill="#C4C4C4" fill-opacity="1.000000" fill-rule="evenodd"/>
+	</mask>
+	<g mask="url(#mask250_11947)">
+		<path id="path5" d="M6 2L13 2L13 27.3L6 27.3C3.79 27.3 2 25.5 2 23.3L2 6C2 3.79 3.79 2 6 2Z" fill="#FFFFFF" fill-opacity="0" fill-rule="evenodd"/>
+		<path id="path5" d="M13 2L13 27.3L6 27.3C3.79 27.3 2 25.5 2 23.3L2 6C2 3.79 3.79 2 6 2L13 2Z" stroke="#FFFFFF" stroke-opacity="0" stroke-width="3.6" stroke-linejoin="round"/>
+	</g>
+	<g mask="url(#mask250_11947)">
+		<path id="path6" d="M13 2C13 2 24.5 2 31.95 2C39.41 2 41.27 2.43 43.12 5.64C44.97 8.86 49.12 27.54 41.92 27.54C36.59 27.54 30.54 27.54 27.76 27.54C27 27.54 26.46 28.29 26.69 29.02C27.5 31.58 28.98 36.83 28.6 39.7C28.09 43.6 25 46.87 22.6 45.79C20.2 44.7 21.09 39.08 19 34.84C16.9 30.59 13 27.54 13 27.54L13 2Z" fill="#FFFFFF" fill-opacity="0" fill-rule="evenodd"/>
+		<path id="path6" d="M31.95 2C39.41 2 41.27 2.43 43.12 5.64C44.97 8.86 49.12 27.54 41.92 27.54C36.59 27.54 30.54 27.54 27.76 27.54C27 27.54 26.46 28.29 26.69 29.02C27.5 31.58 28.98 36.83 28.6 39.7C28.09 43.6 25 46.87 22.6 45.79C20.2 44.7 21.09 39.08 19 34.84C16.9 30.59 13 27.54 13 27.54L13 2C13 2 24.5 2 31.95 2Z" stroke="#FFFFFF" stroke-opacity="0" stroke-width="3.6" stroke-linejoin="round"/>
+	</g>
+</svg>

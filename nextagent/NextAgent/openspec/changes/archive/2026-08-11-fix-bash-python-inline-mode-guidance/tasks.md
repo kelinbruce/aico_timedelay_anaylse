@@ -1,0 +1,7 @@
+- [x] 1. 更新 Bash Tool 模型可见指引，劝阻使用不支持的 Python CLI 内联模式。
+- [x] 2. 为不支持的 Python 调用模式新增 Bash Tool 提交前校验。
+- [x] 3. 为 `python -c`、结构化 `args: ["-c", ...]`、stdin 模式、不支持的仅选项模式、非法模块模式以及精确的 `python --version` 新增回归测试。
+- [ ] 4. 在可用时运行聚焦的 Bash capability 测试、`agent-capability` 的 TypeScript 构建、diff 检查和 OpenSpec 验证。
+  - 聚焦的 Bash capability 测试、聚焦的受限本地 sandbox 测试、受影响 package 的 TypeScript 构建和 `git diff --check` 已通过。
+  - 完整 `bash-capability.test.ts` 仍有一个既有的无关后台 mock 期望失败。
+  - OpenSpec 验证无法在本地运行，因为本机未安装 `openspec` 命令。

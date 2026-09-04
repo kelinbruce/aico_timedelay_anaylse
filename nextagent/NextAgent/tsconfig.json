@@ -1,0 +1,31 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/agent-common" },
+    { "path": "./packages/agent-local-file-roll" },
+    { "path": "./packages/agent-log" },
+    { "path": "./packages/agent-contracts" },
+    { "path": "./packages/agent-observability" },
+    { "path": "./packages/agent-session" },
+    { "path": "./packages/agent-attachment-runtime" },
+    { "path": "./packages/agent-memory" },
+    { "path": "./packages/agent-context-engine" },
+    { "path": "./packages/agent-model" },
+    { "path": "./packages/agent-capability" },
+    { "path": "./packages/agent-core" },
+    { "path": "./packages/agent-runtime" },
+    { "path": "./packages/agent-channel-web" },
+    { "path": "./packages/agent-dev-workbench" },
+    { "path": "./packages/agent-channel-web-auth-local" },
+    { "path": "./packages/agent-app-frontend-hosting" },
+    { "path": "./packages/agent-platform-gateway-local" },
+    { "path": "./packages/agent-platform-gateway-remote" },
+    { "path": "./packages/agent-workflow" },
+    { "path": "./packages/agent-app" },
+    { "path": "./packages/agent-remote-deployment" },
+    { "path": "./packages/agent-plugin-sdk" },
+    { "path": "./packages/agent-test-kit" },
+    { "path": "./src" },
+    { "path": "./tests" }
+  ]
+}

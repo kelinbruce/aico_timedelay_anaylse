@@ -1,0 +1,6 @@
+id: refine-ts-empty-terminal-output
+title: Refine TS empty terminal output guard
+status: active
+created: 2026-07-18
+spec:
+  - ts-minimal-agent-kernel

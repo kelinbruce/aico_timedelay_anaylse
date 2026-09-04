@@ -1,0 +1,41 @@
+## 1. Contract 与 Web API
+
+- [x] 1.1 更新当前会话 preview route 和 contract：`GET /api/v1/sessions/{sessionId}/conversation/preview` 必须接收显式 `limit`，可接收显式 `offset`；不传 `offset` 时返回 latest preview marker window 并在 response 返回实际 `offset`；传 `offset` 时返回该绝对位置窗口；拒绝 `q`、日期、cursor、`includeCapabilityResults`、`positionRatio` 或搜索参数；`offset >= 0`、`limit > 0` 且单次 `limit <= 500`；response 只包含 `sessionId`、`totalMarkers`、`offset`、`limit` 和 `markers[]`；每个 marker 包含 `messageId`、`requestId?`、`createdAt`、服务端截断到 300 个 Unicode code point 以内且不拆 surrogate pair 的 `previewText`、`previewTruncated`，并可包含同 request visible ASSISTANT 正文生成的 `answerPreviewText?`、`answerPreviewTruncated?`；marker 只来自当前 session 内 visible USER message。
+  验证：Web route/schema tests 覆盖 latest preview、显式 offset 分页 preview、缺失/非法 `limit`、非法 `offset` rejection、非法搜索参数 rejection、response schema；contract tests 断言 runtime/session/gateway 收到 canonical paged/latest conversation preview query，且 response 没有 `markersComplete`、`markerLimit`、public `q` alias、`nextMatchCursor` 或 search match contract。
+- [x] 1.2 扩展 conversation read route 和 contract：`GET /api/v1/sessions/{sessionId}/conversation` 支持 `anchorMessageId?` 和 `newerCursor?`；`cursor?` 继续作为 public older-record cursor；`cursor/newerCursor/anchorMessageId` 不得组合；现有 `includeCapabilityResults?` 查询语义必须保留，默认仍为 `false`，且可与 latest、older、newer 或 anchor 读取一起使用；response 只新增或保留 `newerCursor?` 与 public older alias `nextCursor?`，不得新增 `windowMode` 或 `anchor` 字段；内部状态保留既有 `beforeCursor/nextBeforeCursor` older-record 语义，并新增 `newerCursor` 较新方向语义。  
+  验证：Web route/schema tests 覆盖 latest、older、newer、anchor 查询、`includeCapabilityResults` 组合和非法组合；contract tests 断言 channel 将 public `cursor` 映射到 internal `beforeCursor`，将 internal `nextBeforeCursor/newerCursor` 投影为 public `nextCursor/newerCursor`，并确认 response schema 没有 `windowMode`/`anchor`。
+
+## 2. Session 与 Gateway 查询
+
+- [x] 2.1 在 `agent-session` 和 `agent-platform-gateway-local` 中实现当前会话 preview marker latest/分页查询：只查同 scope、同 session、`role=USER`、`visible=true` 的消息生成 marker，按 `createdAt ASC, messageId ASC` 稳定排序；返回 `totalMarkers` 和实际 `[offset, offset + limit)` 页内 marker；无 `offset` 时使用 `max(0, totalMarkers - limit)` 返回 latest marker 页；服务端生成 bounded `previewText` 和 `previewTruncated`，并仅为页内 marker 查询同 request latest visible ASSISTANT 正文生成可选 bounded `answerPreviewText` 和 `answerPreviewTruncated`；tool/Capability result/hidden/cross-session 消息不参与 preview；不做 search count、highlight、rank、match cursor 或完整 conversation items；不得按 JS 全量读取后内存切片，不得设置 total marker cap。
+  验证：gateway-local contract tests 覆盖 visible USER marker latest/分页、`totalMarkers`、同 request visible ASSISTANT answer preview、tool/Capability result 不出现、hidden USER/hidden ASSISTANT 不出现、跨 owner/cross-agent/cross-session 不出现、preview 截断、超过 100 条仍可分页返回、offset 超过总数返回空页、`limit > 500` 被拒绝；code review 确认没有新增 FTS/search document/sidecar 表或 JS 全量过滤。
+- [x] 2.2 在 conversation message 读取中实现 SQL 窗口分页：recent 用最新 visible window；older 用 `beforeCursor` 向前读并返回 `nextBeforeCursor`；newer 用 `newerCursor` 向后读；anchor 校验目标消息同 scope、同 session、visible 后按固定算法读取 anchor 前后连续窗口；所有返回项按 `createdAt ASC, messageId ASC` 排序；stale/hidden/deleted/cross-scope anchor fail closed，不降级伪装为 latest。  
+  验证：gateway-local contract tests 覆盖 recent latest window、older prepend window、newer append window、最早消息 anchor、居中 anchor、末尾 anchor、hidden/stale anchor 失败、窗口连续性和 `nextBeforeCursor/newerCursor` 是否存在；code review 确认 conversation 不拉取全 session messages 后内存切片。
+- [x] 2.3 确认不新增持久化结构：preview 与 anchor 直接读现有 `messages` 表；不得新增 FTS 表、search document 表、sidecar 表、rebuild/index operation、public search-index endpoint 或搜索 DTO；仅允许按现有 migration 规则补普通 B-tree index。  
+  验证：architecture review 检查 schema、gateway contracts、routes 和 tasks 无上述新增结构。
+
+## 3. 前端 preview rail 与 anchored state
+
+- [x] 3.1 更新 local/immersive conversation surface 的当前会话 preview rail：初始 recent 会话调用 latest `conversation/preview?limit=100`，后续滚动调用 paged `conversation/preview?offset&limit`；首版固定 `windowSize=100`、请求 `limit=100`、`preloadThreshold=80`、最多 2 个 in-flight preview window 请求；首次渲染后 rail 可视区对齐到底部，不滚动时最下面的 marker 是最新用户提交；rail 位于对话区域左侧、靠近 Sidebar 边界并保持间距；rail 必须被限制在 conversation viewport 内，不遮挡 Sidebar、对话内容或 composer；marker 间距使用组件级固定策略且不随 marker 数量或 rail 高度动态压缩；marker 总高度由 `totalMarkers * markerRowHeight` 撑开且超过 rail 可视高度时 rail 自身滚动；只渲染当前可视区上下阈值范围内的 marker DOM；未加载 marker 可显示占位 tick，hover 不请求、不显示 card，点击时加载对应 preview window 并在成功后导航；当前窗口由 preview rail 可视区中心 marker index 计算，相邻窗口由可视区边界接近窗口头/尾 80 个 marker 时预加载；快速滚动只加载最新位置附近窗口，loaded/loading 去重，失败窗口短冷却，不做请求取消、优先级队列、速度预测、动态窗口大小或 LRU；非 hover 状态显示短 tick marker；hover loaded marker 高亮并显示 bounded preview card；preview card 标题展示 `previewText` 单行省略，正文展示可选 `answerPreviewText` 且最多三行；tick marker 和 preview card 都触发同一目标消息导航；pointer 位于 tick-card 组合区域内时 card 保持可见，离开组合区域时关闭；hovered、邻近 marker 和 inactive marker 必须可区分且不得造成 layout shift；不根据 conversation 可视区或 anchored selection 高亮 marker；具体高度上限、gap、滚动条样式、宽度和动画时长仅为前端组件常量，不进入后端/API contract；空 `totalMarkers`/空 markers 时隐藏 preview rail、preview card 和 marker tick，不显示不可用文案或 toast；preview rail 本 change 只要求鼠标操作。
+  验证：frontend component tests 覆盖 rail 边界约束、marker 间距不随数量/高度动态压缩、内部滚动、windowed marker DOM、初始 latest preview 与 rail 底部对齐、`preloadThreshold=80`、max in-flight/dedupe、快速滚动不请求经过的所有窗口、失败冷却、dark/light hover marker、tick-card 组合区域保持 card 可见、邻近/非邻近 marker 视觉状态可区分且不造成 layout shift、empty markers 时隐藏 rail 且无新增文案、title/body preview 展示；browser QA 覆盖 rail 不遮挡 Sidebar、对话内容或 composer，长会话 marker rail 可内部滚动且无可见滚动条，首次刷新后底部可见 marker 是最新用户提交，preview card 和 tick 点击都能导航。
+- [x] 3.2 实现 preview 点击和 anchored conversation 状态：点击已加载 tick marker 或 preview card 时，平滑滚动到目标消息；点击未加载占位 tick 时，先加载对应 preview window，拿到 marker 后再按目标消息执行导航，加载失败则不跳转且不 toast；目标消息未在当前 conversation segment 内时，请求 `conversation?anchorMessageId=...` 并用连续 anchored segment 替换当前 conversation segment，再平滑滚动到 anchor；向上滚动使用 older cursor prepend，向下滚动使用 `newerCursor` append；不拼接不连续 latest 和 anchored segment；anchored 状态下 live stream 或新 latest 消息不得直接 append 到当前可见 anchored segment，除非连续性已经由 `newerCursor` 加载证明；前端 conversation store 维护 `recent/anchored` 状态和 active anchor selection，不依赖后端 `windowMode`；anchored 状态下置底按钮变为“回到最新”，右侧说明只在 hover、刚进入 anchored 或有新消息时短暂显示；发送新消息时退出 anchored 状态、清空 active anchor、切回 recent/bottom-following 并展示新用户消息。
+  验证：frontend store/component tests 覆盖已加载 tick marker 和 preview card 本地平滑滚动、未加载占位 tick 先加载 preview window 后导航、preview window 加载失败不跳转不 toast、未加载目标消息 anchor fetch/replace 后平滑滚动、older/newer pagination 连续性、return latest 重新加载 recent window、不逐页加载到最新、transient label 非常驻、新消息/live delta 到达 anchored 不 append 到当前可见 anchored segment、anchored 中 submit 切回最新并让新用户消息可见。
+
+## 4. 集成验证与收口
+
+- [x] 4.1 运行 OpenSpec 严格校验并修复本 change 的规格问题。
+  验证：`openspec validate add-ts-conversation-preview-navigation --strict`。
+- [x] 4.2 运行相关后端验证，覆盖 Web route、contract、gateway-local 和架构边界。
+  验证：`npm run test:contract`、相关 `npm test -- <focused test files>`、`npm run lint:architecture`。
+- [x] 4.3 运行相关前端验证，覆盖 preview rail、anchored conversation、return latest、anchored submit、older/newer continuity、empty markers、tail refresh 和构建。
+  验证：`npm test -- <frontend focused test files>`、`frontend/agent-web npm run build`。
+- [x] 4.4 做一次实现后架构 review：确认没有新增全局 `/search` endpoint、没有 public 全文搜索 endpoint/DTO/snippet、没有 JS 全量 conversation 消息内存切片、没有私有 FTS/search document/sidecar 表、没有命中片段/高亮 DTO、没有新增 `conversation/search` route、没有新增 `positionRatio`、没有 response `markersComplete/markerLimit`、没有后端 `windowMode/anchor` response 字段、没有 collaborative preview rail、没有让 preview 读取 tool/Capability result 或 hidden content，assistant 读取仅限同 request visible answer preview；`COUNT(*)` 仅允许作为当前 session/scope visible USER marker 的 `totalMarkers` 查询，不得扩展为搜索统计或跨会话统计。
+
+## 归档前更新基线（非实施任务）
+
+实现完成并验证通过后，在归档前根据 proposal/design 的“归档前更新基线”处理：
+
+- 同步 `openspec/specs/session-conversation-preview/spec.md`。
+- 更新 `openspec/specs/ts-minimal-agent-kernel/spec.md` 中 conversation preview route 和 conversation anchor/newer query 白名单。
+- 更新 `openspec/specs/agent-web-multi-host-modes/spec.md` 中 local/immersive preview rail 和 host-mode 边界。
+- 更新 `openspec/overview.md`、`openspec/designs/architecture/core-contracts.md`、`openspec/designs/modules/agent-channel-web.md`、`openspec/designs/modules/agent-session.md`、`openspec/designs/modules/agent-platform-gateway-local.md` 和 `openspec/designs/spec-to-design-map.md` 中与 current-session preview/navigation 相关的稳定事实。

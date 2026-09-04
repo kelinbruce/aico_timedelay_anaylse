@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NextAgent Workflow Trace Viewer</title>
+<style>
+  body { font-family: monospace; margin: 16px; background: #1a1a2e; color: #e0e0e0; }
+  h1 { font-size: 1.2rem; }
+  #file-input { margin-bottom: 16px; }
+  .session-group { margin-bottom: 24px; border: 1px solid #333; padding: 12px; border-radius: 4px; }
+  .session-header { font-weight: bold; color: #7ec8e3; margin-bottom: 8px; }
+  .node-row { padding: 4px 8px; border-bottom: 1px solid #222; }
+  .node-id { color: #e3b341; }
+  .node-type { color: #b0b0b0; font-size: 0.85rem; }
+  .duration { color: #6bc46d; }
+  .status-failed { color: #e06c75; }
+  .status-completed { color: #6bc46d; }
+  .boundary-row { padding: 2px 16px; font-size: 0.85rem; color: #b0b0b0; }
+  .boundary-type { color: #c678dd; }
+  .error-line { color: #e06c75; font-size: 0.85rem; }
+  .safe-error { color: #e06c75; margin-left: 16px; font-size: 0.85rem; }
+  .io-content { color: #b0b0b0; margin-left: 16px; font-size: 0.85rem; word-break: break-all; }
+  #issues { color: #e06c75; margin-top: 16px; }
+</style>
+</head>
+<body>
+<h1>Workflow Trace Viewer</h1>
+<input type="file" id="file-input" accept=".ndjson">
+<div id="content"></div>
+<div id="issues"></div>
+<script>
+  document.getElementById('file-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    renderTrace(text);
+  });
+
+  function renderTrace(text) {
+    var lines = text.split(String.fromCharCode(10)).filter(function(l) { return l.trim(); });
+    var allRecords = [];
+    var issues = [];
+
+    lines.forEach(function(line, i) {
+      try {
+        var record = JSON.parse(line);
+        if (record.pluginId !== 'workflow-trace') return;
+        allRecords.push(record);
+      } catch (err) {
+        issues.push('Line ' + (i + 1) + ': ' + (err.message || 'parse error'));
+      }
+    });
+
+    document.getElementById('issues').textContent = issues.length > 0 ? issues.join(String.fromCharCode(10)) : '';
+
+    var contentEl = document.getElementById('content');
+    contentEl.innerHTML = '';
+
+    var nodeTraces = allRecords.filter(function(r) { return r.artifactType === 'workflow-node-trace'; });
+    var boundaryTraces = allRecords.filter(function(r) { return r.artifactType === 'workflow-boundary-trace'; });
+
+    var groups = new Map();
+    allRecords.forEach(function(r) {
+      var key = (r.sessionId || '?') + ' / ' + (r.requestId || '?');
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(r);
+    });
+
+    if (groups.size === 0) {
+      contentEl.textContent = 'No workflow-trace records found.';
+      return;
+    }
+
+    groups.forEach(function(records, groupKey) {
+      var groupEl = document.createElement('div');
+      groupEl.className = 'session-group';
+
+      var header = document.createElement('div');
+      header.className = 'session-header';
+      var nodeCount = records.filter(function(r) { return r.artifactType === 'workflow-node-trace'; }).length;
+      var boundaryCount = records.filter(function(r) { return r.artifactType === 'workflow-boundary-trace'; }).length;
+      header.textContent = groupKey + ' (' + nodeCount + ' nodes, ' + boundaryCount + ' boundaries)';
+      groupEl.appendChild(header);
+
+      // Sort all records by recordedAt timestamp so boundaries interleave with nodes
+      records.sort(function(a, b) {
+        var ta = getTimestamp(a);
+        var tb = getTimestamp(b);
+        return ta - tb;
+      });
+
+      records.forEach(function(record) {
+        if (record.artifactType === 'workflow-node-trace') {
+          renderNodeRow(groupEl, record);
+        } else if (record.artifactType === 'workflow-boundary-trace') {
+          renderBoundaryRow(groupEl, record);
+        }
+      });
+
+      contentEl.appendChild(groupEl);
+    });
+  }
+
+  function getTimestamp(record) {
+    if (record.artifactType === 'workflow-boundary-trace') {
+      var p = record.payload || {};
+      return new Date(p.recordedAt || 0).getTime();
+    }
+    // For node traces, use recordedAt from the top-level record
+    return new Date(record.recordedAt || 0).getTime();
+  }
+
+  function renderNodeRow(parent, record) {
+    var p = record.payload || {};
+    var row = document.createElement('div');
+    row.className = 'node-row';
+    row.innerHTML = escapeHtml(
+      (p.nodeId || '?') + ' [' + (p.nodeType || '?') + '] ' +
+      (p.durationMs !== undefined ? p.durationMs + 'ms ' : '') +
+      (p.status || '')
+    );
+    parent.appendChild(row);
+
+    // Input content
+    if (p.input !== undefined) {
+      var inputEl = document.createElement('div');
+      inputEl.className = 'io-content';
+      inputEl.innerHTML = escapeHtml('  in: ' + JSON.stringify(p.input));
+      parent.appendChild(inputEl);
+    }
+
+    // Output content
+    if (p.output !== undefined) {
+      var outputEl = document.createElement('div');
+      outputEl.className = 'io-content';
+      outputEl.innerHTML = escapeHtml('  out: ' + JSON.stringify(p.output));
+      parent.appendChild(outputEl);
+    }
+
+    // SafeError
+    if (p.safeError !== undefined) {
+      var errEl = document.createElement('div');
+      errEl.className = 'safe-error';
+      var se = p.safeError;
+      errEl.innerHTML = escapeHtml('  error: ' + (se.code || '?') + ' - ' + (se.message || '?') + ' [' + (se.category || '?') + ']');
+      parent.appendChild(errEl);
+    }
+  }
+
+  function renderBoundaryRow(parent, record) {
+    var p = record.payload || {};
+    var row = document.createElement('div');
+    row.className = 'boundary-row';
+    row.innerHTML = escapeHtml(
+      '  ' + (p.boundaryType || '?') + ' ' +
+      (p.durationMs !== undefined ? p.durationMs + 'ms ' : '') +
+      (p.status || '') + ' @ ' + (p.recordedAt || '?')
+    );
+    parent.appendChild(row);
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+</script>
+</body>
+</html>

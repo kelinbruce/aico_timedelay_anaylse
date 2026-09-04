@@ -1,0 +1,3029 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADNClaw Agent 平台目标特性与规格清单</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --success: #059669;
+            --success-bg: #d1fae5;
+            --warning: #d97706;
+            --warning-bg: #fef3c7;
+            --danger: #dc2626;
+            --danger-bg: #fee2e2;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: var(--gray-50);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .meta {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        /* Navigation */
+        .nav {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-inner {
+            display: flex;
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        .nav-item {
+            padding: 1rem 0.75rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Section */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title .icon {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        .section-subtitle {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--gray-100);
+            border-radius: 8px;
+        }
+
+        .section-subtitle .tag {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .card-count {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--gray-100);
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        /* Status badges */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-done {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .status-planned {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .status-partial {
+            background: var(--info-bg);
+            color: var(--info);
+        }
+
+        /* Priority badges */
+        .priority {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .priority-medium {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        /* Summary box */
+        .summary-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+        }
+
+        /* Progress bar */
+        .progress-container {
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-top: 0.25rem;
+        }
+
+        /* Value table */
+        .value-table {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .value-row {
+            display: contents;
+        }
+
+        .value-cell {
+            padding: 0.75rem;
+            background: var(--gray-50);
+            border-radius: 8px;
+        }
+
+        .value-cell.header {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Roadmap */
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .roadmap-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .roadmap-card.high {
+            border-left: 4px solid var(--danger);
+        }
+
+        .roadmap-card.medium {
+            border-left: 4px solid var(--warning);
+        }
+
+        .roadmap-phase {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-bottom: 0.25rem;
+        }
+
+        .roadmap-title {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--gray-800);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .footer-note {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .value-table {
+                grid-template-columns: 1fr;
+            }
+
+            .roadmap-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>ADNClaw Agent 平台目标特性与规格清单</h1>
+        <div class="meta">
+            版本 0.1.0-SNAPSHOT | 文档日期 2026-06-23
+        </div>
+        <div class="badge">目标设计规格（与三阶段版本计划对齐）</div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav">
+        <div class="nav-inner">
+            <div class="nav-item active" onclick="showSection('overview')">总—项目概述</div>
+            <div class="nav-item" onclick="showSection('user')">用户特性</div>
+            <div class="nav-item" onclick="showSection('developer')">开发者特性</div>
+            <div class="nav-item" onclick="showSection('reliability')">系统可靠性</div>
+            <div class="nav-item" onclick="showSection('telecom')">电信工具安全</div>
+            <div class="nav-item" onclick="showSection('evolution')">智能体演进</div>
+            <div class="nav-item" onclick="showSection('tech')">技术规格</div>
+            <div class="nav-item" onclick="showSection('roadmap')">路线图</div>
+            <div class="nav-item" onclick="showSection('competitiveness')">竞争力分析</div>
+            <div class="nav-item" onclick="showSection('summary')">总—总结</div>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Overview Section -->
+        <div class="section active fade-in" id="overview">
+            <div class="section-title">
+                <span class="icon">总</span>
+                项目概述
+            </div>
+
+            <!-- Key Data Summary -->
+            <div class="summary-box">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value">22</div>
+                        <div class="summary-label">模块数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">38</div>
+                        <div class="summary-label">SPI 接口</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">7</div>
+                        <div class="summary-label">内置工具</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">3</div>
+                        <div class="summary-label">版本阶段</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Executive Reading Guide -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">投资与交付摘要</div>
+                    <div class="card-count">资源投入视角</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 180px;">关注点</th>
+                            <th>结论</th>
+                            <th style="width: 260px;">对资源投入的含义</th>
+                        </tr>
+                        <tr>
+                            <td><strong>为什么值得投入</strong></td>
+                            <td>ADNClaw 不是单点聊天工具，而是面向电信运维的“数字运维助手平台”：能理解任务、调用受控工具、保留过程记录，并沉淀领域能力。</td>
+                            <td>一次投入可沉淀运行时、会话、能力、审计、上下文和网关底座，后续领域智能体复用。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>为什么分三阶段</strong></td>
+                            <td>基础体验、商用质量（DFX）、高阶智能的风险和验证周期不同，必须拆开投入。</td>
+                            <td>阶段 1 验证价值，阶段 2 决定能否上线，阶段 3 决定差异化上限。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>当前最关键投入</strong></td>
+                            <td>阶段 2 的可靠性、安全、审计、可观测、自动化质量和架构治理。</td>
+                            <td>这是从“能跑”到“能商用”的必要投入，不能被高阶功能挤占。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>高阶能力处理</strong></td>
+                            <td>长期记忆、自学习、多通道和知识共享应作为增强包，按客户场景选择投入。</td>
+                            <td>避免高阶探索拖慢阶段 2 商用基线，同时保留产品竞争力路线。</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Positioning -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">项目定位</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">维度</th>
+                            <th>设计目标</th>
+                        </tr>
+                        <tr>
+                            <td><strong>产品形态</strong></td>
+                            <td>可复用的智能体运行底座 + 可装配的网络运维助手</td>
+                        </tr>
+                        <tr>
+                            <td><strong>业务场景</strong></td>
+                            <td>电信网络告警处理、配置管理、故障诊断、知识检索</td>
+                        </tr>
+                        <tr>
+                            <td><strong>部署模式</strong></td>
+                            <td>本地开发者工具（当前）→ 企业平台托管（规划）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>用户群体</strong></td>
+                            <td>智能体用户（运维工程师）+ 二次开发开发者（业务部门）</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Plain Language Explanation -->
+            <div class="card" style="border-left: 4px solid var(--success);">
+                <div class="card-header">
+                    <div class="card-title">产品理解</div>
+                    <div class="card-count">业务视角</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 180px;">关键问题</th>
+                            <th>产品说明</th>
+                            <th style="width: 260px;">项目价值</th>
+                        </tr>
+                        <tr>
+                            <td><strong>智能体是什么</strong></td>
+                            <td>可以理解为“会使用工具的数字员工”：能接收运维任务，调用系统工具，展示执行过程，遇到高风险动作时让人确认。</td>
+                            <td>把模型能力变成可管理、可追溯、可复用的生产工具。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>为什么适合电信运维</strong></td>
+                            <td>电信网络不允许黑盒执行。平台必须管住权限、工具、数据、审批、审计和恢复。</td>
+                            <td>降低误操作风险，满足生产运维和合规要求。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>和普通 AI 助手的区别</strong></td>
+                            <td>普通助手偏问答和代码生成；ADNClaw 强调受控执行、过程透明、领域知识沉淀和多团队复用。</td>
+                            <td>形成行业平台能力，而不是采购一个通用工具。</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Two-Layer Architecture -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">两层产品架构</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 200px;">层级</th>
+                            <th>内容</th>
+                            <th>服务对象</th>
+                        </tr>
+                        <tr>
+                            <td><strong>公共运行底座</strong></td>
+                            <td>智能体稳定运行所需的公共底座：会话、上下文、能力接入、网关、审计和可观测</td>
+                            <td>平台稳定性、可靠性边界</td>
+                        </tr>
+                        <tr>
+                            <td><strong>网络领域装配</strong></td>
+                            <td>面向不同网络领域装配运维能力、任务模板、模型策略和管控规则</td>
+                            <td>业务部门自主装配领域智能体</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.9rem;">
+                    <strong>设计意图：</strong>公共底座解决“如何稳定、安全地运行”，领域装配解决“无线、传输、数通、核心网等场景如何落地”。领域逻辑不写入底座，保证后续多个场景复用。
+                </p>
+            </div>
+
+            <!-- Core Value -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">核心价值主张</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>价值</th>
+                            <th>对智能体用户</th>
+                            <th>对二次开发开发者</th>
+                        </tr>
+                        <tr>
+                            <td><strong>通用底座可复用</strong></td>
+                            <td>多个领域智能体共享底座，体验一致</td>
+                            <td>无需重复开发运行基础设施</td>
+                        </tr>
+                        <tr>
+                            <td><strong>多入口统一治理</strong></td>
+                            <td>Web/IM/事件多渠道访问，状态不丢失</td>
+                            <td>入口扩展不影响执行逻辑，接入成本低</td>
+                        </tr>
+                        <tr>
+                            <td><strong>可靠可恢复</strong></td>
+                            <td>断线/刷新后可继续，不重复已执行操作</td>
+                            <td>恢复机制内置，无需自行实现状态保存</td>
+                        </tr>
+                        <tr>
+                            <td><strong>受控扩展边界</strong></td>
+                            <td>扩展不影响核心稳定性，体验可靠</td>
+                            <td>Config / Resources / ResourceProviders / Plugins 分层输入，AgentDefinition 统一绑定，二开可控</td>
+                        </tr>
+                        <tr>
+                            <td><strong>可观测可审计</strong></td>
+                            <td>操作过程透明，问题可追溯</td>
+                            <td>审计记录自动生成，合规成本低</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Version Alignment -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">三阶段版本口径对齐</div>
+                    <div class="card-count">与版本计划一致</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    本规格清单是“目标能力视图”，版本计划是“交付阶段视图”。两份材料统一采用以下阶段口径，避免“下一步 / 二期 / 三期”和“Phase 1/2/3”混用。
+                </p>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    状态标签中的“已实现 / 规划中”保留原规格清单口径，用于表达当前能力成熟度；是否进入具体交付版本，以本表的阶段归属和《三阶段版本计划》为准。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 180px;">统一阶段</th>
+                            <th style="width: 180px;">版本定位</th>
+                            <th>规格清单中的能力范围</th>
+                            <th style="width: 220px;">阶段门禁</th>
+                        </tr>
+                        <tr>
+                            <td><strong>阶段 1：基础功能版</strong></td>
+                            <td>基础闭环 / 内部试用</td>
+                            <td>Web UI 会话、流式响应、附件、cancel/retry/edit、基础运行态可视化、Context Engine、Capability SPI 基础能力。</td>
+                            <td>端到端可演示，基础并发和降级可验证。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>阶段 2：DFX 商用版</strong></td>
+                            <td>商用准入 / 受控上线</td>
+                            <td>可靠性、恢复、安全、审计、可观测、自动化测试、架构依赖边界、Skill 执行治理、商用配置面。</td>
+                            <td>商用质量指标可量化，关键故障可恢复，边界规则可自动阻断回归。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>阶段 3：高阶增强版</strong></td>
+                            <td>可选增强 / 生态扩展</td>
+                            <td>长期记忆、自学习、知识共享、确定性任务路由、TUI/IM/PaaS/NOC、多通道生态和高级回放。</td>
+                            <td>通过配置和策略开关启用，不影响阶段 2 商用基线。</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Section -->
+        <div class="section fade-in" id="user">
+            <div class="section-title">
+                <span class="icon">分</span>
+                智能体用户可见特性
+            </div>
+            <div class="section-subtitle">
+                <span class="tag">用户画像</span>
+                运维工程师、网络规划人员、技术支持团队
+                <br>
+                <span class="tag">核心诉求</span>
+                高效完成任务、操作安全可控、过程透明可追溯
+            </div>
+
+            <!-- Progress Overview -->
+            <div class="summary-box">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%"></div>
+                    </div>
+                    <div class="progress-label">
+                        <span>用户特性完成度</span>
+                        <span><strong>85%</strong>（17 已实现 / 20 总计）</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interaction -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">一、对话交互体验</div>
+                    <div class="card-count">8 已实现 / 2 规划</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>日常运维工作中，用户通过对话方式与智能体交互，完成告警分析、配置查询、故障诊断等任务。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">特性</th>
+                            <th>业务价值</th>
+                            <th style="width: 150px;">用户可见表现</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>多会话管理</strong></td>
+                            <td>并行处理多任务，工作不丢失</td>
+                            <td>左侧历史列表、会话命名</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>流式实时响应</strong></td>
+                            <td>体验流畅，减少等待焦虑</td>
+                            <td>打字机效果、实时显示</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>请求编辑</strong></td>
+                            <td>纠错便捷，不改会话上下文</td>
+                            <td>点击编辑、修改重发</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>请求取消</strong></td>
+                            <td>长任务可中断，节省时间</td>
+                            <td>点击停止或按 Escape</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>请求重试</strong></td>
+                            <td>失败可一键重试，容错性好</td>
+                            <td>点击重试，自动重新执行</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>附件上传</strong></td>
+                            <td>直接引用运维文档、告警报告</td>
+                            <td>拖拽上传 Markdown（.md / .markdown）；Word/Excel/PDF 当前不支持</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>双语交互</strong></td>
+                            <td>中英混用，电信术语保留原文</td>
+                            <td>中文回答，术语如"EPC"保持原文</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>断线恢复</strong></td>
+                            <td>网络波动不影响对话</td>
+                            <td>刷新后自动恢复，历史不丢失</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>IM 通道接入</strong></td>
+                            <td>在钉钉/飞书直接对话</td>
+                            <td>企业 IM 中对话</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>TUI 命令行</strong></td>
+                            <td>脚本化运维、自动化场景</td>
+                            <td>终端命令行对话</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Visualization -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">二、执行过程可视化</div>
+                    <div class="card-count">5 已实现</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>用户需要了解智能体正在做什么、调用了哪些工具、是否遇到问题。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">特性</th>
+                            <th>业务价值</th>
+                            <th style="width: 150px;">用户可见表现</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>思考过程展示</strong></td>
+                            <td>了解分析思路，建立信任</td>
+                            <td>实时显示思考内容（可折叠）</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>能力调用追踪</strong></td>
+                            <td>过程透明，理解执行逻辑</td>
+                            <td>显示技能/工具名称和状态</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>执行步骤进度</strong></td>
+                            <td>长任务心中有数</td>
+                            <td>显示当前阶段</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>降级通知展示</strong></td>
+                            <td>知道系统是否降级</td>
+                            <td>显示降级原因和影响说明</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>最终结果呈现</strong></td>
+                            <td>清晰的结论和处置选项</td>
+                            <td>Markdown渲染、Mermaid图表</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Decision -->
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <div class="card-header">
+                    <div class="card-title">三、用户决策参与 <span class="priority priority-high">高优先级</span></div>
+                    <div class="card-count">5 规划中</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>智能体执行过程中，某些操作需要用户确认或授权，用户需要明确的交互界面。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">特性</th>
+                            <th>业务价值</th>
+                            <th style="width: 150px;">用户可见表现</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>澄清请求</strong></td>
+                            <td>补全必要信息，提高诊断准确性</td>
+                            <td>弹出提示框，询问缺失信息</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>确认继续</strong></td>
+                            <td>防止误操作，用户掌控流程</td>
+                            <td>显示执行计划，请求确认</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>授权批准</strong></td>
+                            <td>安全合规，关键操作有审批记录</td>
+                            <td>高风险操作前显示风险说明</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>选项选择</strong></td>
+                            <td>专家分析 + 用户决策</td>
+                            <td>显示候选方案，用户选择</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>输入超时提醒</strong></td>
+                            <td>防止无限阻塞</td>
+                            <td>显示倒计时或过期时间</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">四、安全与合规体验</div>
+                    <div class="card-count">4 已实现</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">特性</th>
+                            <th>业务价值</th>
+                            <th style="width: 150px;">用户可见表现</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>会话隔离</strong></td>
+                            <td>个人数据不泄露</td>
+                            <td>只看到自己的历史会话</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>操作审计记录</strong></td>
+                            <td>合规要求，操作可追溯</td>
+                            <td>后台记录所有操作</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>敏感信息保护</strong></td>
+                            <td>API Key 不暴露</td>
+                            <td>配置界面不显示完整密钥</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>工具权限约束</strong></td>
+                            <td>某些操作只能用特定工具</td>
+                            <td>智能体只能调用允许的工具</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Value Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">用户价值总结</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">痛点</th>
+                            <th>解决方案</th>
+                            <th style="width: 150px;">效果评估</th>
+                        </tr>
+                        <tr>
+                            <td>任务执行不透明</td>
+                            <td>实时展示思考、调用、进度</td>
+                            <td>用户建立信任，理解执行逻辑</td>
+                        </tr>
+                        <tr>
+                            <td>操作误执行风险</td>
+                            <td>关键操作需授权批准</td>
+                            <td>安全合规，减少误操作损失</td>
+                        </tr>
+                        <tr>
+                            <td>长任务无法中断</td>
+                            <td>取消按钮 + 断线恢复</td>
+                            <td>用户掌控节奏，节省时间</td>
+                        </tr>
+                        <tr>
+                            <td>历史任务丢失</td>
+                            <td>会话持久化 + 命名</td>
+                            <td>工作上下文保留，随时继续</td>
+                        </tr>
+                        <tr>
+                            <td>多文档引用困难</td>
+                            <td>附件上传作为上下文</td>
+                            <td>直接引用运维文档，分析更准确</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer Section -->
+        <div class="section fade-in" id="developer">
+            <div class="section-title">
+                <span class="icon">分</span>
+                二次开发开发者可见特性
+            </div>
+            <div class="section-subtitle">
+                <span class="tag">用户画像</span>
+                业务部门开发者、领域专家、扩展团队
+                <br>
+                <span class="tag">核心诉求</span>
+                自主扩展领域能力、低接入成本、不破坏平台稳定性
+            </div>
+
+            <!-- Progress Overview -->
+            <div class="summary-box">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 55%"></div>
+                    </div>
+                    <div class="progress-label">
+                        <span>开发者特性完成度</span>
+                        <span><strong>基础 SPI 与本地装配子集已落地</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Framework and Developer Feature Inventory -->
+            <div class="card" style="border-left: 4px solid var(--success);">
+                <div class="card-header">
+                    <div class="card-title">智能体框架与开发者特性总览 <span class="priority priority-high">核心清单</span></div>
+                    <div class="card-count">按框架扩展面刷新</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>刷新口径：</strong>ADNClaw / NextAgent 不是单一聊天应用，而是面向电信网络任务的智能体后端框架。本清单按开发者可使用、可扩展、可集成和可验证的框架能力重新展开；具体行为边界以 TS OpenSpec、Roadmap V2 和 <code>docs/developer/</code> 开发者文档为准。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">一级 feature</th>
+                            <th style="width: 190px;">二级 feature</th>
+                            <th>描述</th>
+                            <th style="width: 260px;">规格 / 文档</th>
+                        </tr>
+                        <tr>
+                            <td><strong>框架内核</strong></td>
+                            <td>TS 后端分层架构</td>
+                            <td>建立 runtime、channel、core、context、model、capability、gateway、observability 和 app composition 的清晰 owner 边界。</td>
+                            <td><code>establish-ts-backend-architecture</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>框架内核</strong></td>
+                            <td>核心契约体系</td>
+                            <td>冻结 identity、owner scope、Session、Message、RequestRun、Timeline、StreamEnvelope、SafeError、Capability 等公共契约。</td>
+                            <td><code>establish-ts-core-contracts</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 开发</strong></td>
+                            <td>Agent package assembly</td>
+                            <td>以 <code>agents/{agentId}</code> 为包根，将 <code>agent.yaml</code>、<code>skills/</code>、<code>subagents/</code>、<code>prompts/</code> 装配为 runtime-ready <code>AgentAssembly</code>。</td>
+                            <td><code>add-ts-agent-package-assembly</code>；<code>developer/03-agent-configuration.md</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 开发</strong></td>
+                            <td>agent.yaml 配置</td>
+                            <td>开发者通过 Agent 定义绑定模型 profile、prompt template、capability bindings、runtime settings 和 workspace。</td>
+                            <td><code>developer/03-agent-configuration.md</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 开发</strong></td>
+                            <td>SimpleAgent facade</td>
+                            <td>提供面向二次开发者的轻量入口，内部仍编译为受治理的 Agent assembly，不绕过 app composition、Agent Scope、runtime lifecycle 或 capability governance。</td>
+                            <td><code>add-ts-simple-agent-facade</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Prompt / Context</strong></td>
+                            <td>Prompt template assembly</td>
+                            <td>支持系统提示、摘要生成、记忆抽取等 purpose 的模板选择、变量渲染、fallback 和模型选型 handoff。</td>
+                            <td><code>add-ts-prompt-template-assembly</code>；<code>developer/06-prompt-engineering.md</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Prompt / Context</strong></td>
+                            <td>Context Engine</td>
+                            <td>集中负责历史选择、附件引用、窗口预算、上下文压缩、可追溯摘要和大内容按需加载。</td>
+                            <td><code>add-ts-context-history-selection</code>、<code>add-ts-context-budget-explainability</code>、<code>add-ts-large-content-references</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>模型接入</strong></td>
+                            <td>Model profile 与 provider</td>
+                            <td>隔离 provider SDK，统一模型配置、stream normalization、tool-use normalization、safe error mapping 和 fallback 边界。</td>
+                            <td><code>add-ts-model-provider-configuration</code>、<code>add-ts-model-invocation-contract</code>、<code>add-ts-model-stream-normalization</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Capability 框架</strong></td>
+                            <td>统一 capability catalog</td>
+                            <td>Tool、Skill、Agent 统一作为 Capability 管理，具备 descriptor、provider identity、availability、discovery lifecycle 和 invocation boundary。</td>
+                            <td><code>add-ts-capability-core-governance</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Capability 框架</strong></td>
+                            <td>来源配置与冲突治理</td>
+                            <td>支持内置、本地、SkillHub、API-backed、远端来源；同作用域冲突拒绝，不同作用域 shadowing 可解释。</td>
+                            <td><code>add-ts-capability-source-configuration</code>、<code>add-ts-capability-conflict-resolution</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tool 开发</strong></td>
+                            <td>Builtin Tool framework</td>
+                            <td>提供 <code>ToolDefinition</code>、<code>defineTool</code>、<code>ToolCatalog</code>、<code>BuiltinToolExecutor</code>，支持 schema、依赖、配置和执行适配。</td>
+                            <td><code>add-ts-builtin-tool-framework</code>；<code>developer/04-skill-tool-development.md</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tool 开发</strong></td>
+                            <td>文件 / 可执行工具</td>
+                            <td>提供 read、write、edit、glob、grep、bash、python 等工具，统一受 workspace、sandbox、timeout、输出限制和 safe error 治理。</td>
+                            <td><code>write-tool</code>、<code>edit-tool</code>、<code>glob-tool</code>、<code>grep-tool</code>、<code>bash-tool</code>、<code>python-tool</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Skill 开发</strong></td>
+                            <td>SKILL.md manifest</td>
+                            <td>兼容 Agent Skills <code>SKILL.md</code>，支持 <code>allowed-tools</code>、<code>context</code>、<code>metadata.denied-tools</code>、<code>metadata.model</code> 等受控扩展。</td>
+                            <td><code>add-ts-skill-manifest-contract</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Skill 开发</strong></td>
+                            <td>内置 / 本地 / SkillHub source</td>
+                            <td>支持 package-owned builtin Skill、本地 Skill 目录、Agent-owned Skill 目录和 SkillHub 远端下载安装后进入统一 catalog。</td>
+                            <td><code>add-ts-builtin-skill-source</code>、<code>add-ts-local-skill-source</code>、<code>add-ts-skillhub-source</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Skill 开发</strong></td>
+                            <td>Skill Tool 与资源访问</td>
+                            <td><code>Skill</code> tool 作为 governed Skill capability 的受控转接点；Skill resources 通过裁剪后的 workspace view 提供给文件工具和 sandbox。</td>
+                            <td><code>add-ts-skill-tool</code>、<code>add-ts-skill-resource-access</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>子 Agent</strong></td>
+                            <td>Agent Tool</td>
+                            <td>通过 <code>Agent</code> tool 调用本地子 Agent，创建隔离 child session/run，同步等待终态并返回 safe completed result。</td>
+                            <td><code>add-ts-agent-tool</code>、<code>add-ts-invoked-agent-discovery</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>路由框架</strong></td>
+                            <td>Agent routing</td>
+                            <td>在 Agent 内部选择 deterministic flow、model loop、targeted skill、clarify、reject、handoff 或 workflow recipe；runtime 不做业务语义路由。</td>
+                            <td><code>add-ts-agent-routing-core</code>、<code>add-ts-routing-evidence-and-fallback</code>、<code>add-ts-targeted-skill-routing</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>扩展机制</strong></td>
+                            <td>Lifecycle Hook</td>
+                            <td>在 request、model、capability、terminal 等阶段做观察、控制或受限变换，不能绕过 runtime 状态机和终态提交。</td>
+                            <td><code>add-ts-lifecycle-hook-execution</code>、<code>complete-ts-lifecycle-hook-capabilities</code>；<code>developer/05-capability-extension.md</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>扩展机制</strong></td>
+                            <td>Policy / Plugin</td>
+                            <td>Risk policy 和 Agent-scoped plugin 作为受控扩展面；插件可贡献 Tool、Policy、Hook，但必须由 Agent 配置激活并进入治理路径。</td>
+                            <td><code>add-ts-risk-policy-enforcement</code>、<code>add-ts-agent-scoped-plugin-composition</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>集成边界</strong></td>
+                            <td>Gateway adapter</td>
+                            <td>通过 local/remote gateway adapter 接入存储、远端服务、SkillHub、业务 API 和 sandbox，避免 core/runtime 直接依赖实现细节。</td>
+                            <td><code>add-ts-gateway-configuration</code>、<code>add-ts-api-backed-tool-source</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Stream / API</strong></td>
+                            <td>REST + SSE / WebSocket</td>
+                            <td>提供 session、request、attachment、title、stream 等 Web API；SSE/WS 共享 StreamEnvelope 和 resume/replay 语义。</td>
+                            <td><code>ts-web-sse-ws-transports</code>；<code>developer/09-streaming-events.md</code>、<code>developer/10-api-reference.md</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Runtime 开发</strong></td>
+                            <td>请求生命周期与 pending input</td>
+                            <td>支持同会话串行、cancel/retry/edit、澄清、确认、授权、人工接管，并在原 run 上恢复或终结。</td>
+                            <td><code>add-ts-session-lane-scheduling</code>、<code>add-ts-request-*</code>、<code>add-ts-human-pending-input-core</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>状态持久化</strong></td>
+                            <td>Local store / recovery</td>
+                            <td>提供 session/message、run/timeline、checkpoint、terminal commit、runtime recovery 和非幂等能力恢复保护。</td>
+                            <td><code>add-ts-local-session-store</code>、<code>add-ts-local-run-timeline-store</code>、<code>add-ts-local-runtime-recovery</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>记忆框架</strong></td>
+                            <td>Long-term memory</td>
+                            <td>后置跨会话记忆、memory tools、自动抽取、aging、configuration、infra adapters 和 task trajectory。</td>
+                            <td><code>add-ts-memory-core</code>、<code>add-ts-memory-tools</code>、<code>add-ts-memory-configuration</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>观测审计</strong></td>
+                            <td>Logs / metrics / audit / redaction</td>
+                            <td>提供结构化日志、trace/log linking、metrics、health、audit sink、agentId audit 和统一脱敏策略。</td>
+                            <td><code>add-ts-structured-logging</code>、<code>add-ts-trace-log-linking</code>、<code>add-ts-audit-sink</code>、<code>add-ts-redaction-policy</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Developer Experience</strong></td>
+                            <td>测试与调试</td>
+                            <td>提供单元、contract、integration、E2E、fake gateway、schema samples 和 architecture helper，支持 Skill/Tool/Hook/Context 测试。</td>
+                            <td><code>agent-test-kit</code>；<code>developer/11-testing-debugging.md</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>交付部署</strong></td>
+                            <td>Local package / fullstack hosting</td>
+                            <td>定义本地运行包、配置样例、candidate evidence、前端托管、backend-only / with-frontend profile 和 route precedence。</td>
+                            <td><code>add-ts-local-runtime-package</code>、<code>refine-ts-fullstack-packaging-boundary</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Workflow</strong></td>
+                            <td>Recipe / DAG 执行范式</td>
+                            <td>后置 workflow contracts、recipe dispatch、execution engine、LLM/capability/knowledge/interaction nodes 和持久化恢复。</td>
+                            <td><code>add-ts-workflow-engine-contracts</code>、<code>add-ts-workflow-execution-engine</code>、<code>add-ts-workflow-*nodes</code></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Agent Assembly Customization -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">零、Agent 产品化装配 <span class="priority priority-high">高优先级</span></div>
+                    <div class="card-count">当前：配置子集已落地，统一定义规划中</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>产品二开时，业务部门不改 Runtime/Session/Channel 代码，通过一份 AgentDefinition 绑定自己的模型、提示词、能力、Hook 和 Policy；插件只作为 Tool/Hook/Policy 定义来源参与装配。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 160px;">二开输入面</th>
+                            <th>开发者价值</th>
+                            <th style="width: 220px;">典型内容</th>
+                            <th style="width: 90px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Config</strong></td>
+                            <td>通过参数、开关和限额控制装配与运行，不改核心代码</td>
+                            <td>模型启停、内置能力开关、外部源开关、并发限额</td>
+                            <td><span class="status status-partial">◐ 部分实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Resources</strong></td>
+                            <td>把模型、提示词、能力、Hook、Policy 作为可引用资源管理</td>
+                            <td>model profile、prompt template、capability、hook、policy</td>
+                            <td><span class="status status-partial">◐ 分散实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>ResourceProviders</strong></td>
+                            <td>声明本地或远端资源来源，发现结果仍需 AgentDefinition 绑定</td>
+                            <td>Local、SkillHub、MCP Server、Agent Registry、Model Registry 的来源边界</td>
+                            <td><span class="status status-partial">◐ 部分实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Plugins</strong></td>
+                            <td>通过代码型扩展贡献 Tool/Hook/Policy，但不自动获得 Agent 权限</td>
+                            <td>tool provider、hook provider、policy provider</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.9rem;">
+                    <strong>设计约束：</strong>ResourceProvider/Plugin 只负责贡献资源或定义；是否允许某个 Agent 使用，必须由 AgentDefinition 绑定，并编译成 AgentAssembly / HostedAgentAssembly 执行快照。
+                </p>
+                <p style="margin-top: 0.5rem; color: var(--gray-600); font-size: 0.9rem;">
+                    <strong>当前 change 边界：</strong>只建立单 Agent 二开装配基线和最小编译路径；不包含 Provider 管理后台、远端发布审批、插件沙箱 / Marketplace、多 Agent 编排或热加载治理。
+                </p>
+            </div>
+
+            <!-- Capability Extension -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">一、Capability 资源装配</div>
+                    <div class="card-count">装配边界规划中，底层能力通道部分已实现</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>产品二开时，能力不是直接“自动给 Agent 用”，而是先作为 Resource 被本地、远端 provider 或 plugin 贡献出来，再由 AgentDefinition 明确绑定进 AgentAssembly。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">装配对象</th>
+                            <th>二开含义</th>
+                            <th style="width: 220px;">来源 / 绑定方式</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>内置 Capability</strong></td>
+                            <td>按产品需要启用/关闭内置 tool、SkillTool 或本地能力</td>
+                            <td>Config 控制 enable/disable，AgentDefinition 后续统一绑定</td>
+                            <td><span class="status status-partial">◐ 部分实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>本地 Skill Resource</strong></td>
+                            <td>通过 SKILL.md 定义领域诊断规程，作为 Agent 可绑定能力</td>
+                            <td>bundled/local SkillLoader + SkillCapabilityCatalog</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>本地 Tool Resource</strong></td>
+                            <td>插件或代码贡献原子操作，AgentDefinition 决定是否可用</td>
+                            <td>当前内置 Tool registry 已有；tool plugin 贡献定义待补齐</td>
+                            <td><span class="status status-partial">◐ 部分实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>SkillHub Provider</strong></td>
+                            <td>远端 SkillHub 作为资源来源；发现的 skill 仍需安装/启用/绑定</td>
+                            <td>SkillHubGateway + RemoteSkillPackageService</td>
+                            <td><span class="status status-partial">◐ 部分实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>MCP Server Provider</strong></td>
+                            <td>MCP Server 作为工具资源来源；Agent 只看到被绑定且可用的 tool</td>
+                            <td>McpToolGateway + CapabilityCatalog</td>
+                            <td><span class="status status-partial">◐ 部分实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent Registry Provider</strong></td>
+                            <td>把注册专家 Agent 视为可发现的 InvokedAgent capability resource</td>
+                            <td>当前只定义来源边界与绑定语义；完整协作编排后续增强</td>
+                            <td><span class="status status-partial">◐ 部分实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Plugin-contributed Tool</strong></td>
+                            <td>插件贡献 Tool 定义，但不会自动授予 Agent 执行权限</td>
+                            <td>tool provider + AgentDefinition capability binding</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Capability Binding</strong></td>
+                            <td>把已发现/已贡献的 capability 显式绑定到某个 Agent</td>
+                            <td>AgentDefinition -> AgentAssembly enabled binding</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>统一可用性过滤</strong></td>
+                            <td>只把当前环境真正可执行的能力渲染给模型</td>
+                            <td>CapabilityCatalog + AvailabilityResolver</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.9rem;">
+                    <strong>不在当前 change 范围：</strong>父子 Skill 层级、SkillHub 发布审批、MCP 多 server 管理、插件沙箱和 Marketplace 属于后续能力生态增强，不应混入本次单 Agent 装配基线。
+                </p>
+            </div>
+
+            <!-- Resource Assembly -->
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <div class="card-header">
+                    <div class="card-title">二、Prompt / Model 资源装配</div>
+                    <div class="card-count">基础资源已实现，AgentDefinition 绑定规划中</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>Prompt 和 Model 是 Agent 的基础生成资源；产品可以通过配置或 provider 提供候选项，最终由 AgentDefinition 显式绑定到 AgentAssembly。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">装配对象</th>
+                            <th>二开含义</th>
+                            <th style="width: 220px;">来源 / 绑定方式</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Prompt Resource</strong></td>
+                            <td>调整系统提示、回答风格和领域术语</td>
+                            <td>PromptTemplateRegistry；AgentDefinition 绑定待统一</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Model Resource</strong></td>
+                            <td>配置模型名称、参数、凭证来源和 provider</td>
+                            <td>modelProfiles / ModelProvider；AgentDefinition 绑定待统一</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.9rem;">
+                    <strong>设计约束：</strong>Prompt / Model 只表达 Agent 的生成输入选择，不承载请求执行状态、Session 控制或能力执行逻辑。
+                </p>
+            </div>
+
+            <!-- Lifecycle Hook -->
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <div class="card-header">
+                    <div class="card-title">三、Policy / Hook 资源装配</div>
+                    <div class="card-count">基础 Policy 与 Hook SPI 已实现，绑定和插件贡献待补齐</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>Policy 和 Hook 都是受控决策点上的治理资源，用于上下文选择、模型路由、失败降级、审计、参数校验和结果记录；它们可以由本地代码或插件贡献，但必须绑定后才会进入 AgentAssembly。外部审批工作流属于后续治理能力。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 180px;">装配对象</th>
+                            <th>二开含义</th>
+                            <th style="width: 220px;">来源 / 绑定方式</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>Query Policy</strong></td>
+                            <td>控制上下文窗口、压缩和裁剪规则</td>
+                            <td>DefaultQueryPolicy / QueryPolicyPort</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Model Routing Policy</strong></td>
+                            <td>按 purpose 选不同模型</td>
+                            <td>ModelSelectionStrategy</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>Fallback Policy</strong></td>
+                            <td>定义失败时的 fallback</td>
+                            <td>ModelFallbackStrategy</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>Plugin-contributed Policy</strong></td>
+                            <td>插件贡献路由、降级或治理策略定义</td>
+                            <td>policy provider + AgentDefinition policy binding</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>Policy Binding</strong></td>
+                            <td>把已有 Policy 显式绑定到某个 Agent</td>
+                            <td>AgentDefinition -> AgentAssembly policy snapshot</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>LifecycleStage</strong></td>
+                            <td>限定 Hook 只能挂载在批准的生命周期阶段</td>
+                            <td>BEFORE_REQUEST_ACCEPT / BEFORE_PLANNING / BEFORE_MODEL_INVOKE / AFTER_MODEL_RESULT / BEFORE_CAPABILITY_INVOKE / AFTER_CAPABILITY_RESULT / BEFORE_AGENT_TERMINAL</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hook Stage Contract</strong></td>
+                            <td>定义 Hook 的作用、执行策略、mutation target、合并策略和精确位置</td>
+                            <td>SYSTEM/CUSTOM + purpose + execution mode + typed boundary mutation + raw/effective fact audit</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hook Invocation Record</strong></td>
+                            <td>记录 Hook 调用结果，支撑审计和诊断</td>
+                            <td>Hook invocation record / timeout / failure policy / mutation evidence / raw-effective refs</td>
+                            <td><span class="status status-partial">◐ 部分实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Plugin-contributed Hook</strong></td>
+                            <td>插件贡献审计、校验或治理 Hook 定义</td>
+                            <td>hook provider + AgentDefinition hook binding</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hook Binding</strong></td>
+                            <td>把已有 Hook 显式绑定到某个 Agent 的批准阶段</td>
+                            <td>AgentDefinition -> AgentAssembly hook snapshot</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.9rem;">
+                    <strong>当前状态：</strong>已有基础 Policy、Hook 模型和执行器；当前 change 需要补齐的是 Hook 的 SYSTEM/CUSTOM 分类、stage contract、执行策略、typed mutation、合并规则、审计证据，以及 Policy / Hook 被贡献、被 AgentDefinition 绑定并进入运行时关键路径的装配闭环。
+                </p>
+            </div>
+
+            <!-- Developer Value Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">开发者价值总结</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">痛点</th>
+                            <th>解决方案</th>
+                            <th style="width: 150px;">效果评估</th>
+                        </tr>
+                        <tr>
+                            <td>领域能力需平台方开发</td>
+                            <td>Capability Resource + Provider/Plugin 贡献 + AgentDefinition 绑定</td>
+                            <td>资源来源可扩展，Agent 使用权仍受控</td>
+                        </tr>
+                        <tr>
+                            <td>能力分散难以发现</td>
+                            <td>CapabilityCatalog + ResourceProvider 统一发现</td>
+                            <td>本地和远端来源统一查询，模型只看可用能力</td>
+                        </tr>
+                        <tr>
+                            <td>策略修改需改核心代码</td>
+                            <td>Policy Resource + Policy Binding</td>
+                            <td>策略选择产品化，核心状态机不变</td>
+                        </tr>
+                        <tr>
+                            <td>多个领域 Agent 装配不一致</td>
+                            <td>Config / Resources / ResourceProviders / Plugins 四类输入面</td>
+                            <td>二开边界统一，交付可审计</td>
+                        </tr>
+                        <tr>
+                            <td>接入现有系统困难</td>
+                            <td>ResourceProvider / Gateway / Plugin 明确分工</td>
+                            <td>已有适配边界，具体替换需按模块边界实现</td>
+                        </tr>
+                        <tr>
+                            <td>二开能力难以观测</td>
+                            <td>Assembly diagnostics + Trace/Metrics/Audit</td>
+                            <td>执行过程可追踪，运维可诊断</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reliability Section -->
+        <div class="section fade-in" id="reliability">
+            <div class="section-title">
+                <span class="icon">分</span>
+                系统可靠特性（双方受益）
+            </div>
+            <div class="section-subtitle">
+                <span class="tag">定位</span>
+                运维场景的基础要求，智能体用户和开发者共同受益
+            </div>
+
+            <!-- Request Lifecycle -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">一、请求生命周期管理</div>
+                    <div class="card-count">4 已实现</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">特性</th>
+                            <th>对用户的价值</th>
+                            <th>对开发者的价值</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>RequestRun 生命周期</strong></td>
+                            <td>状态可查询，心中有数</td>
+                            <td>执行记录可追溯，测试可验证</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>检查点恢复机制</strong></td>
+                            <td>断线/刷新后可继续</td>
+                            <td>无需自行实现状态保存</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>版本乐观锁</strong></td>
+                            <td>多实例不冲突</td>
+                            <td>集群部署设计不阻断</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>终态审计边界</strong></td>
+                            <td>结果不丢失</td>
+                            <td>审计自动生成，合规成本低</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Multi-Entry Governance -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">二、多入口统一治理</div>
+                    <div class="card-count">1 已实现 / 3 规划</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>设计保证：</strong>所有入口共享同一套执行控制、会话隔离、终态提交规则。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">入口类型</th>
+                            <th>用户场景</th>
+                            <th style="width: 180px;">开发者接入成本</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Web UI</strong></td>
+                            <td>浏览器对话</td>
+                            <td>已实现适配器</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>IM 通道</strong></td>
+                            <td>企业 IM 对话</td>
+                            <td>实现 Channel Plugin，复用 Runtime</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>A2A 协议</strong></td>
+                            <td>外部系统调用</td>
+                            <td>实现协议适配器，进入 Runtime</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>事件中心</strong></td>
+                            <td>告警自动触发</td>
+                            <td>事件规范化为 Runtime 命令</td>
+                            <td><span class="status status-planned">⏳ 规划中</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Security & Isolation -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">三、安全与隔离</div>
+                    <div class="card-count">4 已实现</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">特性</th>
+                            <th>对用户的价值</th>
+                            <th>对开发者的价值</th>
+                            <th style="width: 80px;">状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>会话身份隔离</strong></td>
+                            <td>个人数据不泄露</td>
+                            <td>无需自行实现隔离逻辑</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>跨身份访问拒绝</strong></td>
+                            <td>安全可控</td>
+                            <td>隔离自动生效，不绕过</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>敏感配置保护</strong></td>
+                            <td>API Key 不暴露</td>
+                            <td>credentialRef 机制</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>终态审计不可绕过</strong></td>
+                            <td>操作可追溯</td>
+                            <td>审计自动生成</td>
+                            <td><span class="status status-done">✅ 已实现</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Telecom Tool Security Section -->
+        <div class="section fade-in" id="telecom">
+            <div class="section-title">
+                <span class="icon">分</span>
+                电信工具安全体系
+            </div>
+            <div class="section-subtitle">
+                <span class="tag">定位</span>
+                电信网络运维的核心差异化能力，系统级安全闸门
+                <br>
+                <span class="tag">来源</span>
+                docs/telecom-tool-system-design.md
+            </div>
+
+            <!-- Tier 1/2/3 -->
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <div class="card-header">
+                    <div class="card-title">一、三层安全分级（Tier 1/2/3）</div>
+                    <span class="priority priority-high">核心设计</span>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>核心设计：</strong>Tier 2/3 的危险 TOOL 不在模型默认 tool list 中。模型想执行变更操作，必须调用 use_skill，系统拦截执行 Enforcement 检查。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 80px;">Tier</th>
+                            <th style="width: 100px;">安全等级</th>
+                            <th style="width: 150px;">工具类型</th>
+                            <th>可见性</th>
+                            <th style="width: 120px;">执行条件</th>
+                        </tr>
+                        <tr style="background: var(--success-bg);">
+                            <td><strong>Tier 1</strong></td>
+                            <td>零风险</td>
+                            <td>只读查询 TOOL</td>
+                            <td>始终在模型 tool list</td>
+                            <td>直接可用</td>
+                        </tr>
+                        <tr style="background: var(--warning-bg);">
+                            <td><strong>Tier 2</strong></td>
+                            <td>有风险</td>
+                            <td>配置变更 TOOL + SKILL</td>
+                            <td>默认不可见，需通过 use_skill</td>
+                            <td>Enforcement 检查后临时授予</td>
+                        </tr>
+                        <tr style="background: var(--danger-bg);">
+                            <td><strong>Tier 3</strong></td>
+                            <td>最高风险</td>
+                            <td>破坏性 TOOL + AGENT</td>
+                            <td>仅 Worker Agent 隔离上下文</td>
+                            <td>独立上下文 + 独立审计</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Network Domain Isolation -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">二、网络域隔离（5域独立部署）</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>域隔离规则：</strong>工具名必须包含域标识，同名工具不允许跨域通用，智能体实例只加载所属域的工具和 SKILL。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">网络域</th>
+                            <th>典型设备</th>
+                            <th style="width: 100px;">Tier 1 TOOL</th>
+                            <th style="width: 120px;">最大变更风险</th>
+                        </tr>
+                        <tr>
+                            <td><strong>无线网（RAN）</strong></td>
+                            <td>gNodeB, eNodeB, RRU, BBU</td>
+                            <td>~10 个</td>
+                            <td>小区级（局部）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>接入网（ACCESS）</strong></td>
+                            <td>OLT, ONU, BRAS</td>
+                            <td>~8 个</td>
+                            <td>区域级（中等）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>传输网（TRANSPORT）</strong></td>
+                            <td>OTN, DWDM, SDH, 微波</td>
+                            <td>~8 个</td>
+                            <td>骨干网级（较大）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>数通网（DATACOM）</strong></td>
+                            <td>路由器, 交换机, 防火墙</td>
+                            <td>~8 个</td>
+                            <td>数据中心级</td>
+                        </tr>
+                        <tr>
+                            <td><strong>核心网（CORE）</strong></td>
+                            <td>AMF, SMF, UPF, IMS</td>
+                            <td>~10 个</td>
+                            <td>全网级（最大）</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Enforcement 6-step Check -->
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <div class="card-header">
+                    <div class="card-title">三、Enforcement 六步强制检查</div>
+                    <span class="priority priority-high">系统级闸门</span>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>关键：</strong>模型调用 use_skill 时，系统拦截执行强制检查，确保合规条件全部满足。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">检查步骤</th>
+                            <th>检查内容</th>
+                            <th style="width: 100px;">失败后果</th>
+                        </tr>
+                        <tr>
+                            <td><strong>1. 域匹配</strong></td>
+                            <td>目标设备在智能体所属域？域权限匹配？</td>
+                            <td>拒绝执行</td>
+                        </tr>
+                        <tr>
+                            <td><strong>2. 操作分级</strong></td>
+                            <td>操作员 L 级别 ≥ SKILL 要求的 L 级别？</td>
+                            <td>拒绝执行</td>
+                        </tr>
+                        <tr>
+                            <td><strong>3. 变更窗口</strong></td>
+                            <td>当前时间在允许窗口内（如 00:00-06:00）？</td>
+                            <td>拒绝执行</td>
+                        </tr>
+                        <tr>
+                            <td><strong>4. 环境匹配</strong></td>
+                            <td>目标设备环境在允许列表？</td>
+                            <td>拒绝执行</td>
+                        </tr>
+                        <tr>
+                            <td><strong>5. 回滚方案</strong></td>
+                            <td>SKILL 声明了回滚步骤和验证方法？</td>
+                            <td>拒绝执行</td>
+                        </tr>
+                        <tr>
+                            <td><strong>6. 审批检查</strong></td>
+                            <td>按环境+操作级别判定审批链，审批通过？</td>
+                            <td>生成审批工单</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- System vs Model -->
+            <div class="card" style="background: linear-gradient(135deg, #fee2e2 0%, #fef3c7 100%);">
+                <div class="card-header">
+                    <div class="card-title">系统级 vs 模型级对比</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 200px;">如果放在模型层（prompt）</th>
+                            <th>如果放在系统层（enforcement）</th>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--danger);">模型可能因幻觉而忽略规则</td>
+                            <td style="color: var(--success); font-weight: 600;">系统强制执行，无法绕过</td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--danger);">上下文压缩后规则可能丢失</td>
+                            <td style="color: var(--success); font-weight: 600;">每次调用都执行检查</td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--danger);">无法提供审计证据</td>
+                            <td style="color: var(--success); font-weight: 600;">每次检查产生审计记录</td>
+                        </tr>
+                        <tr>
+                            <td style="color: var(--danger);">多模型间行为不一致</td>
+                            <td style="color: var(--success); font-weight: 600;">所有模型通过同一 enforcement 层</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Multi-vendor -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">四、多厂商适配（数通域特有）</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>适配机制：</strong>厂商抽象在 TOOL 层，不在模型层（模型永远看到统一接口）。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 100px;">厂商</th>
+                            <th style="width: 150px;">设备类型</th>
+                            <th>管理协议</th>
+                        </tr>
+                        <tr>
+                            <td><strong>华为</strong></td>
+                            <td>CE 系列</td>
+                            <td>NETCONF XML RPC</td>
+                        </tr>
+                        <tr>
+                            <td><strong>思科</strong></td>
+                            <td>Nexus 9000</td>
+                            <td>NX-API</td>
+                        </tr>
+                        <tr>
+                            <td><strong>瞻博</strong></td>
+                            <td>MX 系列</td>
+                            <td>Junos XML API</td>
+                        </tr>
+                        <tr>
+                            <td><strong>H3C</strong></td>
+                            <td>数据中心交换机</td>
+                            <td>NETCONF/CLI</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Operator SKILL -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">五、运营商注入 SKILL</div>
+                    <span class="priority" style="background: #bae6fd; color: #0369a1;">运营商生态</span>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>价值：</strong>运营商运维专家对自身网络的了解远超设备商，需要将运维经验注入为可执行 SKILL。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">来源</th>
+                            <th>说明</th>
+                            <th style="width: 120px;">更新策略</th>
+                        </tr>
+                        <tr>
+                            <td><strong>内置 SKILL</strong></td>
+                            <td>随平台发布，标准流程</td>
+                            <td>平台升级时更新</td>
+                        </tr>
+                        <tr>
+                            <td><strong>外置 SKILL</strong></td>
+                            <td>项目本地定义</td>
+                            <td>项目团队维护</td>
+                        </tr>
+                        <tr>
+                            <td><strong>外部导入 SKILL</strong></td>
+                            <td>从厂商或第三方导入</td>
+                            <td>跟随源发布更新</td>
+                        </tr>
+                        <tr style="background: #bae6fd;">
+                            <td><strong>运营商注入 SKILL</strong></td>
+                            <td>运营商运维专家编写</td>
+                            <td>运营商自主维护，优先级最高</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Audit -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">六、三层审计粒度</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">审计层级</th>
+                            <th>记录内容</th>
+                            <th style="width: 150px;">合规用途</th>
+                        </tr>
+                        <tr>
+                            <td><strong>TOOL 调用级</strong></td>
+                            <td>工具名、参数、返回值、耗时、调用者</td>
+                            <td>操作追溯</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SKILL 执行级</strong></td>
+                            <td>SKILL ID、Enforcement 六项检查结果、完整 TOOL 调用链</td>
+                            <td>变更审计</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AGENT 执行级</strong></td>
+                            <td>Agent ID、委托范围、独立上下文快照、完整 SKILL 调用链</td>
+                            <td>合规报告</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.9rem;">
+                    <strong>审计原则：</strong>与执行同步、只追加不修改（满足 ITU-T M.3100 和 ETSI TS 102 165）
+                </p>
+            </div>
+
+            <!-- Implementation Phases -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">七、实施分期</div>
+                </div>
+                <div class="roadmap-grid">
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">元数据层</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">电信元数据 + Skill 声明扩展</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">安全闸门</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">Enforcement + 变更窗口 + 审批</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">工具系统</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">SkillTool + AgentTool + 可见性过滤</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">审计合规</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">审计记录 + AuditLogger SPI</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">厂商扩展</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">VendorCapabilityProvider SPI</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">隔离执行</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">Worker Agent 编排 + Tier 3 隔离</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evolution Section -->
+        <div class="section fade-in" id="evolution">
+            <div class="section-title">
+                <span class="icon">分</span>
+                智能体演进特性（规划）
+            </div>
+            <div class="section-subtitle">
+                <span class="tag">定位</span>
+                电信网络智能体的进阶能力，满足低时延、高可靠、可演进的核心诉求
+                <br>
+                <span class="tag">阶段</span>
+                阶段 3 高阶增强规划，在阶段 2 商用基线稳定后逐步实现
+            </div>
+
+            <!-- Deterministic Routing -->
+            <div class="card" style="border-left: 4px solid var(--danger);">
+                <div class="card-header">
+                    <div class="card-title">一、确定性任务路由</div>
+                    <span class="priority priority-high">高优先级</span>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>电信网络运维对响应时延和执行确定性有严格要求。告警自动处理、故障快速诊断等高频场景需要稳定可靠的执行路径。
+                </p>
+                <div class="summary-box" style="background: linear-gradient(135deg, #fee2e2 0%, #fef3c7 100%);">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger);">&lt; 100ms</div>
+                            <div style="font-size: 0.85rem; color: var(--gray-600);">响应时延</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">80%+</div>
+                            <div style="font-size: 0.85rem; color: var(--gray-600);">高频场景覆盖率</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">95%+</div>
+                            <div style="font-size: 0.85rem; color: var(--gray-600);">执行成功率</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">维度</th>
+                            <th style="width: 200px;">确定性路由（规则库）</th>
+                            <th style="width: 200px;">动态规划（模型驱动）</th>
+                        </tr>
+                        <tr>
+                            <td><strong>适用场景</strong></td>
+                            <td style="background: var(--success-bg); font-weight: 600;">高频运维场景</td>
+                            <td>长尾/新型/复杂场景</td>
+                        </tr>
+                        <tr>
+                            <td><strong>响应时延</strong></td>
+                            <td style="background: var(--success-bg); font-weight: 600;">&lt; 100ms</td>
+                            <td>1-5s</td>
+                        </tr>
+                        <tr>
+                            <td><strong>执行确定性</strong></td>
+                            <td style="background: var(--success-bg); font-weight: 600;">100% 预定义序列</td>
+                            <td>依赖模型推理</td>
+                        </tr>
+                        <tr>
+                            <td><strong>可审计性</strong></td>
+                            <td>规则 ID + 执行轨迹</td>
+                            <td>模型决策链 + 执行轨迹</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; padding: 1rem; background: var(--gray-100); border-radius: 8px; font-size: 0.9rem;">
+                    <strong>规则生成：</strong>研发态使用超大尺寸模型（GLM-5.1/DeepSeek-v4）对抗生成规则库，覆盖高频运维场景。入库标准：历史命中率 > 5%、执行成功率 > 95%、对抗验证一致性 > 90%。
+                </p>
+            </div>
+
+            <!-- Self-Learning -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">二、智能体自学习</div>
+                    <span class="priority priority-high">高优先级</span>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>运维专家的经验、历史任务的成功/失败模式、用户个性化偏好是宝贵的隐性知识。智能体需要从历史执行中学习。
+                </p>
+                <div class="summary-box" style="background: linear-gradient(135deg, #bae6fd 0%, #d1fae5 100%);">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">+15%/年</div>
+                            <div style="font-size: 0.85rem; color: var(--gray-600);">准确率提升目标</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">10000+</div>
+                            <div style="font-size: 0.85rem; color: var(--gray-600);">经验片段容量</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning);">-30%</div>
+                            <div style="font-size: 0.85rem; color: var(--gray-600);">澄清请求减少</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">学习维度</th>
+                            <th>学习内容</th>
+                            <th style="width: 180px;">应用方式</th>
+                        </tr>
+                        <tr>
+                            <td><strong>执行经验</strong></td>
+                            <td>成功轨迹的执行序列、失败轨迹的根因分析</td>
+                            <td>复用成功序列、规避失败模式</td>
+                        </tr>
+                        <tr>
+                            <td><strong>用户偏好</strong></td>
+                            <td>诊断策略选择、报告格式偏好、交互方式偏好</td>
+                            <td>自动应用用户习惯</td>
+                        </tr>
+                        <tr>
+                            <td><strong>场景模式</strong></td>
+                            <td>高频场景识别、长尾场景归类</td>
+                            <td>支撑确定性路由规则生成</td>
+                        </tr>
+                        <tr>
+                            <td><strong>知识库更新</strong></td>
+                            <td>新设备类型、新告警类型、新故障模式</td>
+                            <td>自动扩展知识边界</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; padding: 1rem; background: var(--gray-100); border-radius: 8px; font-size: 0.9rem;">
+                    <strong>关键规格：</strong>相似场景匹配精度 > 85%、经验应用命中率 > 60%、用户偏好识别精度 > 90%、经验库每周自动更新、90天无匹配经验自动淘汰。
+                </p>
+            </div>
+
+            <!-- Trajectory Replay -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">三、任务轨迹回放</div>
+                    <span class="priority priority-medium">中优先级</span>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>业务场景：</strong>电信运维任务执行过程是审计、复盘、培训的重要素材。运维团队需要回放历史任务的完整执行轨迹。
+                </p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">回放模式</th>
+                            <th style="width: 150px;">适用场景</th>
+                            <th style="width: 120px;">数据来源</th>
+                            <th style="width: 100px;">延迟要求</th>
+                        </tr>
+                        <tr>
+                            <td><strong>在线实时回放</strong></td>
+                            <td>当前任务执行监控</td>
+                            <td>流事件实时推送</td>
+                            <td style="font-weight: 600;">&lt; 200ms</td>
+                        </tr>
+                        <tr>
+                            <td><strong>在线历史回放</strong></td>
+                            <td>近期任务快速复盘</td>
+                            <td>RunMessage 查询</td>
+                            <td>&lt; 1s</td>
+                        </tr>
+                        <tr>
+                            <td><strong>离线完整回放</strong></td>
+                            <td>审计合规、深度分析</td>
+                            <td>AuditRecord 导出</td>
+                            <td>分钟级</td>
+                        </tr>
+                        <tr>
+                            <td><strong>离线精选回放</strong></td>
+                            <td>培训素材、案例库</td>
+                            <td>经验片段导出</td>
+                            <td>分钟级</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">规格项</th>
+                            <th style="width: 100px;">目标值</th>
+                            <th>说明</th>
+                        </tr>
+                        <tr>
+                            <td><strong>历史轨迹查询范围</strong></td>
+                            <td style="font-weight: 600;">90天</td>
+                            <td>近 90 天任务轨迹支持在线回放</td>
+                        </tr>
+                        <tr>
+                            <td><strong>导出格式</strong></td>
+                            <td>JSON / Markdown / PDF</td>
+                            <td>多格式支持不同用途</td>
+                        </tr>
+                        <tr>
+                            <td><strong>回放可视化</strong></td>
+                            <td>时间线 + 调用链图</td>
+                            <td>Mermaid 图表自动生成</td>
+                        </tr>
+                        <tr>
+                            <td><strong>审计合规用途</strong></td>
+                            <td>ITU-T M.3100 / ETSI TS 102 165</td>
+                            <td>满足电信监管要求</td>
+                        </tr>
+                        <tr>
+                            <td><strong>回放权限控制</strong></td>
+                            <td>身份隔离 + 操作级别</td>
+                            <td>敏感操作回放需授权</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Value Summary -->
+            <div class="card" style="background: linear-gradient(135deg, var(--gray-100) 0%, #f0f9ff 100%);">
+                <div class="card-header">
+                    <div class="card-title">四、演进特性价值总结</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">痛点</th>
+                            <th style="width: 200px;">解决方案</th>
+                            <th style="width: 200px;">效果评估</th>
+                        </tr>
+                        <tr>
+                            <td>高频场景响应慢</td>
+                            <td>确定性任务路由（规则库）</td>
+                            <td style="font-weight: 600; color: var(--success);">响应时延从 1-5s 降至 &lt; 100ms</td>
+                        </tr>
+                        <tr>
+                            <td>执行结果不确定</td>
+                            <td>预定义 workflow/skill/tool 序列</td>
+                            <td style="font-weight: 600; color: var(--success);">执行成功率稳定 > 95%</td>
+                        </tr>
+                        <tr>
+                            <td>经验无法复用</td>
+                            <td>智能体自学习（经验库）</td>
+                            <td style="font-weight: 600; color: var(--primary);">任务准确率年度提升 +15%</td>
+                        </tr>
+                        <tr>
+                            <td>用户习惯需每次适应</td>
+                            <td>用户偏好学习</td>
+                            <td style="font-weight: 600; color: var(--warning);">澄清请求减少 30%</td>
+                        </tr>
+                        <tr>
+                            <td>执行过程难以复盘</td>
+                            <td>任务轨迹回放</td>
+                            <td>审计合规、故障分析、培训素材</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Implementation Phases -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">五、演进特性实施分期</div>
+                </div>
+                <div class="roadmap-grid">
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 前期步骤 1</div>
+                        <div class="roadmap-title">任务轨迹记录增强</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">完整决策链 + 调用链 + 用户交互</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 前期步骤 2</div>
+                        <div class="roadmap-title">离线轨迹回放</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">导出格式 + 可视化 + 审计报告</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 前期步骤 3</div>
+                        <div class="roadmap-title">在线轨迹回放</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">实时回放 + 历史回放 + 权限控制</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 3 · 中期步骤 4</div>
+                        <div class="roadmap-title">经验库建设</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">轨迹分析 + 经验入库 + 相似匹配</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 3 · 中期步骤 5</div>
+                        <div class="roadmap-title">用户偏好学习</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">偏好识别 + 自动应用 + 效果评估</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 3 · 后期步骤 6</div>
+                        <div class="roadmap-title">规则库生成</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">对抗生成 + 规则入库 + 冲突检测</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 3 · 后期步骤 7</div>
+                        <div class="roadmap-title">确定性路由</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">规则匹配 + 混合路由 + 降级机制</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Section -->
+        <div class="section fade-in" id="tech">
+            <div class="section-title">
+                <span class="icon">分</span>
+                技术规格
+            </div>
+
+            <!-- Key Specs -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">关键技术规格</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 160px;">规格项</th>
+                            <th>规格要求</th>
+                            <th style="width: 220px;">边界说明</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 装配</strong></td>
+                            <td>AgentDefinition 绑定 Config、模型、Prompt、Capability、Policy、Hook，并编译为 AgentAssembly / HostedAgentAssembly。</td>
+                            <td>当前 change 聚焦单 Agent 装配基线。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>执行边界</strong></td>
+                            <td>Runtime 统一拥有请求接收、取消、重试、编辑重提、恢复和终态提交。</td>
+                            <td>AgentDefinition 不拥有运行状态机。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>装配快照</strong></td>
+                            <td>请求执行使用已解析的 assemblyRef，支持重试、恢复和诊断关联。</td>
+                            <td>运行时不解析产品二开文件。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>上下文组装</strong></td>
+                            <td>Context Engine 负责上下文选择、Prompt 渲染和模型输入生成；Query Policy 控制窗口与压缩。</td>
+                            <td>Runtime 和 Agent 不直接选择历史消息。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>能力暴露</strong></td>
+                            <td>CapabilityCatalog 汇聚本地、SkillHub、MCP、Agent Registry 来源；模型只看到已绑定且当前可用的能力。</td>
+                            <td>资源发现不等于 Agent 授权。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Policy / Hook</strong></td>
+                            <td>Policy 改变受控决策点；Hook 只挂载批准生命周期阶段并记录调用结果。</td>
+                            <td>不得绕过 Runtime、Session、Channel 边界。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>流式通道</strong></td>
+                            <td>SSE 和 WebSocket 使用同一事件语义，由部署配置选择，支持活跃流重连与近期事件重放。</td>
+                            <td>历史会话显示不依赖流式重放。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>模型降级</strong></td>
+                            <td>模型失败可做有界重试或 failover；已产生用户可见内容后不得无界重试。</td>
+                            <td>降级必须可观测并进入执行轨迹。</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SPI Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">底层契约与装配关系</div>
+                    <div class="card-count">契约已分层，产品化装配待统一</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 180px;">契约模块</th>
+                            <th style="width: 180px;">主要职责</th>
+                            <th>与 Agent 装配的关系</th>
+                        </tr>
+                        <tr>
+                            <td><strong>agent-runtime-spi</strong></td>
+                            <td>Agent 执行控制、事件发射</td>
+                            <td>消费已解析的 AgentAssembly，不承载领域装配规则</td>
+                        </tr>
+                        <tr>
+                            <td><strong>agent-capability-spi</strong></td>
+                            <td>Skill / Tool / InvokedAgent 发现与执行</td>
+                            <td>提供 Capability Resource 通道，最终需经 Capability Binding 和可用性过滤</td>
+                        </tr>
+                        <tr>
+                            <td><strong>agent-context-spi</strong></td>
+                            <td>上下文策略、模板、模型选择</td>
+                            <td>承载 Prompt / Policy / Model 相关资源的底层接口</td>
+                        </tr>
+                        <tr>
+                            <td><strong>agent-platform-gateway-spi</strong></td>
+                            <td>存储、身份、SkillHub、MCP、Agent Registry、检索</td>
+                            <td>作为 ResourceProvider 的远端/本地适配边界</td>
+                        </tr>
+                        <tr>
+                            <td><strong>agent-channel-spi</strong></td>
+                            <td>Web / IM / TUI 通道适配</td>
+                            <td>入口只对接 Runtime，不绕过 AgentAssembly 执行边界</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Performance Constraints -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">性能与约束规格</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">指标</th>
+                            <th>规格</th>
+                        </tr>
+                        <tr>
+                            <td><strong>附件上限</strong></td>
+                            <td>5 MiB/文件，最多 3 文件</td>
+                        </tr>
+                        <tr>
+                            <td><strong>会话历史</strong></td>
+                            <td>120 条/页，支持无限分页</td>
+                        </tr>
+                        <tr>
+                            <td><strong>流事件缓冲</strong></td>
+                            <td>200 条近期事件，支持重放</td>
+                        </tr>
+                        <tr>
+                            <td><strong>请求并发</strong></td>
+                            <td>单会话单请求（后提交取代前）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>用户输入超时</strong></td>
+                            <td>可配置过期时间</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roadmap Section -->
+        <div class="section fade-in" id="roadmap">
+            <div class="section-title">
+                <span class="icon">分</span>
+                路线图规划
+            </div>
+
+            <!-- User Roadmap -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">智能体用户视角路线图</div>
+                </div>
+                <div class="roadmap-grid">
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">用户输入阻塞与接续</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">关键操作需授权，安全合规</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">IM 通道接入</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">企业工作流集成</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">TUI 命令行交互</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">脚本化运维</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">事件中心自动触发</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">告警自动分析</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">任务轨迹在线回放</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">实时监控、快速复盘</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">任务轨迹离线回放</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">审计合规、培训素材</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Developer Roadmap -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">二次开发开发者视角路线图</div>
+                </div>
+                <p style="color: var(--gray-600); margin-bottom: 1rem;">
+                    <strong>边界说明：</strong>阶段 2 聚焦当前 change 声明的单 Agent 装配基线；阶段 3 项是后续生态增强，不属于本次 change 的实现范围。
+                </p>
+                <div class="roadmap-grid">
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">AgentDefinition 装配基线</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">Config / Resources / ResourceProviders / Plugins 四类输入面统一</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">Resource / Provider 建模</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">模型、Prompt、Capability、Hook、Policy 来源统一表达</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">Capability / Hook / Policy Binding</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">资源贡献与 Agent 使用权分离，绑定后进入 Assembly</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 2 · DFX 商用版</div>
+                        <div class="roadmap-title">Assembly Diagnostics</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">启动期校验、冲突诊断、assemblyRef 可追踪</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">父子 Skill 层级</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">诊断规程分层，降低模型噪声</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">SkillHub / MCP 管理增强</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">远端发布审批、多 Server 管理、启停治理</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">Agent Registry Provider</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">专家 Agent 作为资源发现；复杂协作编排后续单独定义</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evolution Roadmap -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">智能体演进特性路线图</div>
+                    <span class="priority" style="background: #bae6fd; color: #0369a1;">阶段 3 规划</span>
+                </div>
+                <div class="roadmap-grid">
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">确定性任务路由</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">高频场景响应 &lt; 100ms，成功率 &gt; 95%</p>
+                    </div>
+                    <div class="roadmap-card high">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">智能体自学习</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">准确率年度提升 +15%，澄清减少 30%</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">任务轨迹回放</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">审计合规、故障分析、培训素材</p>
+                    </div>
+                    <div class="roadmap-card medium">
+                        <div class="roadmap-phase">阶段 3 · 高阶增强版</div>
+                        <div class="roadmap-title">用户偏好学习</div>
+                        <p style="font-size: 0.85rem; color: var(--gray-600);">用户习惯自动应用，体验提升</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Non-Goals -->
+            <div class="card" style="background: var(--gray-100);">
+                <div class="card-header">
+                    <div class="card-title">明确不做（非目标）</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">非目标</th>
+                            <th>原因</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Skill Authoring UI</strong></td>
+                            <td>本轮聚焦运行底座，技能编写是后置</td>
+                        </tr>
+                        <tr>
+                            <td><strong>插件 Marketplace</strong></td>
+                            <td>不引入插件分发、沙箱和复杂治理流程</td>
+                        </tr>
+                        <tr>
+                            <td><strong>第二套 Agent Loop</strong></td>
+                            <td>只有一种执行风格</td>
+                        </tr>
+                        <tr>
+                            <td><strong>入口绕过 Runtime</strong></td>
+                            <td>通道不能直接处理 retry/edit</td>
+                        </tr>
+                        <tr>
+                            <td><strong>领域逻辑写入 Kernel</strong></td>
+                            <td>领域资源和策略通过 AgentDefinition / Assembly 表达</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Competitiveness Section -->
+        <div class="section fade-in" id="competitiveness">
+            <div class="section-title">
+                <span class="icon">分</span>
+                竞争力分析
+            </div>
+            <div class="section-subtitle">
+                <span class="tag">定位</span>
+                与竞品/替代方案的差异化对比，电信场景的独特价值
+            </div>
+
+            <!-- Comparison with Claude Code and OpenClaw -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">一、与 Claude Code / OpenClaw 的定位差异</div>
+                    <div class="card-count">竞争定位</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 140px;">对象</th>
+                            <th style="width: 260px;">主要优势</th>
+                            <th>不直接替代 ADNClaw 的原因</th>
+                            <th style="width: 260px;">ADNClaw 的竞争点</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Claude Code</strong></td>
+                            <td>代码理解、代码生成、开发者交互体验强，适合研发提效。</td>
+                            <td>它主要服务软件开发，不是面向电信生产运维的商用平台；不负责运维工具治理、权限隔离、审计追溯和运行恢复。</td>
+                            <td>ADNClaw 面向运维任务闭环，强调过程透明、人工确认、可恢复执行和生产合规。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>OpenClaw</strong></td>
+                            <td>通用智能体能力组合和技术思路有参考价值，适合作为生态借鉴。</td>
+                            <td>通用框架需要二次工程化后才能进入行业生产场景，尤其缺少电信域权限、能力目录、审计和商用质量约束。</td>
+                            <td>ADNClaw 直接围绕电信网络运维构建，目标是形成可部署、可治理、可复用的行业平台。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ADNClaw</strong></td>
+                            <td>行业场景明确，围绕电信运维的“可控执行”和“领域能力沉淀”建设。</td>
+                            <td>不是只追求模型问答效果，而是把模型、工具、人员确认、知识和审计放进统一平台。</td>
+                            <td>竞争力来自行业落地能力：安全可控、过程可见、能力可管、知识可复用、商用可验收。</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; padding: 1rem; background: var(--gray-100); border-radius: 8px; color: var(--gray-700);">
+                    <strong>核心结论：</strong>Claude Code 更像优秀的研发助手，OpenClaw 更像通用智能体技术参考；ADNClaw 要做的是电信运维智能体平台，核心价值在行业生产可用和商用可控。
+                </p>
+            </div>
+
+            <!-- Comparison with Generic Agent Frameworks -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">二、与通用 Agent 框架对比</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">维度</th>
+                            <th style="width: 250px;">通用框架（LangChain/AutoGen）</th>
+                            <th style="width: 250px;">ADNClaw Agent 平台</th>
+                        </tr>
+                        <tr>
+                            <td><strong>安全机制</strong></td>
+                            <td style="background: var(--danger-bg);">靠模型自觉遵守 prompt</td>
+                            <td style="background: var(--success-bg); font-weight: 600;">系统级 Enforcement 层</td>
+                        </tr>
+                        <tr>
+                            <td><strong>域隔离</strong></td>
+                            <td style="background: var(--danger-bg);">无域概念，工具平铺</td>
+                            <td style="background: var(--success-bg); font-weight: 600;">五域独立部署</td>
+                        </tr>
+                        <tr>
+                            <td><strong>变更管控</strong></td>
+                            <td style="background: var(--danger-bg);">无变更窗口机制</td>
+                            <td style="background: var(--success-bg); font-weight: 600;">变更窗口强制 + 审批链</td>
+                        </tr>
+                        <tr>
+                            <td><strong>审计粒度</strong></td>
+                            <td style="background: var(--warning-bg);">简单日志记录</td>
+                            <td style="background: var(--success-bg); font-weight: 600;">三层审计（TOOL/SKILL/AGENT）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>厂商适配</strong></td>
+                            <td style="background: var(--danger-bg);">无厂商抽象</td>
+                            <td style="background: var(--success-bg); font-weight: 600;">数通域厂商抽象层</td>
+                        </tr>
+                        <tr>
+                            <td><strong>运营商生态</strong></td>
+                            <td style="background: var(--danger-bg);">无运营商注入机制</td>
+                            <td style="background: var(--success-bg); font-weight: 600;">运营商 Skill Resource + 受控绑定</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1rem; padding: 1rem; background: var(--primary); color: white; border-radius: 8px;">
+                    <strong>核心结论：</strong>通用框架解决"如何让模型执行任务"，ADNClaw 解决"如何让模型在电信网络中<strong>安全合规</strong>地执行任务"。
+                </p>
+            </div>
+
+            <!-- Comparison with Traditional Automation -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">三、与传统运维自动化对比</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 120px;">维度</th>
+                            <th style="width: 200px;">传统自动化（脚本/工单）</th>
+                            <th style="width: 200px;">ADNClaw Agent 平台</th>
+                        </tr>
+                        <tr>
+                            <td><strong>任务表达</strong></td>
+                            <td>硬编码脚本流程</td>
+                            <td style="font-weight: 600;">自然语言驱动，模型理解意图</td>
+                        </tr>
+                        <tr>
+                            <td><strong>灵活性</strong></td>
+                            <td>预定义流程，偏离需人工</td>
+                            <td style="font-weight: 600;">模型自主决策，动态调整</td>
+                        </tr>
+                        <tr>
+                            <td><strong>专家知识</strong></td>
+                            <td>脚本难以承载隐性知识</td>
+                            <td style="font-weight: 600;">SKILL 包裹 SOP，运维经验可复用</td>
+                        </tr>
+                        <tr>
+                            <td><strong>审批集成</strong></td>
+                            <td>独立工单系统，与执行割裂</td>
+                            <td style="font-weight: 600;">Enforcement 自动触发审批</td>
+                        </tr>
+                        <tr>
+                            <td><strong>回滚保障</strong></td>
+                            <td>需人工编写回滚脚本</td>
+                            <td style="font-weight: 600;">SKILL 强制声明回滚方案</td>
+                        </tr>
+                        <tr>
+                            <td><strong>审计追溯</strong></td>
+                            <td>分散在多个系统</td>
+                            <td style="font-weight: 600;">统一审计层，操作链完整可追溯</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Telecom Unique Value -->
+            <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);">
+                <div class="card-header">
+                    <div class="card-title">四、电信场景独特价值</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">场景</th>
+                            <th>痛点</th>
+                            <th style="width: 200px;">ADNClaw 解决方案</th>
+                            <th style="width: 150px;">竞品/替代方案</th>
+                        </tr>
+                        <tr>
+                            <td><strong>配置变更</strong></td>
+                            <td>误操作导致全网故障</td>
+                            <td style="font-weight: 600;">Enforcement 变更窗口 + 审批链 + 回滚方案强制</td>
+                            <td style="background: var(--danger-bg);">通用框架靠 prompt，不可靠</td>
+                        </tr>
+                        <tr>
+                            <td><strong>跨域误操作</strong></td>
+                            <td>对核心网调用无线工具</td>
+                            <td style="font-weight: 600;">域隔离 + 工具名域标识</td>
+                            <td style="background: var(--danger-bg);">无域概念，模型可能混淆</td>
+                        </tr>
+                        <tr>
+                            <td><strong>厂商异构</strong></td>
+                            <td>数通多厂商环境</td>
+                            <td style="font-weight: 600;">厂商抽象层，模型无感知</td>
+                            <td style="background: var(--warning-bg);">需为每个厂商写适配</td>
+                        </tr>
+                        <tr>
+                            <td><strong>合规审计</strong></td>
+                            <td>电信监管要求操作追溯</td>
+                            <td style="font-weight: 600;">三层审计 + 只追加不修改</td>
+                            <td style="background: var(--danger-bg);">简单日志，不满足合规</td>
+                        </tr>
+                        <tr>
+                            <td><strong>运营商知识</strong></td>
+                            <td>运维经验无法沉淀</td>
+                            <td style="font-weight: 600;">运营商 Skill Resource + AgentDefinition 绑定</td>
+                            <td style="background: var(--danger-bg);">无注入机制</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Technical Decision Trade-offs -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">五、关键方案取舍</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 180px;">决策</th>
+                            <th style="width: 150px;">选择</th>
+                            <th>业务理由</th>
+                            <th style="width: 150px;">代价</th>
+                        </tr>
+                        <tr>
+                            <td><strong>安全闸门位置</strong></td>
+                            <td style="font-weight: 600;">系统层（Enforcement）</td>
+                            <td>电信安全底线，幻觉风险不可接受</td>
+                            <td>高风险变更需额外审批和审计记录</td>
+                        </tr>
+                        <tr>
+                            <td><strong>工具名设计</strong></td>
+                            <td style="font-weight: 600;">强制域标识</td>
+                            <td>告警模型/设备状态模型完全不同</td>
+                            <td>工具总数增多，需域感知过滤</td>
+                        </tr>
+                        <tr>
+                            <td><strong>厂商抽象范围</strong></td>
+                            <td style="font-weight: 600;">仅数通域启用</td>
+                            <td>其他域为单一厂商建设</td>
+                            <td>数通域需为每个厂商实现 Adapter</td>
+                        </tr>
+                        <tr>
+                            <td><strong>审批触发方式</strong></td>
+                            <td style="font-weight: 600;">自动生成工单</td>
+                            <td>审批是合规要求，不阻塞模型上下文</td>
+                            <td>需审批回调机制</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Competitive Advantage Summary -->
+            <div class="card" style="background: var(--primary); color: white;">
+                <div class="card-header" style="border-bottom-color: rgba(255,255,255,0.3);">
+                    <div class="card-title" style="color: white;">六、竞争优势总结</div>
+                </div>
+                <div class="table-container">
+                    <table style="color: white;">
+                        <tr>
+                            <th style="width: 150px; background: rgba(255,255,255,0.2); color: white;">竞争维度</th>
+                            <th style="background: rgba(255,255,255,0.2); color: white;">ADNClaw 优势</th>
+                            <th style="width: 150px; background: rgba(255,255,255,0.2); color: white;">适用场景</th>
+                        </tr>
+                        <tr>
+                            <td><strong>电信级安全</strong></td>
+                            <td>系统级 Enforcement + 变更窗口强制 + 审批链集成</td>
+                            <td>生产网络运维，监管合规</td>
+                        </tr>
+                        <tr>
+                            <td><strong>运营商生态</strong></td>
+                            <td>运营商 Skill Resource + 受控绑定，运维知识可沉淀</td>
+                            <td>运营商自主扩展运维能力</td>
+                        </tr>
+                        <tr>
+                            <td><strong>多域适配</strong></td>
+                            <td>五域独立部署 + 工具名域标识</td>
+                            <td>无线/接入/传输/数通/核心全覆盖</td>
+                        </tr>
+                        <tr>
+                            <td><strong>厂商异构</strong></td>
+                            <td>数通域厂商抽象层</td>
+                            <td>多厂商数据中心、IP承载网</td>
+                        </tr>
+                        <tr>
+                            <td><strong>审计合规</strong></td>
+                            <td>三层审计 + 只追加不修改</td>
+                            <td>电信监管要求，ISO/ITU-T 合规</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.2); border-radius: 8px; text-align: center; font-size: 1.1rem;">
+                    <strong>"系统级安全闸门 + 运营商生态注入 + 五域独立部署"</strong><br>
+                    这是通用 Agent 框架难以直接提供的电信场景独特价值：让智能体在受控边界内完成真实运维任务。
+                </p>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="section fade-in" id="summary">
+            <div class="section-title">
+                <span class="icon">总</span>
+                总结与推进
+            </div>
+
+            <!-- Core Value Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">核心价值总结</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">视角</th>
+                            <th>一句话总结</th>
+                        </tr>
+                        <tr>
+                            <td><strong>对智能体用户</strong></td>
+                            <td>任务执行透明可控，关键操作需授权，断线恢复不丢失</td>
+                        </tr>
+                        <tr>
+                            <td><strong>对二次开发开发者</strong></td>
+                            <td>AgentDefinition/Assembly 装配边界清晰，领域扩展受控接入，不破坏稳定性</td>
+                        </tr>
+                        <tr>
+                            <td><strong>对运营商</strong></td>
+                            <td>运维经验可注入为 SKILL，系统级安全闸门保证合规</td>
+                        </tr>
+                        <tr>
+                            <td><strong>对平台方</strong></td>
+                            <td>公共底座可复用多领域智能体，电信安全体系是核心竞争力</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Competitive Advantage Highlight -->
+            <div class="card" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white;">
+                <div class="card-header" style="border-bottom-color: rgba(255,255,255,0.3);">
+                    <div class="card-title" style="color: white;">竞争力一句话</div>
+                </div>
+                <p style="font-size: 1.2rem; line-height: 1.8; text-align: center;">
+                    <strong>"系统级安全闸门 + 运营商生态注入 + 五域独立部署"</strong><br><br>
+                    这是通用 Agent 框架难以直接提供的电信场景独特价值<br>
+                    <strong style="font-size: 1.3rem;">让智能体在受控边界内完成真实运维任务</strong>
+                </p>
+            </div>
+
+            <!-- Suitable Scenarios -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">适用场景推荐</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 150px;">场景</th>
+                            <th>推荐原因</th>
+                            <th style="width: 100px;">交付状态</th>
+                        </tr>
+                        <tr>
+                            <td><strong>电信网络运维</strong></td>
+                            <td>原生设计目标，告警/配置/故障处理</td>
+                            <td><span class="status status-done">当前可交付</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>企业知识问答</strong></td>
+                            <td>附件 + RAG + 多轮对话</td>
+                            <td><span class="status status-done">当前可交付</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>自动化运维工具</strong></td>
+                            <td>内置工具 + 用户授权阻塞（规划）</td>
+                            <td><span class="status status-planned">部分可交付</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>安全敏感环境</strong></td>
+                            <td>本地部署 + 审计边界 + 权限控制</td>
+                            <td><span class="status status-done">当前可交付</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>跨部门技能共享</strong></td>
+                            <td>SkillHub Provider 管理增强（规划）</td>
+                            <td><span class="status status-planned">规划中</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="card-header">
+                    <div class="card-title">阶段推进计划</div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th style="width: 80px;">优先级</th>
+                            <th>推进内容</th>
+                            <th style="width: 120px;">服务对象</th>
+                        </tr>
+                        <tr style="background: #fee2e2;">
+                            <td><span class="priority priority-high">1</span></td>
+                            <td>用户输入阻塞与接续完整实现</td>
+                            <td>智能体用户（安全合规）</td>
+                        </tr>
+                        <tr style="background: #fee2e2;">
+                            <td><span class="priority priority-high">2</span></td>
+                            <td>AgentDefinition 装配基线 + Capability/Hook/Policy Binding</td>
+                            <td>开发者（二开装配）</td>
+                        </tr>
+                        <tr style="background: #fef3c7;">
+                            <td><span class="priority priority-medium">3</span></td>
+                            <td>SkillHub / MCP / Agent Registry Provider 管理增强</td>
+                            <td>开发者（技能共享）</td>
+                        </tr>
+                        <tr style="background: #fef3c7;">
+                            <td><span class="priority priority-medium">4</span></td>
+                            <td>事件中心触发 + 多 Agent 协作（后续单独定义）</td>
+                            <td>智能体用户（自动化场景）</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-note">
+            文档用途：项目评审、资源决策、版本规划
+            <br>
+            结构说明：按用户视角（智能体用户 + 二次开发开发者）分类特性
+            <br>
+            联系方式：Agent 平台开发团队
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            // Show target section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(n => {
+                n.classList.remove('active');
+            });
+            
+            // Find and activate the clicked nav item
+            document.querySelectorAll('.nav-item').forEach(n => {
+                if (n.textContent.includes(sectionId === 'overview' ? '总—项目概述' : 
+                    sectionId === 'user' ? '用户特性' :
+                    sectionId === 'developer' ? '开发者特性' :
+                    sectionId === 'reliability' ? '系统可靠性' :
+                    sectionId === 'telecom' ? '电信工具安全' :
+                    sectionId === 'evolution' ? '智能体演进' :
+                    sectionId === 'tech' ? '技术规格' :
+                    sectionId === 'roadmap' ? '路线图' :
+                    sectionId === 'competitiveness' ? '竞争力分析' :
+                    sectionId === 'summary' ? '总—总结' : '')) {
+                    n.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

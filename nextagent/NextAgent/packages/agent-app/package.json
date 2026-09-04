@@ -1,0 +1,75 @@
+{
+  "name": "@nextagent/agent-app",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entrypoints/backend-only": {
+      "types": "./dist/entrypoints/backend-only.d.ts",
+      "import": "./dist/entrypoints/backend-only.js"
+    },
+    "./entrypoints/local-configured-auth": {
+      "types": "./dist/entrypoints/local-configured-auth.d.ts",
+      "import": "./dist/entrypoints/local-configured-auth.js"
+    },
+    "./entrypoints/with-frontend": {
+      "types": "./dist/entrypoints/with-frontend.d.ts",
+      "import": "./dist/entrypoints/with-frontend.js"
+    },
+    "./local-runtime-package": {
+      "types": "./dist/local-runtime-package/index.d.ts",
+      "import": "./dist/local-runtime-package/index.js"
+    },
+    "./packaging": {
+      "types": "./dist/packaging/index.d.ts",
+      "import": "./dist/packaging/index.js"
+    },
+    "./release": {
+      "types": "./dist/release/index.d.ts",
+      "import": "./dist/release/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
+    },
+    "./config": {
+      "types": "./dist/config/system-config.d.ts",
+      "import": "./dist/config/system-config.js"
+    }
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-log": "1.0.0",
+    "@nextagent/agent-contracts": "1.0.0",
+    "@nextagent/agent-runtime": "1.0.0",
+    "@nextagent/agent-session": "1.0.0",
+    "@nextagent/agent-attachment-runtime": "1.0.0",
+    "@nextagent/agent-context-engine": "1.0.0",
+    "@nextagent/agent-memory": "1.0.0",
+    "@nextagent/agent-core": "1.0.0",
+    "@nextagent/agent-model": "1.0.0",
+    "@nextagent/agent-channel-common": "1.0.0",
+    "@nextagent/agent-channel-web": "1.0.0",
+    "@nextagent/agent-plugin-sdk": "1.0.0",
+    "@nextagent/agent-channel-task": "1.0.0",
+    "@nextagent/agent-capability": "1.0.0",
+    "@nextagent/agent-observability": "1.0.0",
+    "@nextagent/agent-workflow": "1.0.0",
+    "@sinclair/typebox": "0.34.52",
+    "ajv": "8.18.0",
+    "js-yaml": "5.2.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@nextagent/agent-app-local-configured-auth-runtime",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./entrypoints/local-configured-auth.js",
+  "dependencies": {
+    "@nextagent/agent-app": "1.0.0",
+    "@nextagent/agent-channel-web-auth-local": "1.0.0"
+  },
+  "x-nextagent": {
+    "packageProfile": "local-configured-auth"
+  }
+}

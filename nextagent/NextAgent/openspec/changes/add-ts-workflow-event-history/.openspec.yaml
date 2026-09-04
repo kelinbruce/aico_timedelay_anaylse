@@ -1,0 +1,6 @@
+schema: spec-driven
+created: 2026-07-05
+depends:
+  - add-ts-workflow-engine-contracts
+  - add-ts-workflow-execution-engine
+  - persist-ts-refresh-stable-completed-turns

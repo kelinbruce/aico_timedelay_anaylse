@@ -1,0 +1,1631 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="NextAgent 可观测方案技术评审：统一观测入口、结构化日志、审计、指标、链路追踪、健康检查与安全治理。">
+  <title>NextAgent 可观测方案设计｜技术评审</title>
+  <style>
+    :root {
+      --ink: #182523;
+      --muted: #5b6b67;
+      --faint: #85918e;
+      --paper: #f5f7f4;
+      --surface: #ffffff;
+      --surface-2: #edf3ef;
+      --line: #d9e2dd;
+      --line-strong: #b9cac1;
+      --green: #0c6b58;
+      --green-2: #118b70;
+      --green-soft: #dff2ea;
+      --navy: #183b56;
+      --blue: #2f6f98;
+      --blue-soft: #e5f0f8;
+      --amber: #a46207;
+      --amber-soft: #fff1d6;
+      --red: #a23b3b;
+      --red-soft: #fbe6e4;
+      --shadow: 0 14px 42px rgba(21, 49, 40, 0.08);
+      --radius: 18px;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: Inter, "Segoe UI", "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.72;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--green); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    a:hover { color: var(--green-2); }
+    code {
+      padding: 0.08em 0.36em;
+      border: 1px solid #d7e3dc;
+      border-radius: 5px;
+      background: #f2f6f3;
+      color: #17483d;
+      font-family: var(--mono);
+      font-size: 0.88em;
+      overflow-wrap: anywhere;
+    }
+    strong { font-weight: 720; }
+    h1, h2, h3, h4 { margin: 0; line-height: 1.28; letter-spacing: -0.02em; }
+    h2 { font-size: clamp(1.55rem, 2vw, 2.05rem); }
+    h3 { font-size: 1.12rem; }
+    p { margin: 0; }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 30;
+      height: 5px;
+      background: linear-gradient(90deg, var(--green), #2d9b78 55%, #68b88f);
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+    .shell { display: grid; grid-template-columns: 286px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      padding: 34px 24px 28px;
+      border-right: 1px solid var(--line);
+      background: rgba(249, 251, 248, 0.95);
+      backdrop-filter: blur(12px);
+      overflow-y: auto;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 25px; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--ink);
+      color: white;
+      font-weight: 760;
+      letter-spacing: -0.05em;
+    }
+    .brand-name { font-size: 0.95rem; font-weight: 760; }
+    .brand-sub { color: var(--faint); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    .toc-label { margin: 22px 0 9px; color: var(--faint); font-size: 0.7rem; font-weight: 760; letter-spacing: 0.12em; text-transform: uppercase; }
+    .toc { display: grid; gap: 3px; }
+    .toc a {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 6px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      color: #4c5c58;
+      font-size: 0.82rem;
+      line-height: 1.35;
+      text-decoration: none;
+      transition: 150ms ease;
+    }
+    .toc a:hover, .toc a.is-active { background: var(--green-soft); color: var(--green); }
+    .toc-num { color: #91a09b; font-family: var(--mono); font-size: 0.75rem; }
+    .sidebar-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; }
+    button {
+      min-height: 36px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: white;
+      color: var(--ink);
+      font: 650 0.78rem var(--sans);
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--green); color: var(--green); }
+
+    main { min-width: 0; }
+    .hero {
+      position: relative;
+      min-height: 660px;
+      padding: 88px clamp(34px, 6vw, 92px) 72px;
+      overflow: hidden;
+      color: white;
+      background:
+        radial-gradient(circle at 84% 20%, rgba(77, 185, 144, 0.24), transparent 28%),
+        radial-gradient(circle at 70% 82%, rgba(60, 124, 147, 0.22), transparent 32%),
+        linear-gradient(135deg, #132b2a 0%, #153c35 54%, #173b46 100%);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.11;
+      background-image:
+        linear-gradient(rgba(255,255,255,.35) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.35) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(90deg, transparent 38%, black);
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; }
+    .eyebrow { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+    .hero-chip {
+      padding: 5px 10px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: #d8eee6;
+      font-size: 0.73rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .hero h1 { max-width: 900px; font-size: clamp(2.5rem, 5.2vw, 5.3rem); letter-spacing: -0.055em; }
+    .hero-lead { max-width: 840px; margin-top: 25px; color: #d5e3df; font-size: clamp(1.04rem, 1.6vw, 1.28rem); line-height: 1.72; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 22px 34px; margin-top: 40px; color: #a9c4bc; font-size: 0.82rem; }
+    .hero-meta strong { display: block; color: #f5fbf8; font-size: 0.9rem; }
+    .hero-verdict {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      max-width: 860px;
+      margin-top: 42px;
+      padding: 18px 20px;
+      border: 1px solid rgba(134, 227, 188, 0.28);
+      border-radius: 14px;
+      background: rgba(7, 30, 28, 0.42);
+    }
+    .verdict-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #83d3ae; color: #0c392e; font-weight: 900; }
+    .hero-verdict b { display: block; color: #9be0c1; font-size: 0.84rem; letter-spacing: 0.04em; }
+    .hero-verdict span { color: #e7f2ee; font-size: 0.94rem; }
+
+    .content { max-width: 1260px; margin: 0 auto; padding: 0 clamp(28px, 5vw, 76px) 120px; }
+    .section { padding: 78px 0 4px; scroll-margin-top: 18px; }
+    .section-head { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 16px; margin-bottom: 32px; }
+    .section-head > div { min-width: 0; }
+    .section-kicker { padding-top: 5px; color: var(--green); font: 760 0.78rem var(--mono); letter-spacing: 0.08em; }
+    .section-head p { max-width: 850px; margin-top: 10px; color: var(--muted); font-size: 0.98rem; }
+    .subsection { margin-top: 34px; }
+    .subsection > h3 { margin-bottom: 14px; }
+
+    .executive {
+      position: relative;
+      z-index: 2;
+      margin-top: -44px;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+      box-shadow: var(--shadow);
+    }
+    .executive-title { margin-bottom: 20px; color: var(--green); font: 760 0.76rem var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+    .executive-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 30px; }
+    .executive h2 { font-size: 1.65rem; }
+    .executive p { margin-top: 12px; color: var(--muted); }
+    .decision-list { display: grid; gap: 10px; }
+    .decision-item { display: grid; grid-template-columns: 26px 1fr; gap: 9px; color: #42534f; font-size: 0.9rem; }
+    .decision-item i { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 7px; background: var(--green-soft); color: var(--green); font-style: normal; font-size: 0.74rem; font-weight: 850; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+    }
+    .card h3 { margin-bottom: 9px; }
+    .card p, .card li { color: var(--muted); font-size: 0.9rem; }
+    .card ul, .card ol { margin: 12px 0 0; padding-left: 20px; }
+    .card li + li { margin-top: 6px; }
+    .number-card { position: relative; padding-top: 50px; overflow: hidden; }
+    .number-card::before { content: attr(data-number); position: absolute; top: 16px; left: 20px; color: #c5d7ce; font: 820 1.35rem var(--mono); }
+    .tone-green { background: linear-gradient(145deg, white, #f1f8f4); }
+    .tone-blue { background: linear-gradient(145deg, white, #f2f7fb); }
+    .tone-amber { background: linear-gradient(145deg, white, #fff8eb); }
+
+    .callout {
+      display: grid;
+      grid-template-columns: 5px 1fr;
+      gap: 17px;
+      margin: 24px 0;
+      padding: 18px 20px 18px 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: white;
+      overflow: hidden;
+    }
+    .callout::before { content: ""; background: var(--green); }
+    .callout.warn::before { background: var(--amber); }
+    .callout.danger::before { background: var(--red); }
+    .callout b { display: block; margin-bottom: 4px; }
+    .callout p { color: var(--muted); font-size: 0.92rem; }
+
+    .architecture {
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f9fbf9;
+      box-shadow: 0 8px 28px rgba(18, 56, 45, .05);
+    }
+    .arch-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .arch-node {
+      min-height: 92px;
+      padding: 15px;
+      border: 1px solid #cfdcd5;
+      border-radius: 11px;
+      background: white;
+      text-align: center;
+    }
+    .arch-node b { display: block; font-size: 0.9rem; }
+    .arch-node span { display: block; margin-top: 5px; color: var(--muted); font-size: 0.76rem; line-height: 1.4; }
+    .arch-core {
+      margin: 25px 0;
+      padding: 24px;
+      border: 1px solid #83b8a2;
+      border-radius: 14px;
+      background: linear-gradient(110deg, #dff2ea, #e9f4f0);
+      text-align: center;
+    }
+    .arch-core::before, .arch-core::after { display: block; color: var(--green); content: "↓"; font-size: 1.25rem; line-height: 1; }
+    .arch-core::before { margin: -44px 0 20px; }
+    .arch-core::after { margin: 20px 0 -44px; }
+    .arch-core b { display: block; font-size: 1.07rem; }
+    .arch-core span { display: block; margin-top: 7px; color: #3c665b; font-size: 0.86rem; }
+    .arch-surfaces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .surface-node { min-height: 108px; padding: 15px 10px; border-radius: 11px; color: white; text-align: center; }
+    .surface-node b { display: block; font-size: 0.9rem; }
+    .surface-node span { display: block; margin-top: 7px; color: rgba(255,255,255,.78); font-size: 0.74rem; line-height: 1.45; }
+    .surface-log { background: #245e55; }
+    .surface-audit { background: #3e596f; }
+    .surface-metric { background: #337b70; }
+    .surface-trace { background: #32678d; }
+    .surface-health { background: #687a48; }
+    .truth-band { margin-top: 16px; padding: 12px 14px; border: 1px dashed #a9bbb2; border-radius: 9px; color: #53625e; background: white; font-size: 0.82rem; text-align: center; }
+
+    .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 22px; }
+    .flow-step { position: relative; min-height: 130px; padding: 18px 24px 18px 18px; border: 1px solid var(--line); background: white; }
+    .flow-step:first-child { border-radius: 12px 0 0 12px; }
+    .flow-step:last-child { border-radius: 0 12px 12px 0; }
+    .flow-step:not(:last-child)::after { content: "›"; position: absolute; z-index: 2; top: 50%; right: -10px; width: 20px; height: 28px; margin-top: -14px; color: var(--green); background: var(--paper); font-size: 1.75rem; line-height: 24px; text-align: center; }
+    .flow-step em { color: var(--green); font: 760 0.71rem var(--mono); font-style: normal; letter-spacing: .07em; }
+    .flow-step b { display: block; margin-top: 8px; }
+    .flow-step p { margin-top: 6px; color: var(--muted); font-size: 0.82rem; line-height: 1.55; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 13px; background: white; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    th { padding: 12px 14px; color: #3b4e48; background: #edf3ef; font-size: 0.78rem; text-align: left; white-space: nowrap; }
+    td { padding: 13px 14px; border-top: 1px solid var(--line); color: #4e5f5a; vertical-align: top; }
+    td strong { color: var(--ink); }
+    tr:hover td { background: #fafcfb; }
+    .status { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-weight: 720; }
+    .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .status.done { color: var(--green); }
+    .status.review { color: var(--amber); }
+    .status.gap { color: var(--red); }
+    .tag {
+      display: inline-block;
+      margin: 2px 3px 2px 0;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: #49615a;
+      font: 650 0.72rem var(--mono);
+    }
+    .tag.blue { background: var(--blue-soft); color: var(--blue); }
+    .tag.amber { background: var(--amber-soft); color: var(--amber); }
+
+    .surface-detail { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 20px; padding: 25px 0; border-top: 1px solid var(--line); }
+    .surface-detail:first-child { border-top: 0; }
+    .surface-icon { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 15px; background: var(--ink); color: white; font: 760 0.68rem var(--mono); }
+    .surface-detail h3 { margin: 2px 0 7px; }
+    .surface-detail p { color: var(--muted); font-size: 0.91rem; }
+    .mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+    .mini { padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: white; }
+    .mini b { display: block; color: var(--green); font: 750 0.71rem var(--mono); }
+    .mini span { display: block; margin-top: 5px; color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
+
+    .metric-map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+    .metric-domain { padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: white; }
+    .metric-domain b { display: flex; justify-content: space-between; gap: 10px; font-size: 0.85rem; }
+    .metric-domain b span { color: var(--green); font-family: var(--mono); }
+    .metric-domain p { margin-top: 6px; color: var(--muted); font-size: 0.76rem; line-height: 1.45; }
+
+    .security-funnel { display: grid; grid-template-columns: 1fr 56px 1fr; align-items: stretch; margin-top: 24px; }
+    .security-box { padding: 22px; border: 1px solid var(--line); border-radius: 13px; background: white; }
+    .security-box.denied { background: #fff8f7; }
+    .security-box.allowed { background: #f3faf6; }
+    .security-box h3 { margin-bottom: 10px; }
+    .security-box ul { margin: 0; padding-left: 20px; color: var(--muted); font-size: 0.86rem; }
+    .security-box li + li { margin-top: 5px; }
+    .funnel-arrow { display: grid; place-items: center; color: var(--green); font-size: 1.8rem; }
+
+    .capacity-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; margin-top: 18px; }
+    .capacity-item { padding: 14px 10px; border: 1px solid var(--line); border-radius: 10px; background: white; text-align: center; }
+    .capacity-item strong { display: block; color: var(--green); font: 820 1.12rem var(--mono); }
+    .capacity-item span { display: block; margin-top: 5px; color: var(--muted); font-size: 0.71rem; line-height: 1.4; }
+
+    .risk-list { display: grid; gap: 12px; }
+    .risk-item { display: grid; grid-template-columns: 54px 1.1fr 1fr; gap: 16px; align-items: start; padding: 17px; border: 1px solid var(--line); border-radius: 11px; background: white; }
+    .risk-id { padding: 4px 6px; border-radius: 6px; background: var(--amber-soft); color: var(--amber); font: 760 0.73rem var(--mono); text-align: center; }
+    .risk-item b { display: block; margin-bottom: 4px; font-size: 0.9rem; }
+    .risk-item p { color: var(--muted); font-size: 0.83rem; line-height: 1.55; }
+    .risk-action { padding-left: 16px; border-left: 1px solid var(--line); }
+
+    .decision-box { margin-top: 28px; padding: 26px; border: 1px solid #8cbba7; border-radius: 16px; background: linear-gradient(140deg, #e5f5ed, #f4faf7); }
+    .decision-box h3 { color: var(--green); }
+    .decision-box ol { margin: 13px 0 0; padding-left: 22px; color: #3f5b52; }
+    .decision-box li + li { margin-top: 7px; }
+
+    .source-list { display: grid; gap: 9px; }
+    .source-item { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; background: white; font-size: 0.82rem; }
+    .source-item b { color: #42534e; }
+    .source-item span { color: var(--muted); overflow-wrap: anywhere; }
+    .source-item a { font-family: var(--mono); font-size: 0.77rem; }
+
+    .contract-summary { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 20px 0 28px; }
+    .contract-stat { padding: 16px 10px; border: 1px solid var(--line); border-radius: 11px; background: white; text-align: center; }
+    .contract-stat strong { display: block; color: var(--green); font: 820 1.25rem var(--mono); }
+    .contract-stat span { display: block; margin-top: 5px; color: var(--muted); font-size: 0.72rem; line-height: 1.4; }
+    .schema-block {
+      margin: 14px 0;
+      padding: 18px 20px;
+      border: 1px solid #cfdcd5;
+      border-radius: 11px;
+      background: #142521;
+      color: #dcebe5;
+      font: 0.78rem/1.65 var(--mono);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      overflow-x: auto;
+    }
+    .schema-block .required { color: #93ddb9; }
+    .schema-block .optional { color: #9fb9ca; }
+    .schema-note { margin-top: 10px; color: var(--muted); font-size: 0.82rem; }
+    .inventory-group { padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: white; }
+    .inventory-group h4 { margin-bottom: 7px; color: var(--green); font-size: 0.88rem; }
+    .inventory-group p { color: var(--muted); font: 0.75rem/1.65 var(--mono); overflow-wrap: anywhere; }
+    .contract-section { margin-top: 42px; padding-top: 30px; border-top: 2px solid var(--line); }
+    .contract-section:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+    .contract-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; margin-bottom: 14px; }
+    .contract-title h3 { font-size: 1.26rem; }
+    .contract-count { padding: 3px 8px; border-radius: 999px; background: var(--green-soft); color: var(--green); font: 760 0.72rem var(--mono); }
+    .dense-table table { font-size: 0.79rem; }
+    .dense-table th { font-size: 0.71rem; }
+    .dense-table td { padding: 10px 11px; }
+
+    .footer { margin-top: 70px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--faint); font-size: 0.77rem; }
+    .footer-grid { display: flex; justify-content: space-between; gap: 24px; }
+
+    @media (max-width: 1120px) {
+      .shell { display: block; }
+      .sidebar { position: relative; display: none; }
+      .hero { min-height: 590px; }
+      .grid-4, .arch-row { grid-template-columns: repeat(2, 1fr); }
+      .arch-surfaces { grid-template-columns: repeat(3, 1fr); }
+      .metric-map { grid-template-columns: repeat(3, 1fr); }
+      .capacity-strip { grid-template-columns: repeat(3, 1fr); }
+      .contract-summary { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 760px) {
+      body { font-size: 15px; }
+      .hero { min-height: auto; padding: 68px 24px 82px; }
+      .hero h1 { font-size: 2.65rem; }
+      .content { padding-inline: 18px; }
+      .executive { margin-top: -36px; padding: 22px; }
+      .executive-grid, .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .section { padding-top: 62px; }
+      .section-head { grid-template-columns: 1fr; gap: 2px; }
+      .section-head h2, .section-head p { overflow-wrap: anywhere; }
+      .arch-row, .arch-surfaces, .metric-map { grid-template-columns: 1fr; }
+      .arch-core::before, .arch-core::after { display: none; }
+      .flow { grid-template-columns: 1fr; gap: 8px; }
+      .flow-step, .flow-step:first-child, .flow-step:last-child { border-radius: 10px; }
+      .flow-step:not(:last-child)::after { display: none; }
+      .mini-grid { grid-template-columns: 1fr; }
+      .security-funnel { grid-template-columns: 1fr; gap: 10px; }
+      .funnel-arrow { transform: rotate(90deg); }
+      .capacity-strip { grid-template-columns: repeat(2, 1fr); }
+      .risk-item { grid-template-columns: 1fr; }
+      .risk-id { width: 54px; }
+      .risk-action { padding: 12px 0 0; border-top: 1px solid var(--line); border-left: 0; }
+      .source-item { grid-template-columns: 1fr; gap: 4px; }
+      .contract-summary { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { display: grid; }
+    }
+
+    @media print {
+      @page { size: A4; margin: 15mm 14mm 16mm; }
+      body { background: white; font-size: 10.2pt; color: #111; }
+      .topbar, .sidebar { display: none !important; }
+      .shell { display: block; }
+      .hero { min-height: 0; padding: 18mm 14mm 14mm; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .hero h1 { font-size: 32pt; }
+      .hero-verdict { break-inside: avoid; }
+      .content { max-width: none; padding: 0; }
+      .executive { margin: 10mm 0 0; box-shadow: none; }
+      .section { padding-top: 12mm; }
+      .section-head { margin-bottom: 6mm; }
+      .card, .callout, .architecture, .surface-detail, .table-wrap, .risk-item, .decision-box { break-inside: avoid; box-shadow: none; }
+      .dense-table { break-inside: auto; }
+      .dense-table table { break-inside: auto; }
+      .dense-table tr { break-inside: avoid; break-after: auto; }
+      .arch-node, .surface-node, .arch-core, th, .tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      a { color: inherit; text-decoration: none; }
+      code { border: 0; background: #f1f1f1; }
+      .footer { margin-top: 12mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar" id="reading-progress" aria-hidden="true"></div>
+  <div class="shell">
+    <aside class="sidebar" aria-label="文档导航">
+      <div class="brand">
+        <div class="brand-mark">NA</div>
+        <div>
+          <div class="brand-name">NextAgent</div>
+          <div class="brand-sub">Design Review</div>
+        </div>
+      </div>
+      <div class="toc-label">技术评审目录</div>
+      <nav class="toc">
+        <a href="#summary"><span class="toc-num">00</span><span>评审摘要</span></a>
+        <a href="#context"><span class="toc-num">01</span><span>背景、目标与范围</span></a>
+        <a href="#principles"><span class="toc-num">02</span><span>设计原则</span></a>
+        <a href="#architecture"><span class="toc-num">03</span><span>总体架构</span></a>
+        <a href="#model"><span class="toc-num">04</span><span>统一观测模型</span></a>
+        <a href="#surfaces"><span class="toc-num">05</span><span>五类观测面</span></a>
+        <a href="#contracts"><span class="toc-num">06</span><span>数据契约与清单</span></a>
+        <a href="#security"><span class="toc-num">07</span><span>安全与数据治理</span></a>
+        <a href="#reliability"><span class="toc-num">08</span><span>可靠性与容量</span></a>
+        <a href="#deployment"><span class="toc-num">09</span><span>部署与集成</span></a>
+        <a href="#operations"><span class="toc-num">10</span><span>运维使用路径</span></a>
+        <a href="#verification"><span class="toc-num">11</span><span>验证与证据</span></a>
+        <a href="#risks"><span class="toc-num">12</span><span>风险与评审决策</span></a>
+        <a href="#conclusion"><span class="toc-num">13</span><span>结论</span></a>
+        <a href="#appendix"><span class="toc-num">A</span><span>附录与来源</span></a>
+      </nav>
+      <div class="sidebar-actions">
+        <button type="button" onclick="window.print()">打印 / PDF</button>
+        <button type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})">返回顶部</button>
+      </div>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <div class="hero-inner">
+          <div class="eyebrow">
+            <span class="hero-chip">TECHNICAL REVIEW</span>
+            <span class="hero-chip">OBSERVABILITY</span>
+            <span class="hero-chip">2026-08-04</span>
+          </div>
+          <h1>NextAgent<br>可观测方案设计</h1>
+          <p class="hero-lead">面向电信网络智能体的统一观测体系：以权威运行事实为基础，在可信范围内完成安全关联、异步投影和多形态输出，让单次问题可定位、整体趋势可度量、关键操作可追溯，同时不把观测故障带回业务主链路。</p>
+          <div class="hero-meta">
+            <div><strong>文档性质</strong>技术评审设计文档</div>
+            <div><strong>版本</strong>v1.2 · Repository snapshot</div>
+            <div><strong>覆盖范围</strong>日志 / 审计 / 指标 / Trace / 健康</div>
+            <div><strong>信息分级</strong>设计基线 / 当前实现 / 待决策项</div>
+          </div>
+          <div class="hero-verdict">
+            <div class="verdict-mark">✓</div>
+            <div>
+              <b>建议评审结论</b>
+              <span>架构方案通过；生产准入附带治理收口项。核心边界、失效隔离和安全策略已经形成一致设计，审计动作覆盖与 PaaS 审计服务验收、Trace 采样、SLO/告警阈值及容量基准需在上线前确认。</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="executive" id="summary">
+          <div class="executive-title">Executive summary</div>
+          <div class="executive-grid">
+            <div>
+              <h2>一个事实入口，五种受控视图</h2>
+              <p>NextAgent 不让每个业务模块分别“打日志、记指标、写审计”。请求时间线、模型与能力调用等权威事实，先收敛为统一的安全观测事件，再按各观测面的用途与安全策略生成派生输出。这样既减少口径冲突，也避免日志、审计、指标和 Trace 互相回放、互相污染。</p>
+            </div>
+            <div class="decision-list">
+              <div class="decision-item"><i>1</i><span><strong>主链路不被观测阻塞：</strong>投影、落盘或上报失败只形成有界降级证据。</span></div>
+              <div class="decision-item"><i>2</i><span><strong>业务事实保持唯一：</strong>时间线与领域事实是权威源，观测结果不能反向改写业务状态。</span></div>
+              <div class="decision-item"><i>3</i><span><strong>安全在入口完成：</strong>进入异步队列前同步校验和脱敏，投影器看不到原始禁止内容。</span></div>
+              <div class="decision-item"><i>4</i><span><strong>部署形态只换出口：</strong>LOCAL 与 REMOTE 共享指标、事件和安全语义，只替换 sink/exporter。</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="context">
+          <div class="section-head">
+            <div class="section-kicker">01 / CONTEXT</div>
+            <div>
+              <h2>背景、目标与范围</h2>
+              <p>可观测方案要同时服务网络运维、平台运维、研发集成和合规治理，但不能因此把提示词、模型输出、客户数据或工具载荷复制到更多系统。</p>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <article class="card tone-green">
+              <h3>网络运维视角</h3>
+              <p>回答“任务是否在推进、哪里失败、结论经过哪些安全阶段”，支持告警分析、故障定位和变更验证。</p>
+            </article>
+            <article class="card tone-blue">
+              <h3>平台运维视角</h3>
+              <p>回答“服务是否健康、哪个依赖退化、延迟和调用量是否异常”，支撑值守、容量和恢复。</p>
+            </article>
+            <article class="card tone-amber">
+              <h3>治理与集成视角</h3>
+              <p>回答“谁在什么智能体范围内执行了何种受控动作、结果如何”，形成可关联的审计证据。</p>
+            </article>
+          </div>
+
+          <div class="subsection">
+            <h3>设计目标</h3>
+            <div class="grid-4">
+              <article class="card number-card" data-number="01"><h3>可定位</h3><p>使用稳定业务引用贯通请求、模型、能力、网关、沙箱和终态，形成单次运行的问题定位骨架。</p></article>
+              <article class="card number-card" data-number="02"><h3>可度量</h3><p>以低基数指标表达成功率、耗时、Token 用量、首个可见内容延迟、依赖健康和观测自身降级。</p></article>
+              <article class="card number-card" data-number="03"><h3>可追溯</h3><p>对关键治理事实生成稳定审计事件；审计是派生证据，不替代业务事实和领域记录。</p></article>
+              <article class="card number-card" data-number="04"><h3>可安全运行</h3><p>先脱敏后异步，限制字段、大小、标签和队列；任何观测故障不得改变请求结果。</p></article>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>范围与非目标</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>类别</th><th>本方案包含</th><th>本方案不包含</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>运行观测</strong></td><td>结构化日志、运行时诊断、指标、Trace、健康检查、执行轨迹骨架</td><td>新的业务状态机、第二套运行时间线、用日志重建业务真相</td></tr>
+                  <tr><td><strong>合规治理</strong></td><td>安全审计事件生成、write-only sink、Agent/Owner Scope 关联</td><td>企业级审计检索门户、法规留存年限的最终裁定</td></tr>
+                  <tr><td><strong>解释能力</strong></td><td>安全阶段、选择结果、原因码、耗时、用量和终态的可复盘骨架</td><td>原始思维链、完整提示词、模型原文、工具入参与结果正文</td></tr>
+                  <tr><td><strong>平台集成</strong></td><td>OTLP、W3C Trace Context、LOCAL 文件与 REMOTE 注入边界</td><td>外部 APM 的仪表盘样式、告警规则运营和数据湖建设</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="principles">
+          <div class="section-head">
+            <div class="section-kicker">02 / PRINCIPLES</div>
+            <div>
+              <h2>设计原则</h2>
+              <p>原则的核心不是“记录更多”，而是保证记录有来源、有边界、有容量上限，并在失效时保持业务正确。</p>
+            </div>
+          </div>
+          <div class="grid-3">
+            <article class="card"><h3>事实优先</h3><p>已存在持久化时间线事实时必须从该事实派生；只有缺少权威事实的边界，才允许使用窄类型适配器补充观测。</p></article>
+            <article class="card"><h3>同源异投</h3><p>同一个已脱敏观测事件可被多个观测面消费，但每个观测面拥有独立 coverage、schema、sink 与失败策略。</p></article>
+            <article class="card"><h3>先安全、后排队</h3><p>字段分类、shape 校验和脱敏在统一入口同步完成；异步队列和投影器只接触安全快照。</p></article>
+            <article class="card"><h3>核心无 SDK 污染</h3><p>业务 contract 不暴露 tracer、meter、provider、exporter、traceId 或 spanId；OpenTelemetry 只停留在观测实现和装配边界。</p></article>
+            <article class="card"><h3>低基数、有限容量</h3><p>指标标签使用固定枚举；文本、字段、队列、文件、保留期和去重集合均有明确上限。</p></article>
+            <article class="card"><h3>降级不改事实</h3><p>日志写失败、审计 sink 不可用、指标非法、Trace 导出失败或观测队列饱和，都不能改写请求、终态或健康判断。</p></article>
+          </div>
+          <div class="callout">
+            <div>
+              <b>一句话理解</b>
+              <p>NextAgent 的可观测系统是“权威事实的安全派生器”，不是业务数据库，也不是把所有内部数据复制到日志平台的旁路。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="architecture">
+          <div class="section-head">
+            <div class="section-kicker">03 / ARCHITECTURE</div>
+            <div>
+              <h2>总体架构</h2>
+              <p>架构分为事实采集、统一准入、受控投影和部署出口四层。业务模块只产生事实或使用结构化诊断契约，不直接接触具体日志、审计、指标或 Trace SDK。</p>
+            </div>
+          </div>
+
+          <div class="architecture" role="img" aria-label="NextAgent 可观测总体架构图">
+            <div class="arch-row">
+              <div class="arch-node"><b>权威时间线</b><span>请求、模型、能力、策略、Hook、终态</span></div>
+              <div class="arch-node"><b>窄类型适配器</b><span>上下文、网关、沙箱等无同等权威事实的边界</span></div>
+              <div class="arch-node"><b>入口中间件</b><span>HTTP / SSE / WS 响应与传输边界</span></div>
+              <div class="arch-node"><b>系统与健康信号</b><span>启停、恢复、调度、探针与配置评估</span></div>
+            </div>
+            <div class="arch-core">
+              <b>ObservabilityProjectorHost · 唯一产品观测入口</b>
+              <span>可信范围快照 → shape validation → 同步脱敏 → 有界队列 → 固定投影器；接收方法同步返回，不等待 sink</span>
+            </div>
+            <div class="arch-surfaces">
+              <div class="surface-node surface-log"><b>LOG</b><span>安全运行轨迹 + 本地诊断<br>单一 operational writer</span></div>
+              <div class="surface-node surface-audit"><b>AUDIT</b><span>治理证据<br>write-only gateway</span></div>
+              <div class="surface-node surface-metric"><b>METRIC</b><span>低基数聚合<br>OTel instruments</span></div>
+              <div class="surface-node surface-trace"><b>TRACE</b><span>受控 Span 层级<br>W3C + OTLP</span></div>
+              <div class="surface-node surface-health"><b>HEALTH</b><span>独立 evaluator<br>机器可读 HTTP</span></div>
+            </div>
+            <div class="truth-band">权威边界：RequestRun、RunTimelineEvent、SessionMessage 等领域事实始终在观测面之外；任何观测输出都不得反向更新它们。</div>
+          </div>
+
+          <div class="callout warn">
+            <div>
+              <b>当前实现边界</b>
+              <p>LOG、AUDIT、METRIC、TRACE 作为 ProjectorHost 的异步投影器；HEALTH 由独立 <code>HealthEvaluator</code> 计算机器可读真相，并写入健康指标及安全观测信号。因此系统包含五类观测面，但不是五个完全同形的 projector。</p>
+            </div>
+          </div>
+
+          <div class="flow" aria-label="观测事实处理流程">
+            <div class="flow-step"><em>STEP 01</em><b>取得可信事实</b><p>优先消费时间线；没有权威事件时，由明确 owner 的适配器生成同形事实。</p></div>
+            <div class="flow-step"><em>STEP 02</em><b>同步准入</b><p>校验 owner、时间、字段分类和大小；脱敏失败时 fail closed。</p></div>
+            <div class="flow-step"><em>STEP 03</em><b>异步投影</b><p>按 coverage 生成日志、审计、指标和 Span；某一投影失败不影响其它投影。</p></div>
+            <div class="flow-step"><em>STEP 04</em><b>独立输出</b><p>LOCAL 使用分离文件族，REMOTE 使用部署入口注入的网关或 OTLP exporter。</p></div>
+          </div>
+        </section>
+
+        <section class="section" id="model">
+          <div class="section-head">
+            <div class="section-kicker">04 / MODEL</div>
+            <div>
+              <h2>统一观测模型与关联方式</h2>
+              <p>统一事件只携带能够跨观测面安全复用的最小事实；surface-specific 字段由各投影器生成，而不是塞入业务契约。</p>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <article class="card tone-green">
+              <h3>核心字段</h3>
+              <p><span class="tag">boundary</span><span class="tag">operation</span><span class="tag">outcome</span><span class="tag">ownerScope</span><span class="tag">occurredAt</span><span class="tag">durationMs?</span><span class="tag">usage?</span><span class="tag">stableRefs?</span><span class="tag">safeReasonCode?</span><span class="tag">safeSummary?</span></p>
+              <p style="margin-top:12px">其中 Owner Scope 与 Agent Scope 来自可信身份、持久化记录或可信系统装配；客户端、模型与 Capability 参数不能覆盖。</p>
+            </article>
+            <article class="card tone-blue">
+              <h3>六类边界</h3>
+              <p><span class="tag blue">request_lifecycle</span><span class="tag blue">model_invocation</span><span class="tag blue">capability_invocation</span><span class="tag blue">gateway_call</span><span class="tag blue">health_probe</span><span class="tag blue">system</span></p>
+              <p style="margin-top:12px">边界名和 operation 必须是稳定低基数 token；不允许用动态 URL、自由文本原因或 provider 原始标识充当分类。</p>
+            </article>
+          </div>
+
+          <div class="subsection">
+            <h3>采集优先级与去重</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>优先级</th><th>来源</th><th>适用条件</th><th>约束</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>P1</strong></td><td>持久化时间线 / 领域权威事实</td><td>请求受理、模型/能力生命周期、策略、Hook、终态等已有事实</td><td>同一事实不得再由 wrapper 重复生产</td></tr>
+                  <tr><td><strong>P2</strong></td><td>窄类型 observed adapter</td><td>上下文装配、网关、沙箱等没有同等权威事件的边界</td><td>只能输出批准字段，不得产生平行业务事件</td></tr>
+                  <tr><td><strong>P3</strong></td><td>Middleware / system producer</td><td>Web 入口、启停、调度、恢复、配置与健康等系统事实</td><td>必须使用可信 scope 和稳定 reason code</td></tr>
+                  <tr><td><strong>禁止</strong></td><td>从日志反向拼装</td><td>任何正式观测面</td><td>Runtime log 不是 observation，也不是 replay source</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="callout">
+            <div>
+              <b>关联键的选择</b>
+              <p>单次问题定位以 <code>requestRunId</code>、<code>sessionId</code>、<code>timelineEventId</code>、<code>capabilityInvocationId</code> 等稳定业务引用为主。目标边界要求 Trace ID 不进入核心契约、公共 DTO 或指标标签；当前 timeline snapshot 的持久化例外尚未完成治理一致性确认，见 6.5 与 R-06。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="surfaces">
+          <div class="section-head">
+            <div class="section-kicker">05 / SURFACES</div>
+            <div>
+              <h2>五类观测面设计</h2>
+              <p>每个观测面解决不同问题。共享输入不等于共享输出：日志用于定位，审计用于治理，指标用于趋势，Trace 用于链路，健康用于即时可服务性判断。</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>观测面</th><th>回答的问题</th><th>主要输出</th><th>失败语义</th><th>不是</th></tr></thead>
+              <tbody>
+                <tr><td><strong>LOG</strong></td><td>这次运行发生了什么，卡在哪里</td><td>结构化 JSONL operational log</td><td>丢弃 / 降级证据，不阻塞请求</td><td>业务真相、审计库、指标样本</td></tr>
+                <tr><td><strong>AUDIT</strong></td><td>谁在何种范围内执行了什么治理动作</td><td>稳定 AuditEvent → write-only gateway</td><td>degraded / failed_closed，不伪造成功</td><td>运行时间线、业务记录</td></tr>
+                <tr><td><strong>METRIC</strong></td><td>成功率、延迟、用量和退化趋势如何</td><td>Counter / Histogram 聚合</td><td>非法标签或 sink 故障被拒绝</td><td>单次请求明细、内容检索</td></tr>
+                <tr><td><strong>TRACE</strong></td><td>一次请求跨边界的耗时关系如何</td><td>受控 Span、W3C 传播、OTLP traces</td><td>保留进程内能力或安全关闭 exporter</td><td>业务关联主键、正文存储</td></tr>
+                <tr><td><strong>HEALTH</strong></td><td>当前是否可响应、关键路径是否可服务</td><td><code>/health</code> 与 <code>/health/deep</code></td><td>超时或异常显式 DOWN/DEGRADED</td><td>被动日志回放、真实写操作</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection">
+            <div class="surface-detail">
+              <div class="surface-icon">LOG</div>
+              <div>
+                <h3>结构化日志：一套物理 writer，两类语义 surface</h3>
+                <p><code>observation_derived</code> 表达由权威事实派生的请求轨迹；<code>runtime_diagnostic</code> 表达队列、调度、恢复、提交私有阶段和基础设施维护等本地诊断。两者共享唯一 operational writer，但不互相生成。Developer hook trace 等开发者 artifact 仍保持独立，不混入 operational log。</p>
+                <div class="mini-grid">
+                  <div class="mini"><b>默认定位骨架</b><span>受理、模型开始/结束、能力开始/结束、终态，以及实际发生的上下文、策略、Hook、沙箱等安全里程碑。</span></div>
+                  <div class="mini"><b>写入保护</b><span>单 entry 最大 16 KiB；每 destination 异步 buffer 4 MiB；饱和时丢弃新条目，不等待 drain。</span></div>
+                  <div class="mini"><b>本地默认</b><span><code>info</code>，文件启用，单段 100 MiB，固定每日轮转，gzip，保留 7 天。</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="surface-detail">
+              <div class="surface-icon">AUDIT</div>
+              <div>
+                <h3>审计：治理事实的派生证据</h3>
+                <p>只有 <code>AuditProjector</code> 可以生成 <code>AuditEvent</code> 并调用 writer。事件包含可信 Owner/Agent Scope、事件名、结果、稳定引用、安全原因码和受控属性。LOCAL gateway 写独立 NDJSON 文件族；REMOTE 只消费部署入口选定的审计网关，不回退到本地文件、SQLite 或 operational log。</p>
+                <div class="mini-grid">
+                  <div class="mini"><b>覆盖重点</b><span>请求受理/拒绝、终态、治理类模型失败、能力拒绝/安全失败/策略阻断及其他明确审计事实。</span></div>
+                  <div class="mini"><b>本地实现</b><span>write-only；4 MiB buffer、100 MiB 单段、每日/gzip、7 天。不是生产合规查询库。</span></div>
+                  <div class="mini"><b>一致性</b><span>审计失败不能撤销已成立的终态；必须报告降级，不能把未写入伪装成成功。</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="surface-detail">
+              <div class="surface-icon">METRIC</div>
+              <div>
+                <h3>指标：21 个当前代码级 descriptor，固定标签白名单</h3>
+                <p>生产 registry 预创建 OTel instruments，不保留原始样本历史。写入前校验 metric name、类型、有限非负数值、标签和值域，并按稳定事实键去重。requestId、runId、sessionId、tenantId、路径、prompt、provider 原始标识和自由文本原因禁止成为标签。</p>
+                <div class="metric-map">
+                  <div class="metric-domain"><b>Request <span>3</span></b><p>结果、总耗时、阶段耗时</p></div>
+                  <div class="metric-domain"><b>Policy <span>1</span></b><p>策略决策次数</p></div>
+                  <div class="metric-domain"><b>Model <span>6</span></b><p>调用、耗时、Token、TTFT、chunk、总延迟</p></div>
+                  <div class="metric-domain"><b>Capability <span>2</span></b><p>调用量与耗时</p></div>
+                  <div class="metric-domain"><b>Attachment <span>2</span></b><p>接收结果与耗时</p></div>
+                  <div class="metric-domain"><b>Gateway <span>2</span></b><p>调用量与耗时</p></div>
+                  <div class="metric-domain"><b>Observability <span>2</span></b><p>投影结果与自身降级</p></div>
+                  <div class="metric-domain"><b>Config + Health <span>3</span></b><p>配置评估、探针结果与耗时</p></div>
+                </div>
+                <div class="mini-grid">
+                  <div class="mini"><b>LOCAL</b><span>每 60 秒输出 cumulative aggregate；单 snapshot 4 MiB、buffer 8 MiB、100 MiB/段、7 天。</span></div>
+                  <div class="mini"><b>REMOTE</b><span>使用入口显式注入的 OTLP exporter；缺失时 metrics readiness 降级，不创建本地 fallback。</span></div>
+                  <div class="mini"><b>去重</b><span>recent fact key 使用 16,384 项 FIFO 上限，防止重放或双采集产生重复样本。</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="surface-detail">
+              <div class="surface-icon">TRACE</div>
+              <div>
+                <h3>Trace：受控执行层级，而不是按代码调用栈随意展开</h3>
+                <p>Trace 由 timeline lifecycle 建立权威 request / model / capability / workflow node spans，并由 TraceProjector 补充 allowlist 内的 system、gateway 和 request diagnostic spans。跨进程传播采用 W3C Trace Context，远端导出对齐 OTLP traces。</p>
+                <div class="mini-grid">
+                  <div class="mini"><b>父子关系</b><span>Request 为根；本地 workflow node、直接 model 和 Tool Loop capability 是 request 的直接子级。</span></div>
+                  <div class="mini"><b>避免双计</b><span>Workflow 内部模型或能力调用复用节点 span，不再额外生成 MODEL/CAPABILITY 生命周期。</span></div>
+                  <div class="mini"><b>安全降级</b><span>exporter 凭据/初始化/发送失败不阻断启动；禁止输出 endpoint、凭据、service name 和 raw error。</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="surface-detail">
+              <div class="surface-icon">HEALTH</div>
+              <div>
+                <h3>健康检查：轻量存活与关键路径可服务性分离</h3>
+                <p><code>GET /health</code> 只验证 runtime authority，当前超时为 250 ms；<code>GET /health/deep</code> 顺序执行 gateway、model provider 与 capability 的最小只读检查，当前各探针 1,000 ms。聚合 <code>UP</code> 返回 200，<code>DOWN</code> 或 <code>DEGRADED</code> 返回 503。</p>
+                <div class="mini-grid">
+                  <div class="mini"><b>Primary</b><span>有界、轻量、不触发真实模型调用或业务写入。</span></div>
+                  <div class="mini"><b>Deep</b><span>探针支持 AbortSignal、timeout 和 critical 语义；只返回状态、原因码、摘要与耗时。</span></div>
+                  <div class="mini"><b>降噪</b><span>成功探针不逐次写 operational log；状态转换和子系统失败才形成诊断。</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="surface-detail">
+              <div class="surface-icon">PATH</div>
+              <div>
+                <h3>智能体执行轨迹：安全骨架，而非原始推理记录</h3>
+                <p>首版复盘覆盖上下文装配、能力选择、沙箱执行、模型首个可见内容与请求终态。轨迹只允许稳定引用、低基数原因码、有界耗时/用量和安全摘要；完整复盘仍以 canonical timeline 与领域事实为准。</p>
+                <div class="callout warn" style="margin-bottom:0">
+                  <div><b>明确边界</b><p>不记录 raw chain-of-thought，不保存 prompt、模型原文、工具参数/结果、stream delta，也不为轨迹另建平行 event bus。</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="contracts">
+          <div class="section-head">
+            <div class="section-kicker">06 / CONTRACTS</div>
+            <div>
+              <h2>数据契约与完整清单</h2>
+              <p>本节冻结可评审的数据形态、字段边界和当前代码级 inventory。结构字段来自 public/internal contract；清单来自 projector、descriptor 与 health evaluator 的当前实现。</p>
+            </div>
+          </div>
+
+          <div class="contract-summary" aria-label="观测数据清单摘要">
+            <div class="contract-stat"><strong>1</strong><span>统一 Observation carrier</span></div>
+            <div class="contract-stat"><strong>2 / 4</strong><span>日志 surface / level</span></div>
+            <div class="contract-stat"><strong>7 / 26</strong><span>目标审计动作族 / 当前事件名</span></div>
+            <div class="contract-stat"><strong>21</strong><span>Metric descriptors</span></div>
+            <div class="contract-stat"><strong>4 + 辅助</strong><span>权威 Span 类型</span></div>
+            <div class="contract-stat"><strong>2 / 4</strong><span>Health endpoint / component</span></div>
+          </div>
+
+          <div class="contract-section">
+            <div class="contract-title">
+              <h3>6.1 统一 Observation 契约</h3>
+              <span class="contract-count">1 个 carrier · 6 类 boundary</span>
+            </div>
+            <pre class="schema-block"><span class="required">ObservabilityObservationEvent {</span>
+  spanOwner?: 'TIMELINE_LIFECYCLE'
+  <span class="required">boundary: ObservationBoundary</span>
+  <span class="required">operation: stable-token</span>                 // 1..128, [A-Z0-9_.:-]
+  <span class="required">outcome: success | failure | timeout |
+           canceled | denied | degraded</span>
+  <span class="required">ownerScope: { tenantId, subjectId, agentId, agentVersion }</span>
+  <span class="required">occurredAt: EpochMillis</span>
+  durationMs?: non-negative finite number
+  usage?: { inputTokens?, outputTokens?, totalTokens? }
+  safeSummary?: string                              // ≤ 512 chars
+  safeReasonCode?: stable-token
+  stableRefs?: StableObservationRefs
+  diagnosticSnapshot?: ObservabilityContext
+}</pre>
+            <div class="table-wrap dense-table">
+              <table>
+                <thead><tr><th>子结构</th><th>字段</th><th>规则</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>ObservationBoundary</strong></td><td><code>request_lifecycle</code>、<code>model_invocation</code>、<code>capability_invocation</code>、<code>gateway_call</code>、<code>health_probe</code>、<code>system</code></td><td>封闭枚举，共 6 类</td></tr>
+                  <tr><td><strong>StableObservationRefs</strong></td><td><code>sessionId</code>、<code>requestRunId</code>、<code>cronTaskId</code>、<code>cronTriggerId</code>、<code>requestContextId</code>、<code>requestId</code>、<code>messageId</code>、<code>timelineEventId</code>、<code>capabilityInvocationId</code>、<code>auditEventId</code></td><td>全部可选；各 projector 再按 surface 白名单缩减</td></tr>
+                  <tr><td><strong>DiagnosticCandidate</strong></td><td><code>key</code>、<code>value</code>、<code>classification</code>、<code>cardinality</code></td><td>classification=<code>SAFE|LOW_CARDINALITY|HIGH_CARDINALITY|SENSITIVE</code>；cardinality=<code>LOW|HIGH</code></td></tr>
+                  <tr><td><strong>准入失败</strong></td><td>缺可信 owner/time、非法 token、负耗时、开放式 usage、禁止字段</td><td>同步 fail closed；不得进入 ProjectorHost queue</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="contract-section">
+            <div class="contract-title">
+              <h3>6.2 LOG 数据结构与事件目录</h3>
+              <span class="contract-count">2 类 surface · 4 级 level · 开放但受治理的 event vocabulary</span>
+            </div>
+            <p class="schema-note">“日志种类”在 contract 层固定为两类 surface，而不是固定数量的 event 枚举。每个 owner 可以增加稳定、code-owned 的诊断 event，但必须遵守 catalog、唯一 owner、禁止重复权威事实和安全字段规则。</p>
+            <div class="grid-2" style="margin-top:16px">
+              <article class="card tone-green">
+                <h3><code>observation_derived</code></h3>
+                <p>由 timeline 或窄类型 observation 经 <code>StructuredLogProjector</code> 生成，承载请求、模型、能力、策略、Hook、上下文、附件、沙箱和终态的安全轨迹。</p>
+              </article>
+              <article class="card tone-blue">
+                <h3><code>runtime_diagnostic</code></h3>
+                <p>由 component-scoped <code>RuntimeLogger</code> 直接生成，承载调度、恢复、提交私有阶段、基础设施、维护和执行根异常等本地诊断。</p>
+              </article>
+            </div>
+            <pre class="schema-block"><span class="required">OperationalPhysicalEntry {</span>
+  <span class="required">timestamp: ISO-8601-with-offset</span>
+  <span class="required">level: error | warn | info | debug</span>
+  <span class="required">surface: runtime_diagnostic | observation_derived</span>
+  <span class="required">component: stable-code-token</span>
+  source?: stable-code-token
+  <span class="required">serviceVersion: stable-version</span>
+  <span class="required">event: stable-code-owned-event</span>
+  msg?: safe-bounded-text
+  ...writer-approved fields
+}
+
+<span class="required">StructuredLogEntry {</span>
+  <span class="required">occurredAt, level, event, agentId, agentVersion</span>
+  sessionId?, requestId?, runId?, stepId?, timelineEventId?
+  capabilityInvocationId?, safeReasonCode?, details?
+  durationMs?, usage?: { inputTokens?, outputTokens?, totalTokens? }
+  diagnostic?                                        // debug，仅批准候选
+}</pre>
+            <div class="table-wrap dense-table">
+              <table>
+                <thead><tr><th>结构层</th><th>必填</th><th>可选</th><th>容量与规则</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>物理 envelope</strong></td><td>timestamp、level、surface、component、serviceVersion、event</td><td>source、msg、业务安全字段</td><td>≤64 fields、≤6 depth、数组≤16、普通字符串≤1,024 bytes</td></tr>
+                  <tr><td><strong>Observation-derived payload</strong></td><td>occurredAt、level、event、agentId、agentVersion</td><td>稳定 refs、safeReasonCode、details、duration、usage、debug diagnostic</td><td>单 entry ≤16 KiB；details 只接收 LOW/SAFE + LOW cardinality</td></tr>
+                  <tr><td><strong>异常结构</strong></td><td>event、failureStage</td><td>exceptionType/code/fingerprint/frames/cause/truncated</td><td>最多4层 Error、5个 owned frames；rawExceptionData 字符串≤2,048 bytes</td></tr>
+                  <tr><td><strong>Tool 本地例外</strong></td><td>event</td><td>toolInput、toolOutput</td><td>仅 runtime_diagnostic；仍受16 KiB总预算与 credential 窄脱敏</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h4 style="margin:24px 0 12px">Observation-derived 核心事件清单</h4>
+            <div class="grid-3">
+              <div class="inventory-group"><h4>Request</h4><p>request.accepted<br>request.completed<br>request.canceled<br>request.failed<br>request.*.failed（受理前 owner mapping）</p></div>
+              <div class="inventory-group"><h4>Model</h4><p>model.invocation.started<br>model.invocation.completed<br>model.invocation.failed<br>model.stream.first_visible_content<br>model.credential.failed / quota.failed / security.failed</p></div>
+              <div class="inventory-group"><h4>Capability</h4><p>capability.started<br>capability.completed<br>capability.denied<br>capability.security.failed<br>capability.policy.blocked<br>capability.failed / timed.out / canceled / not.found</p></div>
+              <div class="inventory-group"><h4>Policy &amp; Hook</h4><p>policy.allowed / denied / degraded / failed<br>hook.completed / timed_out / canceled / failed</p></div>
+              <div class="inventory-group"><h4>Context &amp; degradation</h4><p>context.compacted<br>context.assembly.completed<br>context.assembly.failed<br>degradation.notice</p></div>
+              <div class="inventory-group"><h4>Task trajectory</h4><p>task.trajectory.build.enqueued<br>completed<br>skipped<br>dropped<br>failed</p></div>
+              <div class="inventory-group"><h4>Attachment</h4><p>attachment.accepted<br>attachment.rejected</p></div>
+              <div class="inventory-group"><h4>Lifecycle families</h4><p>pending.input.*<br>background.task.*</p></div>
+              <div class="inventory-group"><h4>Sandbox family</h4><p>sandbox.execution.*<br>包含 started / completed / failed / denied / timed_out</p></div>
+            </div>
+
+            <h4 style="margin:24px 0 12px">Runtime-diagnostic mandatory baseline</h4>
+            <div class="table-wrap dense-table">
+              <table>
+                <thead><tr><th>分组</th><th>稳定 event / family</th></tr></thead>
+                <tbody>
+                  <tr><td>Bootstrap / config</td><td><code>app.config.accepted</code>、<code>app.config.rejected</code>、<code>logging.transport.init_failed</code></td></tr>
+                  <tr><td>App / server lifecycle</td><td><code>app.start.*</code>、<code>app.shutdown.*</code>、startup/recovery/listen ready/completed/failed/degraded</td></tr>
+                  <tr><td>Server access</td><td>Fastify native <code>incoming request</code>、<code>request completed</code>、<code>request errored</code></td></tr>
+                  <tr><td>Framework</td><td><code>server.framework.degraded</code>、<code>server.framework.failed</code></td></tr>
+                  <tr><td>Stream</td><td>opened/replay/closed、gap/backpressure、delivery failed</td></tr>
+                  <tr><td>Scheduler / submit</td><td>queue/dispatched/execution-finished、dispatch failed、<code>runtime.submit.orphan_session</code></td></tr>
+                  <tr><td>Request private async</td><td><code>request.execution.exception_captured</code>、commit started/failed、resume/timeout/callback/title failed</td></tr>
+                  <tr><td>Tool diagnostics</td><td><code>tool.payload.captured</code>、<code>tool.call.failed</code>、<code>tool.call.result_invalid</code>、<code>tool.loop.repeated_failure</code>、<code>tool.failure_feedback.appended</code></td></tr>
+                  <tr><td>Recovery / background</td><td>recovery record failed、background emit failed、completion failed</td></tr>
+                  <tr><td>Gateway / sandbox private</td><td><code>gateway.bindings.ready</code>、<code>gateway.bindings.failed</code>、sandbox background start/kill/killed</td></tr>
+                  <tr><td>Execution-root exception</td><td><code>channel.task.request.failed</code>、<code>process.fatal.uncaught_exception</code>、<code>process.fatal.unhandled_rejection</code> 等</td></tr>
+                  <tr><td>Task callback</td><td><code>task.callback.delivery_abandoned</code></td></tr>
+                  <tr><td>Logging maintenance</td><td><code>logging.transport.ready/degraded/overloaded/recovered</code>、archive/retention/flush/close outcome</td></tr>
+                  <tr><td>Metrics exporter</td><td><code>metrics.export.degraded</code>、<code>metrics.export.recovered</code></td></tr>
+                  <tr><td>Trace infrastructure</td><td><code>otel.trace.init.skipped/completed/failed</code>、<code>otel.trace.export.failed</code>、<code>trace.projection.exception_captured</code>；当前代码还输出 <code>trace.span.emitted</code>，与事件目录的“成功 Span 不逐条记录”约束存在差异</td></tr>
+                  <tr><td>Health</td><td><code>health.state.changed</code>、<code>health.probe.subsystem_failed</code></td></tr>
+                  <tr><td>Discovery / question source</td><td><code>skill.scan.*</code>、<code>category.question.source_unavailable/recovered/registered</code></td></tr>
+                  <tr><td>Context routine</td><td><code>context.budget.evaluated</code>、<code>context.microCompact.evaluated</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="contract-section" id="audit-contract">
+            <div class="contract-title">
+              <h3>6.3 AUDIT 记录结构与覆盖清单</h3>
+              <span class="contract-count">沿用统一 envelope · 7 类目标动作 · 当前 26 项待收敛</span>
+            </div>
+            <pre class="schema-block"><span class="required">AuditEventRecord {</span>
+  <span class="required">tenantId, subjectId, agentId</span>             // trusted Owner + Agent Scope
+  <span class="required">auditId: string</span>
+  <span class="required">eventName: string</span>
+  requestRunId?: RequestRunId
+  capabilityInvocationId?: CapabilityInvocationId
+  <span class="required">safeSummary: string</span>
+  <span class="required">attributes: Record&lt;string,
+    string | number | boolean | primitive[]&gt;</span>
+  <span class="required">occurredAt: EpochMillis</span>
+}</pre>
+            <div class="callout">
+              <div><b>审计判定原则</b><p>审计不是运行过程的逐步镜像，而是回答“谁在什么时候，基于什么权限，对什么对象执行了什么受治理操作，结果和证据是什么”。普通生命周期、内部 Hook、重试和技术异常由日志、Trace 或 Metric 承担；只有形成权限、配置、数据、决策、外部副作用或风险责任的事实才进入审计。</p></div>
+            </div>
+
+            <h4 style="margin:24px 0 12px">目标审计动作目录</h4>
+            <div class="table-wrap dense-table">
+              <table>
+                <thead><tr><th>动作族</th><th>应记录的操作</th><th>最小完整事实</th><th>当前覆盖</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>GOVERNED_CHANGE</strong></td><td>Agent、模型、Prompt、Policy、Capability binding、自动任务的创建、发布、修改、启停和删除</td><td>actor、target、before/after version、authority、outcome、evidence ref</td><td>Cron 创建/删除部分覆盖；核心配置变更缺口</td></tr>
+                  <tr><td><strong>AI_DECISION</strong></td><td>对业务、安全或运维产生实质影响的 AI 建议、选择和决定</td><td>intended purpose、系统/模型版本、输入与输出安全引用、decision、outcome</td><td>routing 仅部分覆盖；request terminal 过于粗粒度</td></tr>
+                  <tr><td><strong>EXTERNAL_ACTION</strong></td><td>Tool、Agent 或 Workflow 对网络、客户系统、文件或外部资源执行的读取、变更与控制</td><td>actor、operation、target/scope、authorization、result、result ref</td><td>当前主要记录拒绝；正常外部副作用链不足</td></tr>
+                  <tr><td><strong>HUMAN_OVERSIGHT</strong></td><td>人工审批、拒绝、覆盖、停止、接管与恢复</td><td>human actor/role、decision、reason、affected action、occurredAt</td><td>缺失</td></tr>
+                  <tr><td><strong>ACCESS_CONTROL</strong></td><td>授权、策略门禁、Owner/Agent Scope 越界、受控例外和高风险拒绝</td><td>subject/actor、resource、policy ref、decision、reason、outcome</td><td>Capability/Model/Gateway governance 部分覆盖</td></tr>
+                  <tr><td><strong>DATA_GOVERNANCE</strong></td><td>敏感数据或附件的读取、导入、导出、共享、删除和保留策略变更</td><td>actor、data class、purpose、operation、target ref、outcome</td><td>仅 attachment intake 粗粒度覆盖</td></tr>
+                  <tr><td><strong>RISK_INCIDENT</strong></td><td>风险发现、重大故障、严重事件、通知、处置和纠正措施</td><td>risk/incident id、severity、impact、status、notification/corrective refs</td><td><code>safe_error.emitted</code> 过宽，缺少事件闭环</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h4 style="margin:24px 0 12px">当前 26 项清点与目标处置</h4>
+            <div class="table-wrap dense-table">
+              <table>
+                <thead><tr><th>当前域</th><th>数量</th><th>当前 eventName</th><th>目标处置</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Request / terminal</strong></td><td>4</td><td><code>request.accepted</code>、<code>request.rejected</code>、<code>terminal.committed</code>、<code>terminal.failed</code></td><td>普通生命周期回归 timeline/log；仅受审计运行合并为完整 AI decision/use 事实</td></tr>
+                  <tr><td><strong>Capability governance</strong></td><td>3</td><td><code>capability.security_failed</code>、<code>capability.policy_blocked</code>、<code>capability.denied</code></td><td>归并 ACCESS_CONTROL；补齐真正产生副作用的 EXTERNAL_ACTION</td></tr>
+                  <tr><td><strong>Model governance</strong></td><td>3</td><td><code>model.security_failed</code>、<code>model.credential_failed</code>、<code>model.quota_failed</code></td><td>security 归 ACCESS_CONTROL；普通 credential/quota 故障回归 operational log</td></tr>
+                  <tr><td><strong>Gateway governance</strong></td><td>2</td><td><code>gateway.owner_boundary_failed</code>、<code>gateway.credential_failed</code></td><td>Owner 越界归 ACCESS_CONTROL；普通凭据故障回归 operational log</td></tr>
+                  <tr><td><strong>Cron</strong></td><td>3</td><td><code>cron.task_created</code>、<code>cron.task_deleted</code>、<code>cron.trigger_accepted</code></td><td>创建/删除归 GOVERNED_CHANGE；触发只在产生受审计决策/动作时关联记录</td></tr>
+                  <tr><td><strong>Hook</strong></td><td>3</td><td><code>hook.invoked</code>、<code>hook.completed</code>、<code>hook.failed</code></td><td>回归 log/trace，不作为独立审计事实</td></tr>
+                  <tr><td><strong>Policy</strong></td><td>4</td><td><code>policy.evaluated</code>、<code>policy.allowed</code>、<code>policy.denied</code>、<code>policy.failed</code></td><td>最终授权结论嵌入受治理动作；中间 evaluated/allowed 不独立审计</td></tr>
+                  <tr><td><strong>Attachment</strong></td><td>2</td><td><code>attachment.accepted</code>、<code>attachment.rejected</code></td><td>普通 intake 回归 log；敏感数据操作归 DATA_GOVERNANCE</td></tr>
+                  <tr><td><strong>Routing / error</strong></td><td>2</td><td><code>routing.decision</code>、<code>safe_error.emitted</code></td><td>实质路由归 AI_DECISION；只有材料化风险进入 RISK_INCIDENT</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="schema-note"><strong>结构结论：</strong>现有 <code>AuditEventRecord</code> envelope 不需要推倒重建；重点是为七类动作定义 runtime-validated required-field profile。<code>subjectId</code> 表示 Owner Scope，不总等于即时操作者；自动任务、Agent 和系统动作需要在受控 attributes 中明确 <code>actorType</code>、<code>actorId</code>、<code>targetType</code>、<code>targetId</code>、<code>action</code>、<code>policyRef</code>、<code>evidenceRefs</code> 等适用字段。当前 projector 仅写入 boundary、operation、outcome、agentVersion、duration/usage、safeReasonCode 和部分稳定引用；类型契约支持可选 <code>capabilityInvocationId</code>，当前构造路径尚未填充该顶层字段。</p>
+          </div>
+
+          <div class="contract-section">
+            <div class="contract-title">
+              <h3>6.4 METRIC 数据结构与 21 项完整清单</h3>
+              <span class="contract-count">9 个域 · counter / histogram</span>
+            </div>
+            <pre class="schema-block"><span class="required">MetricDescriptor {</span>
+  <span class="required">name: MetricName</span>
+  <span class="required">kind: counter | histogram</span>
+  <span class="required">unit: '1' | 's' | '{token}'</span>
+  <span class="required">allowedLabels: Record&lt;label, enum[]&gt;</span>
+  <span class="required">valueSource: count | duration_seconds | token_count</span>
+  <span class="required">acquisitionSource: timeline | typed_adapter |
+                     projector_host | health_evaluator | configuration</span>
+}
+
+MetricSample { name, kind, value, labels, occurredAt?, dedupKey? }</pre>
+            <p class="schema-note">所有 histogram 共享秒级桶：0.005、0.01、0.025、0.05、0.1、0.25、0.5、1、2.5、5、10、30、60、120、300。标签必须完整匹配 descriptor 的 key 与枚举值；多一个、少一个或值不在枚举中均返回 <code>INVALID_METRIC_LABEL</code>。</p>
+            <div class="table-wrap dense-table" style="margin-top:14px">
+              <table>
+                <thead><tr><th>#</th><th>指标名</th><th>类型 / 单位</th><th>标签（完整枚举）</th><th>采集源</th></tr></thead>
+                <tbody>
+                  <tr><td>01</td><td><code>request_outcome_total</code></td><td>counter / 1</td><td>status=COMPLETED|FAILED|CANCELED|SUPERSEDED</td><td>timeline</td></tr>
+                  <tr><td>02</td><td><code>request_duration_seconds</code></td><td>histogram / s</td><td>status=COMPLETED|FAILED|CANCELED|SUPERSEDED</td><td>timeline</td></tr>
+                  <tr><td>03</td><td><code>request_phase_duration_seconds</code></td><td>histogram / s</td><td>phase=accepted|queued|executing|terminal_commit；status=success|failure|timeout|canceled|degraded</td><td>timeline</td></tr>
+                  <tr><td>04</td><td><code>policy_decision_total</code></td><td>counter / 1</td><td>operation_kind=CAPABILITY_INVOCATION|SANDBOX_EXECUTION|AUTHORIZATION_REQUEST|RECOVERY_REPLAY；outcome=success|failure|denied|degraded</td><td>timeline</td></tr>
+                  <tr><td>05</td><td><code>model_invocation_total</code></td><td>counter / 1</td><td>outcome=success|failure|timeout|canceled|denied|degraded|no_first_token</td><td>timeline</td></tr>
+                  <tr><td>06</td><td><code>model_invocation_duration_seconds</code></td><td>histogram / s</td><td>outcome=success|failure|timeout|canceled|denied|degraded|no_first_token</td><td>timeline</td></tr>
+                  <tr><td>07</td><td><code>model_token_usage_total</code></td><td>counter / {token}</td><td>outcome=success|failure|timeout|canceled|denied|degraded|no_first_token；token_type=input|output|total</td><td>timeline</td></tr>
+                  <tr><td>08</td><td><code>model_ttft_seconds</code></td><td>histogram / s</td><td>outcome=success</td><td>typed_adapter</td></tr>
+                  <tr><td>09</td><td><code>model_chunk_latency_seconds</code></td><td>histogram / s</td><td>无标签</td><td>typed_adapter</td></tr>
+                  <tr><td>10</td><td><code>model_total_latency_seconds</code></td><td>histogram / s</td><td>outcome=success|failure|timeout|canceled|no_first_token</td><td>typed_adapter</td></tr>
+                  <tr><td>11</td><td><code>capability_invocation_total</code></td><td>counter / 1</td><td>capability_kind=TOOL|SKILL|AGENT|WORKFLOW；outcome=success|failure|timeout|canceled|denied|degraded</td><td>timeline</td></tr>
+                  <tr><td>12</td><td><code>capability_invocation_duration_seconds</code></td><td>histogram / s</td><td>capability_kind=TOOL|SKILL|AGENT|WORKFLOW；outcome=success|failure|timeout|canceled|denied|degraded</td><td>timeline</td></tr>
+                  <tr><td>13</td><td><code>attachment_intake_total</code></td><td>counter / 1</td><td>outcome=accepted|rejected；reason_code=13个受控原因；size_bucket=none|small|medium|large</td><td>typed_adapter</td></tr>
+                  <tr><td>14</td><td><code>attachment_intake_duration_seconds</code></td><td>histogram / s</td><td>outcome=accepted|rejected；reason_code=13个受控原因；size_bucket=none|small|medium|large</td><td>typed_adapter</td></tr>
+                  <tr><td>15</td><td><code>gateway_call_total</code></td><td>counter / 1</td><td>gateway_category=local|remote|model_provider|content；outcome=success|failure|timeout|degraded</td><td>typed_adapter</td></tr>
+                  <tr><td>16</td><td><code>gateway_call_duration_seconds</code></td><td>histogram / s</td><td>gateway_category=local|remote|model_provider|content；outcome=success|failure|timeout|degraded</td><td>typed_adapter</td></tr>
+                  <tr><td>17</td><td><code>observability_degradation_total</code></td><td>counter / 1</td><td>surface=LOG|AUDIT|METRIC|HEALTH|TRACE；reason_code=9个受控原因</td><td>projector_host</td></tr>
+                  <tr><td>18</td><td><code>projector_projection_total</code></td><td>counter / 1</td><td>surface=上述5值；result=emitted|skipped_not_covered|skipped_policy_denied|degraded|failed_closed</td><td>projector_host</td></tr>
+                  <tr><td>19</td><td><code>configuration_evaluation_total</code></td><td>counter / 1</td><td>component=memory|capability_description_override；outcome=success|failure|disabled|degraded</td><td>configuration</td></tr>
+                  <tr><td>20</td><td><code>health_probe_total</code></td><td>counter / 1</td><td>endpoint=primary|deep；status=UP|DOWN|DEGRADED；component=runtime_authority|gateway|model_provider|capability</td><td>health_evaluator</td></tr>
+                  <tr><td>21</td><td><code>health_probe_duration_seconds</code></td><td>histogram / s</td><td>endpoint=primary|deep；status=UP|DOWN|DEGRADED；component=runtime_authority|gateway|model_provider|capability</td><td>health_evaluator</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="schema-note"><strong>Attachment reason_code 13 值：</strong>NONE、ATTACHMENT_VALIDATION_FAILED、ATTACHMENT_AUTHORIZATION_FAILED、ATTACHMENT_COUNT_EXCEEDED、ATTACHMENT_EMPTY、ATTACHMENT_TOO_LARGE、ATTACHMENT_TYPE_UNSUPPORTED、ATTACHMENT_TYPE_MISMATCH、ATTACHMENT_READ_FAILED、ATTACHMENT_STAGING_FAILED、ATTACHMENT_INTAKE_TIMEOUT、ATTACHMENT_BUDGET_EXCEEDED、ATTACHMENT_DEPENDENCY_UNAVAILABLE。<strong>Observability reason_code 9 值：</strong>PROJECTOR_FAILED、SINK_WRITE_FAILED、SINK_UNAVAILABLE、REGISTRY_UNAVAILABLE、SERIALIZATION_FAILURE、SERIALIZATION_FAILED、MISSING_REQUIRED_FIELDS、INVALID_METRIC_LABEL、INVALID_METRIC_VALUE。</p>
+          </div>
+
+          <div class="contract-section">
+            <div class="contract-title">
+              <h3>6.5 TRACE Span、attributes 与传播结构</h3>
+              <span class="contract-count">4 类权威执行 Span + 受控辅助 Span</span>
+            </div>
+            <pre class="schema-block"><span class="required">OTel Span {</span>
+  <span class="required">name, traceId, spanId, parentSpanId?</span>
+  <span class="required">startTime, endTime, kind, status</span>
+  <span class="required">attributes: Record&lt;string, primitive&gt;</span>
+  events?: SpanEvent[]
+  links?: SpanLink[]
+  resource: { service.name, service.version? }
+}</pre>
+            <div class="table-wrap dense-table">
+              <table>
+                <thead><tr><th>权威 Span</th><th>Span name</th><th>Kind</th><th>创建/结束事实</th><th>父级</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Request</strong></td><td><code>nextagent.request</code></td><td>INTERNAL</td><td>REQUEST_ACCEPTED → request terminal</td><td>有效入站 W3C parent 或 root</td></tr>
+                  <tr><td><strong>Model</strong></td><td><code>nextagent.model</code></td><td>CLIENT</td><td>MODEL_INVOCATION_STARTED → completed/failed</td><td>Request</td></tr>
+                  <tr><td><strong>Capability</strong></td><td><code>nextagent.tool</code></td><td>CLIENT</td><td>CAPABILITY_STARTED → CAPABILITY_COMPLETED</td><td>Request</td></tr>
+                  <tr><td><strong>Workflow node</strong></td><td><code>nextagent.workflow_node</code></td><td>INTERNAL</td><td>NODE_EXECUTION_STARTED → completed/failed/canceled</td><td>Request；predecessor spanIds 作为 preview 关联</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h4 style="margin:24px 0 12px">权威执行 Span attributes</h4>
+            <div class="table-wrap dense-table">
+              <table>
+                <thead><tr><th>属性</th><th>必选性</th><th>值/来源</th><th>阶段</th></tr></thead>
+                <tbody>
+                  <tr><td><code>nextagent.observation_type</code></td><td>必填</td><td>request | model | tool | workflow_node</td><td>start</td></tr>
+                  <tr><td><code>nextagent.execution.kind</code></td><td>必填</td><td>REQUEST | MODEL | CAPABILITY | WORKFLOW_NODE</td><td>start</td></tr>
+                  <tr><td><code>eventId</code></td><td>可选</td><td>通过 <code>isTaskEventId</code> 校验的 task event id</td><td>start</td></tr>
+                  <tr><td><code>nodeId</code></td><td>可选</td><td>workflow timeline payload</td><td>start</td></tr>
+                  <tr><td><code>description</code></td><td>可选</td><td>description / nodeDesc</td><td>start</td></tr>
+                  <tr><td><code>nextagent.outcome</code></td><td>终态必填</td><td>success | canceled | failure</td><td>terminal</td></tr>
+                  <tr><td><code>nextagent.duration_ms</code></td><td>可选</td><td>非负 durationMs</td><td>terminal</td></tr>
+                  <tr><td><code>nextagent.reason_code</code></td><td>可选</td><td>safeErrorCode / reasonCode</td><td>terminal</td></tr>
+                  <tr><td><code>nextagent.force_close_reason</code></td><td>异常关闭时</td><td>REQUEST_TERMINATED</td><td>forced close</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h4 style="margin:24px 0 12px">辅助诊断 Span 覆盖与 attributes</h4>
+            <div class="grid-3">
+              <div class="inventory-group"><h4>Request · 6 operations</h4><p>REQUEST_REJECTED<br>TERMINAL_COMMITTED<br>TERMINAL_FAILED<br>REQUEST_CONTROL_REJECTED<br>PENDING_INPUT_REJECTED<br>POLICY_APPLIED</p></div>
+              <div class="inventory-group"><h4>System · 14 + 2 families</h4><p>HOOK_INVOKED/COMPLETED/FAILED<br>POLICY_EVALUATED/ALLOWED/DENIED/FAILED<br>ATTACHMENT_ACCEPTED/REJECTED<br>ROUTING_DECISION<br>SAFE_ERROR_EMITTED<br>APP_SHUTDOWN<br>MEMORY_CONFIG_EVALUATED<br>MEMORY_DESCRIPTION_OVERRIDE_EVALUATED<br>LANE_DRAIN_* / RECOVERY_SCAN_*</p></div>
+              <div class="inventory-group"><h4>Gateway · 5 operations</h4><p>SANDBOX_EXECUTION_STARTED<br>COMPLETED<br>FAILED<br>DENIED<br>TIMED_OUT</p></div>
+            </div>
+            <div class="table-wrap dense-table" style="margin-top:14px">
+              <table>
+                <thead><tr><th>辅助 Span attribute</th><th>必选性</th><th>说明</th></tr></thead>
+                <tbody>
+                  <tr><td><code>nextagent.boundary</code>、<code>nextagent.operation</code>、<code>nextagent.outcome</code></td><td>必填</td><td>统一 observation 的稳定分类与结果</td></tr>
+                  <tr><td><code>langfuse.observation.type</code></td><td>必填</td><td>policy system observation 为 guardrail，其余为 span</td></tr>
+                  <tr><td><code>nextagent.owner.agent_id</code>、<code>nextagent.owner.agent_version</code></td><td>必填</td><td>可信 Agent Scope</td></tr>
+                  <tr><td><code>user.id</code></td><td>必填</td><td>可信 subjectId；外部 exporter 的隐私处理需纳入部署评审</td></tr>
+                  <tr><td><code>session.id</code></td><td>可选</td><td>stableRefs.sessionId</td></tr>
+                  <tr><td><code>nextagent.reason_code</code>、<code>nextagent.duration_ms</code></td><td>可选</td><td>安全原因码与耗时</td></tr>
+                  <tr><td><code>nextagent.usage.input_tokens</code>、<code>output_tokens</code>、<code>total_tokens</code></td><td>可选</td><td>normalized usage</td></tr>
+                  <tr><td><code>nextagent.diag.&lt;key&gt;</code></td><td>可选</td><td>仅 allowlist + SAFE/LOW_CARDINALITY + LOW + primitive；排除 traceparent/tracestate</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="schema-note">每个辅助 Span 写入事件 <code>observability.authoritative_fact</code>，事件 attributes 仅含 <code>nextagent.outcome</code> 与可选 <code>nextagent.reason_code</code>。传播载体为 <code>traceparent</code>、可选 <code>tracestate</code>，执行范围还可携带 <code>x-task-event-id</code>。</p>
+
+            <h4 style="margin:24px 0 12px">当前 timeline trace snapshot</h4>
+            <pre class="schema-block">inlinePayload.trace = {
+  traceId: string,
+  spanId: string,
+  parentSpanId?: string,
+  previewSpanIds?: string[],
+  traceparent: string,
+  tracestate?: string
+}</pre>
+            <p class="schema-note">当前 <code>createTraceAwareTimelineStore</code> 会在 timeline record 的 <code>inlinePayload.trace</code> 写入上述 snapshot，用于运行相关性和出站传播。该实现与仓库级“Trace SDK 标识不进入 runtime timeline”的治理表述存在边界冲突，已列入 R-06，需由评审明确最终权威规则。</p>
+          </div>
+
+          <div class="contract-section">
+            <div class="contract-title">
+              <h3>6.6 HEALTH 数据结构与探针清单</h3>
+              <span class="contract-count">2 个 endpoint · 4 个 component vocabulary</span>
+            </div>
+            <pre class="schema-block"><span class="required">HealthCheckResponse {</span>
+  <span class="required">status: UP | DOWN | DEGRADED</span>
+  <span class="required">components: ComponentHealth[]</span>
+  <span class="required">timestamp: EpochMillis</span>
+}
+
+ComponentHealth {
+  <span class="required">name: runtime_authority | gateway | model_provider | capability</span>
+  <span class="required">status: UP | DOWN | DEGRADED</span>
+  summary?: safe-text                              // ≤256 chars
+  reasonCode?: stable-token                       // 1..128
+  latencyMs?: non-negative integer
+}</pre>
+            <div class="table-wrap dense-table">
+              <table>
+                <thead><tr><th>Endpoint</th><th>探针</th><th>critical</th><th>当前 timeout</th><th>行为</th></tr></thead>
+                <tbody>
+                  <tr><td><code>GET /health</code></td><td>runtime_authority</td><td>是</td><td>250 ms</td><td>轻量 live check；不运行 module probes</td></tr>
+                  <tr><td rowspan="3"><code>GET /health/deep</code></td><td>gateway（session read）</td><td>是</td><td>1,000 ms</td><td rowspan="3">当前顺序执行；只读、支持 AbortSignal，不进行真实写操作</td></tr>
+                  <tr><td>model_provider</td><td>是</td><td>1,000 ms</td></tr>
+                  <tr><td>capability</td><td>否</td><td>1,000 ms</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="schema-note">聚合规则：任一 critical DOWN → DOWN；非 critical DOWN 或任一 DEGRADED → DEGRADED；否则 UP。HTTP 映射：UP=200，DOWN/DEGRADED=503。探针异常、超时和取消只输出稳定 reasonCode：<code>HEALTH_PROBE_FAILED</code>、<code>HEALTH_PROBE_TIMEOUT</code>、<code>HEALTH_PROBE_ABORTED</code> 等安全值。</p>
+          </div>
+        </section>
+
+        <section class="section" id="security">
+          <div class="section-head">
+            <div class="section-kicker">07 / SECURITY</div>
+            <div>
+              <h2>安全、隐私与数据治理</h2>
+              <p>可观测系统扩大了数据传播半径，因此 NextAgent 选择“默认不进入、按字段批准”的模型，而不是事后在多个 sink 上各自补救。</p>
+            </div>
+          </div>
+
+          <div class="security-funnel">
+            <div class="security-box denied">
+              <h3>禁止进入正式观测主线</h3>
+              <ul>
+                <li>raw prompt、thinking、模型输出与 stream delta</li>
+                <li>Tool / Capability 参数、结果与附件正文</li>
+                <li>provider / gateway raw body、raw error 与 stack</li>
+                <li>secret、credential、认证 token、绝对路径</li>
+                <li>自由文本原因和开放式高基数字段</li>
+                <li>traceId、spanId 等 SDK 标识进入业务契约</li>
+              </ul>
+            </div>
+            <div class="funnel-arrow" aria-hidden="true">→</div>
+            <div class="security-box allowed">
+              <h3>批准后可投影</h3>
+              <ul>
+                <li>可信 Owner Scope / Agent Scope</li>
+                <li>稳定业务引用和低基数 operation/outcome</li>
+                <li>安全原因码、错误类别和有界摘要</li>
+                <li>非负有限耗时、计数与 normalized Token usage</li>
+                <li>枚举化阶段、状态、大小/数量 bucket</li>
+                <li>经 allowlist 批准的诊断候选字段</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>安全控制链</h3>
+            <div class="grid-4">
+              <article class="card"><h3>1. 可信来源</h3><p>身份与 Owner Scope 来自 channel/auth；Agent Scope 来自 app composition、hosted selection 或已持久化 session/run。</p></article>
+              <article class="card"><h3>2. 同步净化</h3><p>统一入口在排队前执行 shape validation、字段分类和 redaction，禁止内容不会进入异步内存。</p></article>
+              <article class="card"><h3>3. Surface 减法</h3><p>每个 projector 再按用途缩减字段；指标拒绝高基数，审计只留治理属性，健康只留机器可读安全摘要。</p></article>
+              <article class="card"><h3>4. Fail closed</h3><p>缺失可信 owner/time、字段分类非法或净化失败时，不猜测、不补值，直接拒绝并留下有界降级证据。</p></article>
+            </div>
+          </div>
+
+          <div class="callout danger">
+            <div>
+              <b>受控例外：仅限本地 runtime diagnostic</b>
+              <p>Tool 执行的 <code>toolInput</code>/<code>toolOutput</code> 以及执行异常的 <code>rawExceptionData</code> 是明确、窄化的本地诊断例外：normal/debug 下均受字段数、递归深度、字符串和 16 KiB entry 上限约束，并对 credential/认证 token 做窄匹配脱敏。它们不得进入 observation-derived log、audit、metric、trace、health、timeline、SafeError 或公共 DTO。Debug 模式也不等于关闭脱敏。</p>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>不同观测面的数据最小化</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>数据类别</th><th>正式 LOG</th><th>AUDIT</th><th>METRIC</th><th>TRACE</th><th>HEALTH</th></tr></thead>
+                <tbody>
+                  <tr><td>稳定业务引用</td><td>按白名单</td><td>按治理需要</td><td>禁止作为 label</td><td>受控 attribute</td><td>通常不需要</td></tr>
+                  <tr><td>Owner / Agent Scope</td><td>投影后缩减</td><td>必需可信事实</td><td>禁止作为 label</td><td>受控 attribute</td><td>不按用户变化</td></tr>
+                  <tr><td>耗时 / Token 用量</td><td>有界数值</td><td>policy 批准时</td><td>聚合值</td><td>有界 attribute</td><td>仅探针耗时</td></tr>
+                  <tr><td>Prompt / 模型输出 / Tool payload</td><td>禁止</td><td>禁止</td><td>禁止</td><td>禁止</td><td>禁止</td></tr>
+                  <tr><td>路径 / credential / raw error</td><td>禁止</td><td>禁止</td><td>禁止</td><td>禁止</td><td>禁止</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="reliability">
+          <div class="section-head">
+            <div class="section-kicker">08 / RELIABILITY</div>
+            <div>
+              <h2>可靠性、容量与生命周期</h2>
+              <p>观测系统必须在高负载和部分故障下保持有界。NextAgent 采用同步轻量 handoff、异步写入、固定队列与文件上限，并让各输出面独立失效。</p>
+            </div>
+          </div>
+
+          <div class="capacity-strip" aria-label="当前关键容量上限">
+            <div class="capacity-item"><strong>1,024</strong><span>ProjectorHost 默认事件队列</span></div>
+            <div class="capacity-item"><strong>16 KiB</strong><span>单条 operational entry</span></div>
+            <div class="capacity-item"><strong>4 MiB</strong><span>单 destination / audit buffer</span></div>
+            <div class="capacity-item"><strong>8 MiB</strong><span>LOCAL metrics buffer</span></div>
+            <div class="capacity-item"><strong>16,384</strong><span>Metrics recent-fact 去重键</span></div>
+            <div class="capacity-item"><strong>100 MiB</strong><span>LOCAL 单文件段上限</span></div>
+          </div>
+
+          <div class="subsection">
+            <h3>过载与故障策略</h3>
+            <div class="grid-3">
+              <article class="card tone-green"><h3>队列饱和</h3><p>ProjectorHost 丢弃新 observation，并为各 surface 记录有界 degraded 结果；业务调用已经同步返回，不等待队列恢复。</p></article>
+              <article class="card tone-blue"><h3>单投影器异常</h3><p>捕获异常并返回 <code>PROJECTOR_FAILED</code>，继续执行其余投影器；不会因 Trace 失败跳过日志、审计或指标。</p></article>
+              <article class="card tone-amber"><h3>Writer 饱和</h3><p>新日志条目 drop，记录饱和计数桶和一次状态转换；不复制 dropped payload，不让一个 sink 关闭另一个 sink。</p></article>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>LOCAL 文件隔离</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>文件族</th><th>owner</th><th>默认策略</th><th>隔离保证</th></tr></thead>
+                <tbody>
+                  <tr><td><code>nextagent-operational…</code></td><td><code>agent-log</code></td><td>异步、100 MiB、每日、gzip、7 天</td><td>只承载 runtime_diagnostic / observation_derived</td></tr>
+                  <tr><td><code>nextagent-audit…</code></td><td>LOCAL gateway</td><td>4 MiB buffer、100 MiB、每日、gzip、7 天</td><td>不写 SQLite，不镜像 operational log</td></tr>
+                  <tr><td><code>nextagent-metrics…</code></td><td><code>agent-observability</code></td><td>60s、4 MiB snapshot、8 MiB buffer、100 MiB、7 天</td><td>不逐 sample 写 operational log</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>关闭顺序</h3>
+            <div class="flow">
+              <div class="flow-step"><em>01</em><b>停止生产者</b><p>先阻止新的运行事实进入，避免边关闭边增长。</p></div>
+              <div class="flow-step"><em>02</em><b>有界 drain</b><p>在超时约束下排空 ProjectorHost 队列。</p></div>
+              <div class="flow-step"><em>03</em><b>分别 finalise</b><p>关闭 audit，metrics forceFlush/shutdown；任一失败不跳过后续步骤。</p></div>
+              <div class="flow-step"><em>04</em><b>最后关闭日志</b><p>记录 shutdown completed 后再 flush/close operational writer。</p></div>
+            </div>
+          </div>
+
+          <div class="callout warn">
+            <div>
+              <b>容量评审关注点</b>
+              <p>当前上限可以证明“内存和文件不会无界增长”，但尚不能替代电信级容量结论。生产准入仍需用目标并发、平均/峰值 observation 数、最慢 sink 和深度健康检查频率完成基准，验证 1,024 队列及串行 deep probe 的余量。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="deployment">
+          <div class="section-head">
+            <div class="section-kicker">09 / DEPLOYMENT</div>
+            <div>
+              <h2>部署模式与外部平台集成</h2>
+              <p>LOCAL 与 REMOTE 不改变事实模型、指标清单或安全策略。差异只位于 app composition 选择的具体 writer、gateway 和 exporter。</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>能力</th><th>LOCAL</th><th>REMOTE</th><th>禁止的 fallback</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Operational log</strong></td><td>console/file 按 profile；默认本地文件</td><td>仍由唯一 operational writer 按部署策略输出</td><td>业务包自行写文件或 console</td></tr>
+                <tr><td><strong>Audit</strong></td><td>独立 NDJSON 文件族；只提供本地模式有限记录，不承诺生产级留存、完整性保护或查询</td><td>PaaS 审计服务是生产 system of record，通过入口选定的 <code>AuditEventStoreGateway</code> 上报</td><td>REMOTE → local / SQLite / log mirror</td></tr>
+                <tr><td><strong>Metrics</strong></td><td>独立 cumulative NDJSON history</td><td>入口注入 official OTLP exporter</td><td>REMOTE → localhost / file / log</td></tr>
+                <tr><td><strong>Trace</strong></td><td>可关闭、仅进程内，或显式配置 OTLP</td><td>显式 SecretReference + OTLP trace exporter</td><td>凭据不完整时发出远程请求</td></tr>
+                <tr><td><strong>Health</strong></td><td colspan="2">统一 HTTP schema 与聚合语义；部署层可决定鉴权，但身份不改变健康结果</td><td>用配置存在性冒充真实 deep check</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="subsection">
+            <h3>审计责任分层</h3>
+            <div class="grid-3">
+              <article class="card tone-green">
+                <h3>语义完整性 · NextAgent</h3>
+                <p>确定哪些操作必须审计，为每类动作校验 actor、action、target、authority、outcome、scope 和 evidence refs，并生成稳定 <code>auditId</code>。</p>
+              </article>
+              <article class="card tone-blue">
+                <h3>投递完整性 · Gateway 边界</h3>
+                <p>明确 PaaS 接收确认、超时、重试、at-least-once、按 scoped auditId 去重、积压与缺口检测；不得把“已入队”误报为“已留存”。</p>
+              </article>
+              <article class="card tone-amber">
+                <h3>留存与保护 · PaaS</h3>
+                <p>由审计服务承担法规/客户要求的留存期、防篡改、加密、访问控制、查询、导出、legal hold 和删除治理。LOCAL 文件不承担该责任。</p>
+              </article>
+            </div>
+          </div>
+
+          <div class="callout warn">
+            <div><b>LOCAL 模式边界</b><p>LOCAL audit 的 NDJSON、轮转、压缩和有限保留用于本地运行、开发验证与短期排障，能够证明“可记录完整行”，但不构成生产合规审计库，也不承诺跨主机完整性、长期保留、不可抵赖或监管查询能力。</p></div>
+          </div>
+
+          <div class="subsection">
+            <h3>配置边界</h3>
+            <div class="grid-2">
+              <article class="card tone-green">
+                <h3>可配置</h3>
+                <p><span class="tag">logging.level</span><span class="tag">diagnosticDetail</span><span class="tag">console.enabled</span><span class="tag">file.enabled</span><span class="tag">file.name</span><span class="tag">maxFileSizeMiB</span><span class="tag">retentionDays ≥ 7</span><span class="tag">tracing.enabled</span><span class="tag">SecretReference</span><span class="tag">serviceName</span></p>
+              </article>
+              <article class="card tone-amber">
+                <h3>刻意不开放</h3>
+                <p><span class="tag amber">任意 metric label</span><span class="tag amber">audit path/query/fallback</span><span class="tag amber">metrics endpoint/path/interval</span><span class="tag amber">用户自定义轮转频率</span><span class="tag amber">关闭 redaction</span><span class="tag amber">运行时覆盖身份/scope</span></p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="operations">
+          <div class="section-head">
+            <div class="section-kicker">10 / OPERATIONS</div>
+            <div>
+              <h2>典型运维使用路径</h2>
+              <p>设计价值最终要落到排障、容量和审计流程。以下路径说明各观测面如何协作，同时保持权威事实与派生证据的边界。</p>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <article class="card">
+              <h3>单次请求失败定位</h3>
+              <ol>
+                <li>从用户会话或告警取得 request/run 稳定引用。</li>
+                <li>查看 observation-derived 日志定位失败阶段与安全原因码。</li>
+                <li>使用 Trace 比较 request、model、capability、gateway 耗时关系。</li>
+                <li>必要时回到 canonical timeline 核对权威终态。</li>
+              </ol>
+            </article>
+            <article class="card">
+              <h3>性能与容量异常</h3>
+              <ol>
+                <li>从请求结果、duration、TTFT、Token 和 capability/gateway 指标判断趋势。</li>
+                <li>用 health/deep 区分入口存活与关键依赖退化。</li>
+                <li>查看 <code>observability_degradation_total</code> 排除“观测系统自身失真”。</li>
+                <li>抽取代表性 request run 做 Trace 细化定位。</li>
+              </ol>
+            </article>
+            <article class="card">
+              <h3>安全与审计复核</h3>
+              <ol>
+                <li>从 PaaS 审计服务按可信 Owner/Agent Scope、动作族和目标对象筛选审计证据。</li>
+                <li>核对 actor、action、target、authority、outcome 与稳定证据引用。</li>
+                <li>需要正文或最终状态时访问授权业务系统，不从审计恢复敏感载荷。</li>
+                <li>使用 auditId、投递状态和 PaaS 接收证明确认是否存在审计缺口。</li>
+              </ol>
+            </article>
+          </div>
+
+          <div class="callout">
+            <div>
+              <b>观测自身也必须可观测</b>
+              <p><code>projector_projection_total</code> 记录各 surface 的 emitted / skipped / degraded / failed_closed；<code>observability_degradation_total</code> 记录 projector、sink、registry、serialization、required field 和 metric label/value 等失败。恢复/降级只在状态转换时输出 operational milestone，避免正常高频噪声。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="verification">
+          <div class="section-head">
+            <div class="section-kicker">11 / EVIDENCE</div>
+            <div>
+              <h2>实现状态、验证策略与证据</h2>
+              <p>本节区分“仓库中已有实现与测试”以及“本次文档生成实际执行的验证”。技术评审不能只以任务勾选替代运行证据。</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>能力</th><th>当前状态</th><th>实现证据</th><th>主要验证关注点</th></tr></thead>
+              <tbody>
+                <tr><td><strong>统一 Observation 入口</strong></td><td><span class="status done">已实现</span></td><td><code>projector-host.ts</code>、redaction、timeline mapper</td><td>同步脱敏、队列饱和、单 projector 故障隔离</td></tr>
+                <tr><td><strong>Operational logging</strong></td><td><span class="status done">已实现并硬化</span></td><td><code>agent-log</code>、single writer、双 surface</td><td>entry/buffer 边界、轮转、redaction、exact-once milestone</td></tr>
+                <tr><td><strong>Audit</strong></td><td><span class="status review">基础路径已实现，动作覆盖待收敛</span></td><td>AuditProjector、gateway writer、LOCAL file store</td><td>七类动作目录、required-field profile、PaaS ack/retry/dedup/gap evidence</td></tr>
+                <tr><td><strong>Metrics</strong></td><td><span class="status done">21 项当前 inventory</span></td><td>immutable descriptors、registry、OTel SDK、LOCAL exporter</td><td>标签白名单、dedup、有界内存、REMOTE no fallback</td></tr>
+                <tr><td><strong>Trace</strong></td><td><span class="status done">OTLP/W3C 路径已实现</span></td><td>timeline span lifecycle、TraceProjector、OTLP infrastructure</td><td>层级、传播、属性 allowlist、exporter 安全降级</td></tr>
+                <tr><td><strong>Health</strong></td><td><span class="status done">Primary/Deep 已实现</span></td><td>HealthEvaluator、三个 deep probes、Web route projection</td><td>timeout、AbortSignal、503 映射、无敏感诊断</td></tr>
+                <tr><td><strong>生产治理</strong></td><td><span class="status review">待收口</span></td><td>已有候选规格与默认实现</td><td>PaaS 审计服务验收、采样、SLO/告警、容量基准</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout warn">
+            <div>
+              <b>变更状态</b>
+              <p><code>add-ts-runtime-operational-log-hardening</code> 当前任务清单为 111/111 完成，但仍位于 active changes。它可以作为“实现完成的变更基线”引用；在正式发布声明前仍应完成 OpenSpec 严格校验、模型语义评审与归档治理。</p>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>建议验证门禁</h3>
+            <div class="grid-2">
+              <article class="card">
+                <h3>行为与契约</h3>
+                <ul>
+                  <li>ProjectorHost、structured log、audit、metrics、trace、health focused tests</li>
+                  <li>缺 owner/time、非法 label、redaction 失败、sink outage、queue saturation 等 negative cases</li>
+                  <li>LOCAL 三文件族轮转、压缩、保留、重启恢复与故障隔离</li>
+                </ul>
+              </article>
+              <article class="card">
+                <h3>仓库级门禁</h3>
+                <ul>
+                  <li><code>npm run build</code>、<code>npm test</code>、<code>npm run test:contract</code></li>
+                  <li><code>npm run lint:architecture</code> 验证 SDK 与 package owner 边界</li>
+                  <li><code>openspec validate --all --strict</code> 验证规格一致性</li>
+                  <li>Push 前执行 <code>nextagent-code-review</code> 语义检视</li>
+                </ul>
+              </article>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>上线验收场景</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>场景</th><th>预期结果</th><th>必须证明的负例</th></tr></thead>
+                <tbody>
+                  <tr><td>正常网络诊断请求</td><td>定位骨架完整；指标、Trace、终态可关联</td><td>不出现 prompt、模型原文、工具 payload</td></tr>
+                  <tr><td>模型/网关超时</td><td>稳定 reason code、耗时与失败层级可见</td><td>不输出 provider raw error、endpoint、credential</td></tr>
+                  <tr><td>PaaS 审计服务 / Trace exporter 故障</td><td>投递失败可检测，auditId 可安全重试/去重；审计强约束操作的处置策略由生产准入明确</td><td>不回退到未授权本地 sink，不把已入队误报为已留存</td></tr>
+                  <tr><td>持续高并发</td><td>内存有界，丢弃和恢复可量化</td><td>不阻塞 terminal commit，不把 payload 写入 overload evidence</td></tr>
+                  <tr><td>Deep health 依赖异常</td><td>DOWN/DEGRADED、503、稳定组件和原因码</td><td>不做真实写操作，不暴露原始异常</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="risks">
+          <div class="section-head">
+            <div class="section-kicker">12 / DECISIONS</div>
+            <div>
+              <h2>主要风险与评审决策</h2>
+              <p>核心架构风险已经通过边界和有界机制控制；剩余风险主要集中在生产治理参数、外部平台责任和容量实证。</p>
+            </div>
+          </div>
+
+          <div class="risk-list">
+            <article class="risk-item">
+              <div class="risk-id">R-01</div>
+              <div><b>审计动作覆盖与 PaaS 交付契约尚未闭环</b><p>LOCAL 文件本就不是生产合规库，有限留存不是架构缺陷。当前真正缺口是 26 个技术事件尚未收敛为受审计动作目录，正常外部副作用、人工监督、配置变更、敏感数据操作和风险事件覆盖不足；PaaS 接收确认、重试、去重与缺口检测也尚缺验收证据。</p></div>
+              <div class="risk-action"><b>建议决策</b><p>沿用现有 AuditEventRecord envelope，以七类动作和 required-field profile 冻结语义完整性；由 PaaS 审计服务明确投递确认、留存、防篡改、访问控制、查询和导出 SLA。LOCAL 仅作为本地模式的有限记录能力。</p></div>
+            </article>
+            <article class="risk-item">
+              <div class="risk-id">R-02</div>
+              <div><b>Trace 采样尚未形成稳定契约</b><p>OTLP 与 W3C 路径已具备，但 NextAgent 当前没有对外暴露采样配置。Feature 文档中的“错误 100%、正常 10%”同样是候选值。</p></div>
+              <div class="risk-action"><b>建议决策</b><p>优先在 collector/平台侧确定 head/tail sampling 与错误保留策略；如需 runtime sampler，先通过 OpenSpec 冻结语义、配置与容量验证。</p></div>
+            </article>
+            <article class="risk-item">
+              <div class="risk-id">R-03</div>
+              <div><b>SLO、告警与仪表盘不在核心实现内</b><p>指标 inventory 能描述事实，但没有统一成功率、P95/P99、TTFT、观测降级与依赖健康阈值，就不能形成有效值守闭环。</p></div>
+              <div class="risk-action"><b>建议决策</b><p>由部署/运维平台基于现有 21 项 inventory 定义分环境 SLO、告警去抖、窗口与升级路径，并保持标签白名单不变。</p></div>
+            </article>
+            <article class="risk-item">
+              <div class="risk-id">R-04</div>
+              <div><b>有界不等于已证明容量充足</b><p>1,024 observation 队列、4/8 MiB buffer、16,384 dedup 和串行 deep probes 都是明确上限，但仍缺目标规模下的饱和点与恢复时间证据。</p></div>
+              <div class="risk-action"><b>建议决策</b><p>在容量门禁中覆盖峰值并发、最慢 exporter、磁盘抖动和三探针超时；用 drop/degradation 指标证明业务主路径无回归。</p></div>
+            </article>
+            <article class="risk-item">
+              <div class="risk-id">R-05</div>
+              <div><b>规格基线仍需治理收口</b><p>operational hardening 已勾选完成但尚未归档，Feature 文档中部分建议值与实现默认不一致，容易在对外文档中形成错误承诺。</p></div>
+              <div class="risk-action"><b>建议决策</b><p>严格校验并归档已完成 change；同步 Feature/Function 文档，把“实现值、候选值、生产策略”三类信息明确分栏。</p></div>
+            </article>
+            <article class="risk-item">
+              <div class="risk-id">R-06</div>
+              <div><b>Trace 标识与治理边界冲突</b><p>当前 trace-aware timeline store 会把 traceId、spanId、traceparent 等 snapshot 写入 <code>inlinePayload.trace</code>，TraceProjector 还在 <code>trace.span.emitted</code> runtime diagnostic 中写入 spanId；仓库级约束则声明 Trace SDK 标识不得进入 runtime timeline 或 operational log。两者不能同时作为长期权威规则。</p></div>
+              <div class="risk-action"><b>建议决策</b><p>由 OpenSpec 明确选择唯一方案：升级治理边界并给出安全/持久化目的，或移除 timeline snapshot 与成功 Span 日志；同步 contract、event catalog、安全测试和跨进程传播设计。</p></div>
+            </article>
+          </div>
+
+          <div class="decision-box">
+            <h3>建议本次评审形成的六项结论</h3>
+            <ol>
+              <li>确认“权威事实 → 统一安全 Observation → 独立观测面”的总体架构。</li>
+              <li>确认正式观测面禁止原始提示词、模型/工具正文，并保留窄化的本地 Tool runtime diagnostic 例外。</li>
+              <li>确认 LOCAL 与 REMOTE 只替换输出实现，不得改变指标/事件语义或新增静默 fallback。</li>
+              <li>确认七类审计动作目录及 PaaS 审计服务的投递、留存、完整性保护、查询和导出责任。</li>
+              <li>将容量基准、故障注入、OpenSpec 归档和 push 前语义检视作为生产准入条件。</li>
+              <li>关闭 timeline trace snapshot 与仓库治理约束的冲突，形成唯一可实施的 Trace 相关性规则。</li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="section" id="conclusion">
+          <div class="section-head">
+            <div class="section-kicker">13 / CONCLUSION</div>
+            <div>
+              <h2>结论</h2>
+              <p>NextAgent 已形成边界清晰、可替换、可降级且安全默认的可观测基础。其价值不在于增加更多日志，而在于让同一可信事实以适合不同角色的方式被消费。</p>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <article class="card tone-green"><h3>设计完整性</h3><p>日志、审计、指标、Trace、健康与执行轨迹都已获得明确 owner、输入、输出和失败语义，未污染核心契约。</p></article>
+            <article class="card tone-blue"><h3>电信级适配性</h3><p>双 scope、安全脱敏、低基数、有界队列、独立文件族、非阻塞降级和可重复门禁符合高可靠运行的基本要求。</p></article>
+            <article class="card tone-amber"><h3>生产成熟度</h3><p>核心能力可以进入集成与验证阶段；审计动作覆盖与 PaaS 审计服务、采样、SLO/告警和容量证据必须在生产准入前闭环。</p></article>
+          </div>
+
+          <div class="callout" style="margin-top:28px">
+            <div>
+              <b>最终建议：PASS WITH FOLLOW-UP</b>
+              <p>通过方案设计评审，按 R-01 至 R-06 建立可验收 follow-up。不得通过扩大敏感数据采集或引入高基数标签解决问题；普通观测写入不得阻塞业务主链路，审计强约束操作如需 fail-closed，必须由风险策略与 OpenSpec 显式定义。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="appendix">
+          <div class="section-head">
+            <div class="section-kicker">A / APPENDIX</div>
+            <div>
+              <h2>附录：术语与主要来源</h2>
+              <p>本文档基于 2026-08-04 工作区快照编制。OpenSpec 是行为与边界的权威来源，源代码用于核对当前实现参数，Feature 文档中的“建议评审值”未被当作已实现承诺。</p>
+            </div>
+          </div>
+
+          <div class="subsection" style="margin-top:0">
+            <h3>术语</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>术语</th><th>本文档含义</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Canonical fact</strong></td><td>由领域 owner 持久化或维护的权威业务事实，例如 RequestRun 与 RunTimelineEvent。</td></tr>
+                  <tr><td><strong>Observation</strong></td><td>从权威事实或批准边界生成、已完成安全准入的统一观测事件。</td></tr>
+                  <tr><td><strong>Projector</strong></td><td>把安全 observation 映射为特定观测面输出的组件。</td></tr>
+                  <tr><td><strong>Owner Scope</strong></td><td>由可信 channel/auth 决定的租户/用户隔离范围。</td></tr>
+                  <tr><td><strong>Agent Scope</strong></td><td>由可信装配、hosted selection 或已持久化 session/run 决定的智能体执行范围。</td></tr>
+                  <tr><td><strong>Fail closed</strong></td><td>关键可信字段缺失或安全检查失败时拒绝输出，而不是猜测、补值或降级为不安全内容。</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <h3>主要权威与实现来源</h3>
+            <div class="source-list">
+              <div class="source-item"><b>总体边界</b><span><a href="../../openspec/designs/architecture/observability-boundaries.md">openspec/designs/architecture/observability-boundaries.md</a></span></div>
+              <div class="source-item"><b>信号清单</b><span><a href="../../openspec/designs/architecture/observability.md">openspec/designs/architecture/observability.md</a></span></div>
+              <div class="source-item"><b>模块职责</b><span><a href="../../openspec/designs/modules/agent-observability.md">openspec/designs/modules/agent-observability.md</a> · <a href="../../openspec/designs/modules/agent-log.md">agent-log.md</a></span></div>
+              <div class="source-item"><b>执行轨迹 ADR</b><span><a href="../../openspec/designs/adr/agent-execution-trajectory-safe-diagnostics.md">openspec/designs/adr/agent-execution-trajectory-safe-diagnostics.md</a></span></div>
+              <div class="source-item"><b>稳定规格</b><span><a href="../../openspec/specs/structured-logging/spec.md">structured-logging</a> · <a href="../../openspec/specs/runtime-logging/spec.md">runtime-logging</a> · <a href="../../openspec/specs/redaction-policy/spec.md">redaction-policy</a> · <a href="../../openspec/specs/audit-sink/spec.md">audit-sink</a> · <a href="../../openspec/specs/agent-runtime-metrics/spec.md">agent-runtime-metrics</a> · <a href="../../openspec/specs/otel-trace-export/spec.md">otel-trace-export</a> · <a href="../../openspec/specs/system-health-check/spec.md">system-health-check</a></span></div>
+              <div class="source-item"><b>当前指标清单</b><span><a href="../../packages/agent-observability/src/metrics/metric-descriptors.ts">packages/agent-observability/src/metrics/metric-descriptors.ts</a></span></div>
+              <div class="source-item"><b>统一入口实现</b><span><a href="../../packages/agent-observability/src/linking/projector-host.ts">packages/agent-observability/src/linking/projector-host.ts</a></span></div>
+              <div class="source-item"><b>装配与配置</b><span><a href="../../packages/agent-app/src/composition/observability-composition.ts">observability-composition.ts</a> · <a href="../../packages/agent-app/config/default-system.yaml">default-system.yaml</a></span></div>
+              <div class="source-item"><b>Health 实现</b><span><a href="../../packages/agent-observability/src/health/health-evaluator.ts">packages/agent-observability/src/health/health-evaluator.ts</a> · <a href="../../packages/agent-app/src/composition/health-composition.ts">health-composition.ts</a></span></div>
+              <div class="source-item"><b>硬化变更</b><span><a href="../../openspec/changes/add-ts-runtime-operational-log-hardening/tasks.md">openspec/changes/add-ts-runtime-operational-log-hardening/tasks.md</a> · <a href="../../openspec/changes/add-ts-runtime-operational-log-hardening/event-catalog.md">event-catalog.md</a></span></div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <div class="footer-grid">
+              <span>NextAgent 可观测方案设计 · 技术评审</span>
+              <span>更新日期：2026-08-04 · 文档版本：v1.2</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const progress = document.getElementById('reading-progress');
+      const links = Array.from(document.querySelectorAll('.toc a'));
+      const sections = links
+        .map((link) => document.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
+
+      const update = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? window.scrollY / scrollable : 0;
+        progress.style.transform = `scaleX(${Math.min(1, Math.max(0, ratio))})`;
+
+        let current = sections[0];
+        for (const section of sections) {
+          if (section.getBoundingClientRect().top <= 150) current = section;
+        }
+        links.forEach((link) => {
+          link.classList.toggle('is-active', current && link.getAttribute('href') === `#${current.id}`);
+        });
+      };
+
+      update();
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+    })();
+  </script>
+</body>
+</html>

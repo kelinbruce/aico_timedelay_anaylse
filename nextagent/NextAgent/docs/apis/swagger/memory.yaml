@@ -1,0 +1,1231 @@
+swagger: '2.0'
+info:
+  title: Memory API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/memory/long-term-mem:
+    get:
+      operationId: listLongTermMemory
+      summary: List long-term memory entries
+      tags:
+        - Memory
+      produces:
+        - application/json
+      parameters:
+        - name: memoryInstance
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: queryText
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 2048
+        - name: memoryType
+          in: query
+          required: false
+          type: string
+          enum:
+            - FACTUAL
+            - CONCEPTUAL
+            - PROCEDURAL
+            - USER_CHARACTERISTICS
+        - name: knowledgeSourceType
+          in: query
+          required: false
+          type: string
+          enum:
+            - LEARNED
+            - CONFIGURED
+            - SYSTEM_DEFAULT
+        - name: state
+          in: query
+          required: false
+          type: string
+          enum:
+            - ACTIVE
+            - ARCHIVED
+        - name: isPinned
+          in: query
+          required: false
+          type: string
+          enum:
+            - 'true'
+            - 'false'
+          description: Accepts boolean or string
+        - name: minConfidence
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 13
+          description: Accepts number or string
+        - name: sinceTime
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 13
+          description: Accepts number or string
+        - name: untilTime
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 13
+          description: Accepts number or string
+        - name: maxLastAccessedAt
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 13
+          description: Accepts number or string
+        - name: labels
+          in: query
+          required: false
+          type: string
+          maxLength: 256
+        - name: limit
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 5
+          description: Accepts number or string
+        - name: offset
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 7
+          description: Accepts number or string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryListResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+    post:
+      operationId: saveLongTermMemory
+      summary: Save a long-term memory entry
+      tags:
+        - Memory
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SaveLongTermMemoryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryItemResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/batch:
+    post:
+      operationId: batchCreateLongTermMemory
+      summary: Batch create long-term memory entries
+      tags:
+        - Memory
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/BatchCreateLongTermMemoryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              type: object
+              required:
+                - memoryId
+                - status
+              properties:
+                memoryId:
+                  type: string
+                status:
+                  type: string
+                  enum:
+                    - CREATED
+                    - EXISTING
+              additionalProperties: false
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/manual:
+    post:
+      operationId: manualSaveLongTermMemory
+      summary: Manually save a long-term memory entry
+      tags:
+        - Memory
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ManualSaveLongTermMemoryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryItemResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/search:
+    post:
+      operationId: searchLongTermMemory
+      summary: Search long-term memory entries
+      tags:
+        - Memory
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SearchLongTermMemoryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemorySearchResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/shared:
+    get:
+      operationId: listPublishedLongTermMemory
+      summary: List published (shared) long-term memory entries
+      tags:
+        - Memory
+      produces:
+        - application/json
+      parameters:
+        - name: memoryInstance
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: queryText
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 2048
+        - name: memoryType
+          in: query
+          required: false
+          type: string
+          enum:
+            - FACTUAL
+            - CONCEPTUAL
+            - PROCEDURAL
+            - USER_CHARACTERISTICS
+        - name: knowledgeSourceType
+          in: query
+          required: false
+          type: string
+          enum:
+            - LEARNED
+            - CONFIGURED
+            - SYSTEM_DEFAULT
+        - name: labels
+          in: query
+          required: false
+          type: string
+          maxLength: 256
+        - name: limit
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 5
+          description: Accepts number or string
+        - name: offset
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 7
+          description: Accepts number or string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryListResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/shared/copy:
+    post:
+      operationId: copyPublishedMemory
+      summary: Copy published memory entries to own instance
+      tags:
+        - Memory
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CopyPublishedMemoryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryCopyResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/{memoryId}/record:
+    get:
+      operationId: getMemoryRecord
+      summary: Get raw memory record by ID
+      tags:
+        - Memory
+      produces:
+        - application/json
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryItemResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/{memoryId}:
+    get:
+      operationId: getMemory
+      summary: Get memory entry by ID
+      tags:
+        - Memory
+      produces:
+        - application/json
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryItemResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+    delete:
+      operationId: deleteMemory
+      summary: Delete a long-term memory entry
+      tags:
+        - Memory
+      produces:
+        - application/json
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: memoryInstance
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: reasonCode
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryDeleteResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+    patch:
+      operationId: mutateMemory
+      summary: Mutate a long-term memory entry
+      tags:
+        - Memory
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/MutateLongTermMemoryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryMutateResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/{memoryId}/publish:
+    post:
+      operationId: publishMemory
+      summary: Publish a memory entry for sharing
+      tags:
+        - Memory
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SharingLongTermMemoryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryMutateResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+  /api/v1/memory/long-term-mem/{memoryId}/unpublish:
+    post:
+      operationId: unpublishMemory
+      summary: Unpublish a memory entry
+      tags:
+        - Memory
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SharingLongTermMemoryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/MemoryMutateResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/MemoryErrorResponse'
+definitions:
+  MemoryType:
+    type: string
+    enum:
+      - FACTUAL
+      - CONCEPTUAL
+      - PROCEDURAL
+      - USER_CHARACTERISTICS
+  KnowledgeSourceType:
+    type: string
+    enum:
+      - LEARNED
+      - CONFIGURED
+      - SYSTEM_DEFAULT
+  MemoryState:
+    type: string
+    enum:
+      - ACTIVE
+      - ARCHIVED
+  LongTermMemoryRecord:
+    type: object
+    description: 长期记忆完整公开记录
+    required:
+      - memoryId
+      - tenantId
+      - userId
+      - agentId
+      - memoryInstance
+      - memoryType
+      - knowledgeSourceType
+      - sharingState
+      - state
+      - briefIndex
+      - content
+      - labels
+      - confidence
+      - version
+      - accessCount
+      - recallCount
+      - extractionCount
+      - archivedAt
+      - archiveReason
+      - source
+      - createTime
+      - updateTime
+      - isPinned
+    properties:
+      memoryId:
+        type: string
+      tenantId:
+        type: string
+      userId:
+        type: string
+      agentId:
+        type: string
+      memoryInstance:
+        type: string
+      memoryType:
+        $ref: '#/definitions/MemoryType'
+      knowledgeSourceType:
+        $ref: '#/definitions/KnowledgeSourceType'
+      sharingState:
+        type: string
+        enum:
+          - PRIVATE
+          - SHARED
+          - FORK
+      sourceMemoryId:
+        type: string
+      state:
+        $ref: '#/definitions/MemoryState'
+      briefIndex:
+        type: string
+      labels:
+        type: array
+        items:
+          type: string
+      confidence:
+        type: number
+        minimum: 0
+        maximum: 1
+      version:
+        type: integer
+      accessCount:
+        type: integer
+      recallCount:
+        type: integer
+      extractionCount:
+        type: integer
+      lastAccessedAt:
+        type: integer
+      archivedAt:
+        type: integer
+      archiveReason:
+        type: string
+      source:
+        type: string
+      createTime:
+        type: integer
+      updateTime:
+        type: integer
+      isPinned:
+        type: boolean
+    additionalProperties: false
+  ListLongTermMemoryQuery:
+    type: object
+    properties:
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      queryText:
+        type: string
+        minLength: 1
+        maxLength: 2048
+      memoryType:
+        $ref: '#/definitions/MemoryType'
+      knowledgeSourceType:
+        $ref: '#/definitions/KnowledgeSourceType'
+      state:
+        $ref: '#/definitions/MemoryState'
+      isPinned:
+        type: string
+        description: Accepts boolean or string
+        enum:
+          - 'true'
+          - 'false'
+      minConfidence:
+        type: string
+        description: Accepts number or string
+        maxLength: 13
+        minLength: 1
+      sinceTime:
+        type: string
+        description: Accepts number or string
+        maxLength: 13
+        minLength: 1
+      untilTime:
+        type: string
+        description: Accepts number or string
+        maxLength: 13
+        minLength: 1
+      maxLastAccessedAt:
+        type: string
+        description: Accepts number or string
+        maxLength: 13
+        minLength: 1
+      labels:
+        type: string
+        maxLength: 256
+      limit:
+        type: string
+        description: Accepts number or string
+        maxLength: 3
+        minLength: 1
+      offset:
+        type: string
+        description: Accepts number or string
+        maxLength: 7
+        minLength: 1
+    additionalProperties: false
+  SaveLongTermMemoryBody:
+    type: object
+    properties:
+      memoryId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      memoryType:
+        $ref: '#/definitions/MemoryType'
+      knowledgeSourceType:
+        $ref: '#/definitions/KnowledgeSourceType'
+      briefIndex:
+        type: string
+        minLength: 1
+        maxLength: 2048
+      labels:
+        type: array
+        maxItems: 10
+        items:
+          type: string
+          minLength: 1
+          maxLength: 256
+      confidence:
+        type: number
+        minimum: 0
+        maximum: 1
+      source:
+        type: string
+        maxLength: 256
+    additionalProperties: false
+  BatchCreateLongTermMemoryBody:
+    type: object
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        minItems: 1
+        maxItems: 100
+        items:
+          type: object
+          required:
+            - memoryType
+            - knowledgeSourceType
+            - briefIndex
+            - content
+          properties:
+            memoryId:
+              type: string
+              minLength: 1
+              maxLength: 256
+            memoryType:
+              $ref: '#/definitions/MemoryType'
+            knowledgeSourceType:
+              $ref: '#/definitions/KnowledgeSourceType'
+            briefIndex:
+              type: string
+              minLength: 1
+              maxLength: 2048
+            labels:
+              type: array
+              maxItems: 10
+              items:
+                type: string
+                minLength: 1
+                maxLength: 256
+            confidence:
+              type: number
+              minimum: 0
+              maximum: 1
+            source:
+              type: string
+              maxLength: 4096
+            idempotencyKey:
+              type: string
+              minLength: 1
+              maxLength: 128
+            state:
+              $ref: '#/definitions/MemoryState'
+            archiveReason:
+              type: string
+              maxLength: 128
+          additionalProperties: false
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  ManualSaveLongTermMemoryBody:
+    type: object
+    required:
+      - memoryType
+      - knowledgeSourceType
+      - briefIndex
+      - content
+    properties:
+      memoryId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      memoryType:
+        $ref: '#/definitions/MemoryType'
+      knowledgeSourceType:
+        $ref: '#/definitions/KnowledgeSourceType'
+      briefIndex:
+        type: string
+        minLength: 1
+        maxLength: 2048
+      labels:
+        type: array
+        maxItems: 10
+        items:
+          type: string
+          minLength: 1
+          maxLength: 256
+    additionalProperties: false
+  SearchLongTermMemoryBody:
+    type: object
+    properties:
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      queryText:
+        type: string
+        minLength: 1
+        maxLength: 2048
+      memoryType:
+        $ref: '#/definitions/MemoryType'
+      knowledgeSourceType:
+        $ref: '#/definitions/KnowledgeSourceType'
+      minConfidence:
+        type: number
+        minimum: 0
+        maximum: 1
+      sinceTime:
+        type: number
+        minimum: 0
+      untilTime:
+        type: number
+        minimum: 0
+      labels:
+        type: array
+        maxItems: 10
+        items:
+          type: string
+          minLength: 1
+          maxLength: 256
+      limit:
+        type: number
+        minimum: 1
+        maximum: 10000
+      offset:
+        type: number
+        minimum: 0
+    additionalProperties: false
+  ListPublishedLongTermMemoryQuery:
+    type: object
+    properties:
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      queryText:
+        type: string
+        minLength: 1
+        maxLength: 2048
+      memoryType:
+        $ref: '#/definitions/MemoryType'
+      knowledgeSourceType:
+        $ref: '#/definitions/KnowledgeSourceType'
+      labels:
+        type: string
+        maxLength: 256
+      limit:
+        type: string
+        description: Accepts number or string
+        maxLength: 3
+        minLength: 1
+      offset:
+        type: string
+        description: Accepts number or string
+        maxLength: 7
+        minLength: 1
+    additionalProperties: false
+  CopyPublishedMemoryBody:
+    type: object
+    required:
+      - memoryIds
+    properties:
+      memoryIds:
+        type: array
+        minItems: 1
+        maxItems: 100
+        items:
+          type: string
+          minLength: 1
+          maxLength: 64
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      reasonCode:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  CopyPublishedMemoryResult:
+    type: object
+    description: 单条复制结果
+    required:
+      - memoryId
+      - record
+      - sourceMemoryId
+      - copyStatus
+    properties:
+      memoryId:
+        type: string
+        description: FORK memory ID
+      record:
+        $ref: '#/definitions/LongTermMemoryRecord'
+      sourceMemoryId:
+        type: string
+        description: 被复制的 SHARED memory ID
+      copyStatus:
+        type: string
+        description: 复制状态，COPIED=新创建，EXISTING=已存在
+        enum:
+          - COPIED
+          - EXISTING
+    additionalProperties: false
+  DeleteLongTermMemoryQuery:
+    type: object
+    properties:
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      reasonCode:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  MutateLongTermMemoryBody:
+    type: object
+    properties:
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      targetState:
+        $ref: '#/definitions/MemoryState'
+      archiveReason:
+        type: string
+        minLength: 1
+        maxLength: 256
+      delta:
+        type: number
+        minimum: 0
+      lastAccessTime:
+        type: number
+        minimum: 0
+      isPinned:
+        type: boolean
+      expectedVersion:
+        type: number
+        minimum: 1
+    additionalProperties: false
+  SharingLongTermMemoryBody:
+    type: object
+    properties:
+      memoryInstance:
+        type: string
+        minLength: 1
+        maxLength: 256
+      reasonCode:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  MemoryListResponse:
+    type: object
+    required:
+      - errorCode
+      - errorMsg
+      - data
+    properties:
+      errorCode:
+        type: integer
+      errorMsg:
+        type: string
+      data:
+        type: object
+        required:
+          - items
+          - total
+          - offset
+          - limit
+        properties:
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+          total:
+            type: number
+          offset:
+            type: number
+          limit:
+            type: number
+        additionalProperties: false
+    additionalProperties: false
+  MemoryItemResponse:
+    type: object
+    required:
+      - errorCode
+      - errorMsg
+      - data
+    properties:
+      errorCode:
+        type: integer
+      errorMsg:
+        type: string
+      data:
+        type: object
+        additionalProperties: true
+    additionalProperties: false
+  MemorySearchResponse:
+    type: object
+    required:
+      - errorCode
+      - errorMsg
+      - data
+    properties:
+      errorCode:
+        type: integer
+      errorMsg:
+        type: string
+      data:
+        type: object
+        required:
+          - items
+          - total
+          - offset
+          - limit
+        properties:
+          items:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+          total:
+            type: number
+          offset:
+            type: number
+          limit:
+            type: number
+        additionalProperties: false
+    additionalProperties: false
+  MemoryCopyResponse:
+    type: object
+    required:
+      - errorCode
+      - errorMsg
+      - data
+    properties:
+      errorCode:
+        type: integer
+      errorMsg:
+        type: string
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/CopyPublishedMemoryResult'
+    additionalProperties: false
+  MemoryDeleteResponse:
+    type: object
+    required:
+      - errorCode
+      - errorMsg
+      - data
+    properties:
+      errorCode:
+        type: integer
+      errorMsg:
+        type: string
+      data:
+        type: object
+        required:
+          - memoryId
+        properties:
+          memoryId:
+            type: string
+        additionalProperties: false
+    additionalProperties: false
+  MemoryMutateResponse:
+    type: object
+    required:
+      - errorCode
+      - errorMsg
+      - data
+    properties:
+      errorCode:
+        type: integer
+      errorMsg:
+        type: string
+      data:
+        type: object
+        additionalProperties: true
+    additionalProperties: false

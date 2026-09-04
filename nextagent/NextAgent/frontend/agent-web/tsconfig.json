@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "exactOptionalPropertyTypes": true,
+    "incremental": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "#auth/LocalLoginPage": ["./src/features/auth/LocalLoginPage.local.tsx"],
+      "@cloudsop/dsl-engine-web": ["./src/vendor/dsl-engine-stub.tsx"],
+      "@cloudsop/dsl-engine-web/genui-components": ["./src/vendor/dsl-engine-genui-components-stub.tsx"]
+    },
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022",
+    "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-web.tsbuildinfo",
+    "types": ["node", "vitest/globals", "react", "react-dom"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"]
+}

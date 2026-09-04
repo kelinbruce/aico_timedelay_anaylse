@@ -1,0 +1,168 @@
+swagger: '2.0'
+info:
+  title: Share API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/sessions/{sessionId}/shares:
+    post:
+      operationId: createShare
+      summary: Create a share link for session runs
+      tags:
+        - Share
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CreateShareBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ShareCreateResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/shares/{shareId}/conversation:
+    get:
+      operationId: getSharedConversation
+      summary: Get shared conversation by share ID
+      tags:
+        - Share
+      produces:
+        - application/json
+      parameters:
+        - name: shareId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SharedConversationResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  CreateShareBody:
+    type: object
+    required:
+      - runIds
+      - originUrl
+      - expiresIn
+      - allowedOps
+    properties:
+      runIds:
+        type: array
+        minItems: 1
+        maxItems: 100
+        items:
+          type: string
+          minLength: 1
+          maxLength: 256
+      originUrl:
+        type: string
+        minLength: 1
+        maxLength: 2048
+      expiresIn:
+        type: string
+        enum:
+          - 24h
+          - 7d
+          - 30d
+          - permanent
+      allowedOps:
+        type: array
+        maxItems: 100
+        items:
+          type: string
+          minLength: 1
+          maxLength: 256
+        x-nullable: true
+    additionalProperties: false
+  ShareCreateResponse:
+    type: object
+    required:
+      - shareId
+      - shareUrl
+    properties:
+      shareId:
+        type: string
+        minLength: 1
+      shareUrl:
+        type: string
+        minLength: 1
+    additionalProperties: false
+  SharedConversationResponse:
+    type: object
+    required:
+      - sessionId
+      - messages
+      - createdAt
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      messages:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+      createdAt:
+        type: number
+        minimum: 0
+    additionalProperties: false

@@ -1,0 +1,5 @@
+name: add-ts-bash-tool
+type: change
+status: draft
+created: 2026-06-05
+description: Bash tool - execute shell commands

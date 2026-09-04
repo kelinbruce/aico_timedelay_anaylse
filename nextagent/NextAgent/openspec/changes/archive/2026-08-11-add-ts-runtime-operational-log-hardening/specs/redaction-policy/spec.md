@@ -1,0 +1,30 @@
+## MODIFIED Requirements
+
+### Requirement: Redaction is enforced by the shared observation boundary
+
+系统 SHALL 在 `ObservabilityProjectorHost.acceptObservation(event)` 的共享接收边界执行 observation redaction。业务模块 MAY 通过 `DiagnosticContext` 或 `ObservabilityObservationEvent` produce candidate safe fields, diagnostic candidates and source classifications, but MUST NOT implement private redaction rules, bypass the unified policy, or emit diagnostic output directly to external consumers.
+
+safe error、stream diagnostic、health diagnostic 或 release gate evidence 等不经过 `ObservabilityProjectorHost` 的安全输出边界，也 MUST 使用同一套字段裁剪和字段内容脱敏规则；这些边界不得定义私有敏感字段规则。
+
+For this release, `observability.logging.diagnosticDetail=debug` MUST NOT bypass the shared observation boundary. Debug detail MAY only change which already-safe, policy-approved diagnostic fields remain visible after sanitization; it MUST NOT disable redaction, relax forbidden-field classes, or permit a projector / logger sink to consume unsanitized observation data. Security redaction has no user-configurable off switch.
+
+#### Scenario: Gateway failure is sanitized at the output boundary
+- **WHEN** a gateway adapter returns a failure containing raw provider or platform details
+- **THEN** the shared observation boundary applies redaction before the event enters async projector handoff
+- **AND** the adapter does not independently decide which raw fields are externally visible
+
+#### Scenario: Diagnostic candidates are sanitized once
+- **WHEN** a business module adds diagnostic candidates for observability
+- **THEN** each candidate is filtered or value-redacted by the shared observation policy before queue handoff
+- **AND** an unclassified candidate is omitted by default
+
+#### Scenario: High-cardinality candidates are rejected for metrics
+- **WHEN** a diagnostic candidate contains a base station id、request id、message id、path、free-text reason or equivalent high-cardinality value
+- **THEN** sanitized observation MAY retain only a classified, safe representation when policy allows it
+- **AND** metric projector MUST still reject high-cardinality fields as labels unless the metric inventory explicitly allows them
+
+#### Scenario: debug detail still hands off sanitized observations only
+
+- **WHEN** frozen app config enables `observability.logging.diagnosticDetail=debug`
+- **THEN** `ObservabilityProjectorHost` MUST still hand off only sanitized `ObservabilityObservationEvent`
+- **AND** downstream projector、logger transport、audit sink and metric registry MUST NOT receive raw prompt、stack、path、provider body、secret or credential fields because of debug detail

@@ -1,0 +1,25 @@
+- [x] 1. 在 `agent-contracts/gateway` 中定义 `WatermarkGatewayPort`、`WatermarkEmbedInput`、`WatermarkEmbedResult`；向 `GatewayAdapterKind` 新增 `"watermark"`，向 `GatewayBindings` 新增 `watermark?`。
+- [x] 2. 在 `agent-app/composition/watermark-composition.ts` 中实现 `readWatermarkEnabled`——从 `{agentsRoot}/{agentId}/config/config.json` 读取 `watermarkEnabled` boolean，默认 `false`，永不抛错。
+- [x] 3. 在 `agent-app/composition/channel-composition.ts` 中实现 `adaptWatermarkGatewayPort`——在 composition 边界把 `WatermarkGatewayPort` 适配为 `WebWatermarkPort`。
+- [x] 4. 在 `agent-app/composition/gateway-composition.ts` 中过滤 LOCAL watermark 条目——没有 LOCAL watermark provider，仅 REMOTE。
+- [x] 5. 在 `agent-channel-common/transports/web-stream-delivery.ts` 中定义 `WebWatermarkPort` 接口和 `WebStreamDeliveryRequest` 上的 `watermark`/`watermarkEnabled` 字段。
+- [x] 6. 在 `web-stream-delivery.ts` 中实现流路径 watermark transform：LLM_CONTENT_DELTA 按 stepId flush，TOOL_STRUCTURED_DELTA 对 workflow DETAIL/ANSWER+TEXT 内联，REQUEST_COMPLETED flush + 内联，fail-open。
+- [x] 7. 在 `agent-channel-web/routes/requests.ts` 中向 `WebChannelDependencies` 新增 `watermark`/`watermarkEnabled`。
+- [x] 8. 实现会话端点 watermark transform——对 content > 500 的 ASSISTANT 消息并行 `Promise.allSettled`。
+- [x] 9. 实现共享会话端点 watermark transform——对 content > 500 的 ASSISTANT 消息并行 `Promise.allSettled`。
+- [x] 10. 实现事件端点 watermark transform——对 content > 500 的 REQUEST_COMPLETED 和 workflow TOOL_STRUCTURED_DELTA 事件并行 `Promise.allSettled`。
+- [x] 11. 在 `agent-app/composition/create-app.ts` 中新增 `watermark`/`watermarkEnabled` 注入——直接从 config 读取 `watermarkEnabled`，channel 层检查 port 是否存在。
+- [x] 12. 向 `agent-app/config/validation.ts` 的 TypeBox schema 和 `REGISTERED_GATEWAY_ADAPTERS` 新增 `"watermark"`。
+- [x] 13. 在 `agent-platform-gateway-remote/watermark/watermark-gateway.ts` 中提供 `createWatermarkProvider` 参考实现——调用外部 URL，10 秒超时，fail-open。
+- [x] 14. 从 `agent-platform-gateway-remote/src/index.ts` 导出 watermark provider。
+- [x] 15. 在 `agent-channel-web/transports/websocket.ts` 中新增 WebSocket 流 watermark 字段。
+- [x] 16. 更新 `tests/architecture/netagent-external-dependency-interface-guard.test.ts`，加入 watermark 条目。
+- [x] 17. 为 watermark 配置读取编写测试（`watermark-config.test.ts`）。
+- [x] 18. 为流交付 watermark transform 编写测试（`web-stream-delivery-watermark.test.ts`）。
+- [x] 19. 为 REMOTE watermark provider 编写测试（`watermark-provider.test.ts`）。
+- [x] 20. 运行 `openspec validate add-ts-watermark-provider --strict`。
+- [x] 21. 为所有 watermark 测试文件运行定向 vitest。
+- [x] 22. 运行 `npm run lint:architecture`。
+- [x] 23. 运行 `npm run typecheck`——无新类型错误（EPERM dist 写入错误是沙箱限制，不是代码问题）。
+- [x] 24. 运行 `npm run test:contract`——无新 contract 失败。
+- [x] 25. 验证所有文件使用 CRLF 行尾。

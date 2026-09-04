@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NextAgent TS：网络智能体框架设计</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --huawei-red: #e4002b;
+      --deep-red: #8f1d2c;
+      --warm-red: #b4232f;
+      --orange: #d97706;
+      --amber: #b45309;
+      --ink: #111827;
+      --text: #334155;
+      --muted: #64748b;
+      --line: #d7dde5;
+      --panel: rgba(255, 255, 255, 0.97);
+      --soft: #f6f7f9;
+      --warm-soft: #fff7ed;
+      --red-soft: #fff1f2;
+      --gray-soft: #f3f4f6;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #dfe3e8;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      color: var(--ink);
+    }
+
+    .slide {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      margin: 0 auto;
+      padding: 42px 44px 34px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, var(--huawei-red) 0, var(--huawei-red) 10px, transparent 10px),
+        linear-gradient(180deg, #fafafa 0%, #eef1f4 100%);
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 34px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 54px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      color: #4b5563;
+      font-size: 24px;
+      line-height: 1.32;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      padding: 12px 19px;
+      border-radius: 999px;
+      background: var(--huawei-red);
+      color: #fff;
+      font-size: 19px;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: 0 10px 22px rgba(228, 0, 43, 0.16);
+    }
+
+    .metric-strip {
+      height: 104px;
+      display: grid;
+      grid-template-columns: 255px repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric-title,
+    .metric {
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 22px rgba(17, 24, 39, 0.055);
+    }
+
+    .metric-title {
+      background: #2f3338;
+      color: #fff;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 6px solid var(--huawei-red);
+    }
+
+    .metric-title b {
+      display: block;
+      font-size: 27px;
+      line-height: 1.12;
+      margin-bottom: 7px;
+    }
+
+    .metric-title span {
+      color: #d1d5db;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .metric {
+      background: var(--panel);
+      text-align: center;
+      padding: 17px 10px 12px;
+      border-top: 4px solid var(--accent);
+    }
+
+    .metric b {
+      display: block;
+      color: var(--accent);
+      font-size: 31px;
+      line-height: 1.02;
+      margin-bottom: 8px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.18fr 0.92fr 1.08fr;
+      gap: 16px;
+      height: 750px;
+    }
+
+    .panel {
+      min-width: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 16px 34px rgba(17, 24, 39, 0.075);
+      padding: 20px;
+    }
+
+    .panel h2 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 14px;
+      font-size: 31px;
+      line-height: 1.18;
+    }
+
+    .num {
+      display: inline-flex;
+      width: 42px;
+      height: 42px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--huawei-red);
+      font-size: 23px;
+      font-weight: 900;
+    }
+
+    .value-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 11px;
+    }
+
+    .value-card,
+    .dev-item {
+      border-radius: 14px;
+      border: 1px solid var(--border, #d1d5db);
+      background: var(--fill, var(--soft));
+    }
+
+    .value-card {
+      min-height: 132px;
+      padding: 16px 18px;
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .value-code {
+      width: 76px;
+      min-height: 76px;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .value-code b {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .value-code span {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .value-card strong,
+    .dev-item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.16;
+      margin-bottom: 7px;
+    }
+
+    .value-card p,
+    .dev-item p {
+      margin: 0;
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1.34;
+    }
+
+    .value-card em,
+    .dev-item em {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-style: normal;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .arch-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .arch-panel h2 {
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .arch-lead {
+      margin: -2px 0 12px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.28;
+      text-align: center;
+    }
+
+    .logic-arch {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .arch-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .arch-cell,
+    .arch-layer,
+    .arch-rail {
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: var(--fill);
+    }
+
+    .arch-cell {
+      min-height: 70px;
+      padding: 10px;
+    }
+
+    .arch-layer {
+      padding: 12px 14px;
+      min-height: 86px;
+    }
+
+    .arch-rail {
+      padding: 10px 12px;
+      min-height: 70px;
+    }
+
+    .arch-cell b,
+    .arch-layer b,
+    .arch-rail b {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--accent);
+      font-size: 20px;
+      line-height: 1.16;
+    }
+
+    .arch-layer b { font-size: 21px; }
+
+    .arch-cell span,
+    .arch-layer span,
+    .arch-rail span {
+      color: var(--text);
+      font-size: 14.5px;
+      line-height: 1.24;
+    }
+
+    .arch-join {
+      position: relative;
+      height: 24px;
+      margin: -3px 0;
+    }
+
+    .arch-join::before,
+    .arch-join::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 9px;
+      width: calc(50% - 18px);
+      border-bottom: 2px solid #d1d5db;
+    }
+
+    .arch-join::before {
+      left: 25%;
+      border-left: 2px solid #d1d5db;
+      border-bottom-left-radius: 12px;
+    }
+
+    .arch-join::after {
+      right: 25%;
+      border-right: 2px solid #d1d5db;
+      border-bottom-right-radius: 12px;
+    }
+
+    .arch-down {
+      text-align: center;
+      color: var(--huawei-red);
+      font-size: 17px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .dev-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .dev-item {
+      min-height: 128px;
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 15px;
+      align-items: start;
+      padding: 17px 18px;
+    }
+
+    .dev-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .source {
+      position: absolute;
+      right: 54px;
+      bottom: 2px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <section class="slide">
+    <div class="title-row">
+      <div>
+        <h1>NextAgent TS：网络智能体框架设计</h1>
+        <div class="subtitle">围绕网络运维长任务，优先设计运行可信、过程透明、治理内建和开发可扩展的框架底座。</div>
+      </div>
+      <div class="tag">可信运行 · 治理内建</div>
+    </div>
+
+    <section class="metric-strip" aria-label="关键竞争指标">
+      <div class="metric-title">
+        <b>目标效果</b>
+        <span>由设计特性推导出的框架能力</span>
+      </div>
+      <div class="metric" style="--accent:#8f1d2c"><b>异步</b><span>事件驱动长任务</span></div>
+      <div class="metric" style="--accent:#b4232f"><b>4h+</b><span>长时任务接续</span></div>
+      <div class="metric" style="--accent:#d97706"><b>2种</b><span>SSE / WebSocket</span></div>
+      <div class="metric" style="--accent:#7f1d1d"><b>3类</b><span>Tool / Skill / Agent</span></div>
+      <div class="metric" style="--accent:#4b5563"><b>4链</b><span>Log / Trace / Metric / Audit</span></div>
+      <div class="metric" style="--accent:#e4002b"><b>L/R</b><span>Remote / Local Gateway</span></div>
+    </section>
+
+    <main class="grid">
+      <section class="panel">
+        <h2><span class="num">1</span>价值特性</h2>
+        <div class="value-list">
+          <div class="value-card" style="--fill:#f3f4f6;--border:#d1d5db;--accent:#8f1d2c">
+            <div class="value-code"><b>01</b><span>吞吐</span></div>
+            <div>
+              <strong>异步吞吐</strong>
+              <p>异步事件驱动和受控并发服务于长任务稳定运行；能力调用按预算、依赖图、超时和聚合规则推进。</p>
+              <em>高负载下保持可控</em>
+            </div>
+          </div>
+
+          <div class="value-card" style="--fill:#fff1f2;--border:#fecdd3;--accent:#b4232f">
+            <div class="value-code"><b>02</b><span>接续</span></div>
+            <div>
+              <strong>4h+ 长时运行</strong>
+              <p>RequestRun、timeline、checkpoint、claim/fencing 和终态提交共同构成运行事实，支撑超长任务接续或安全终止。</p>
+              <em>面向诊断、巡检、报告长任务</em>
+            </div>
+          </div>
+
+          <div class="value-card" style="--fill:#fff7ed;--border:#fed7aa;--accent:#d97706">
+            <div class="value-code"><b>03</b><span>透明</span></div>
+            <div>
+              <strong>2路过程透明</strong>
+              <p>SSE / WebSocket 共享同一事件语义，呈现受理、执行、等待确认、降级、拒绝和最终结果。</p>
+              <em>减少黑盒等待和重复提交</em>
+            </div>
+          </div>
+
+          <div class="value-card" style="--fill:#f9fafb;--border:#d1d5db;--accent:#4b5563">
+            <div class="value-code"><b>04</b><span>治理</span></div>
+            <div>
+              <strong>4链治理</strong>
+              <p>日志、Trace、Metrics、Audit、脱敏统一进入观测边界，覆盖基础运维和智能体业务链路。</p>
+              <em>支撑定位、追踪、合规和容量治理</em>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel arch-panel">
+        <h2>逻辑架构图</h2>
+        <div class="arch-lead">左承用户体验，右承开发配置，底层 Gateway 支持远端与本地两种运行形态。</div>
+        <div class="logic-arch">
+          <div class="arch-split">
+            <div class="arch-cell" style="--fill:#fff1f2;--border:#fecdd3;--accent:#b4232f">
+              <b>用户入口</b>
+              <span>流式交互、任务控制、历史续接</span>
+            </div>
+            <div class="arch-cell" style="--fill:#f3f4f6;--border:#d1d5db;--accent:#4b5563">
+              <b>开发装配</b>
+              <span>Agent、模型、能力、策略装配</span>
+            </div>
+          </div>
+          <div class="arch-join"><div class="arch-down">↓</div></div>
+          <div class="arch-layer" style="--fill:#f9fafb;--border:#d1d5db;--accent:#8f1d2c">
+            <b>Agent 编排层</b>
+            <span>领域 Agent、上下文选择、路由策略、人机协作边界</span>
+          </div>
+          <div class="arch-down">↓</div>
+          <div class="arch-layer" style="--fill:#fff1f2;--border:#fecdd3;--accent:#b4232f">
+            <b>Runtime 运行层</b>
+            <span>异步生命周期、并发控制、checkpoint、恢复接续、终态事实</span>
+          </div>
+          <div class="arch-down">↓</div>
+          <div class="arch-layer" style="--fill:#fff7ed;--border:#fed7aa;--accent:#d97706">
+            <b>Capability 治理层</b>
+            <span>Tool / Skill / Agent 的发现、授权、调用、审计</span>
+          </div>
+          <div class="arch-down">↓</div>
+          <div class="arch-rail" style="--fill:#f9fafb;--border:#d1d5db;--accent:#4b5563">
+            <b>Observability & Audit</b>
+            <span>日志、链路、指标、审计、脱敏统一收口</span>
+          </div>
+          <div class="arch-down">↓</div>
+          <div class="arch-split">
+            <div class="arch-cell" style="--fill:#fff1f2;--border:#fecdd3;--accent:#8f1d2c">
+              <b>Remote Gateway</b>
+              <span>平台服务、远端能力、模型网关</span>
+            </div>
+            <div class="arch-cell" style="--fill:#f3f4f6;--border:#d1d5db;--accent:#4b5563">
+              <b>Local Gateway</b>
+              <span>本地运行、调试替身、离线适配</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2><span class="num">2</span>智能体开发</h2>
+        <div class="dev-stack">
+          <div class="dev-item" style="--fill:#fff1f2;--border:#fecdd3;--accent:#b4232f">
+            <div class="dev-icon">3</div>
+            <div>
+              <strong>3类能力扩展</strong>
+              <p>Tool、Skill、SubAgent 统一进入能力目录和调用边界，避免多套接入、多套审计。</p>
+              <em>扩展不改运行主流程</em>
+            </div>
+          </div>
+
+          <div class="dev-item" style="--fill:#fff7ed;--border:#fed7aa;--accent:#d97706">
+            <div class="dev-icon">7</div>
+            <div>
+              <strong>7处治理扩展点</strong>
+              <p>请求、规划、模型、能力、结果和终态等阶段预留 Hook / Policy 边界。</p>
+              <em>治理规则前置到开发接口</em>
+            </div>
+          </div>
+
+          <div class="dev-item" style="--fill:#f3f4f6;--border:#d1d5db;--accent:#4b5563">
+            <div class="dev-icon">L</div>
+            <div>
+              <strong>L/R双形态开发</strong>
+              <p>Local Gateway、local store、默认替身和 test kit 支撑本地启动、调试、验证，再切换远端平台能力。</p>
+              <em>降低集成和联调成本</em>
+            </div>
+          </div>
+
+          <div class="dev-item" style="--fill:#f9fafb;--border:#d1d5db;--accent:#8f1d2c">
+            <div class="dev-icon">1</div>
+            <div>
+              <strong>1套公共契约</strong>
+              <p>Model Provider、Gateway Adapter、观测审计和安全边界都通过稳定契约协作。</p>
+              <em>支撑团队并行开发和模块替换</em>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="source">来源：docs/nextagent-ts-requirements-v2.md、TS architecture / core contracts OpenSpec design</div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,20 @@
+﻿# Dependencies
+node_modules/
+
+# Binary deployment target and runtime state
+target/
+
+# Runtime data (sqlite databases, logs)
+data/
+
+# Runtime logs
+logs/
+
+# Test run output (reports, logs, temporary scripts)
+test-output/
+
+# Documentation and review artifacts
+docs/
+
+# Skills (local only, not for repo)
+.skills/

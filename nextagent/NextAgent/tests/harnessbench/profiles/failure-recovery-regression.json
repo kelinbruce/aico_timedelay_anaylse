@@ -1,0 +1,11 @@
+{
+  "profileId": "failure-recovery-regression",
+  "nonScoring": true,
+  "taskIds": [
+    "007-session-memory",
+    "078-local-api-cursor-retry-ledger",
+    "081-local-html-dom-form-extract",
+    "088-api-contract-mock-client-compat",
+    "091-financial-close-reconciliation"
+  ]
+}

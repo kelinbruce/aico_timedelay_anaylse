@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NextAgent 上下文管理：给每次回答准备一张可靠的工作台</title>
+  <style>
+    :root {
+      --ink: #17202a; --muted: #5e6b78; --paper: #f4f7f5; --panel: #ffffff;
+      --line: #d7dfdb; --green: #0d6b57; --green-soft: #dff3ec; --blue: #2259a6;
+      --blue-soft: #e8f0fb; --amber: #a85b0b; --amber-soft: #fff0d8; --red: #a23d39;
+      --shadow: 0 14px 40px rgba(23,32,42,.08); --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--paper); font: 16px/1.72 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+    a { color: var(--blue); }
+    button { font: inherit; }
+    .hero { padding: 72px 24px 56px; color: #fff; background: linear-gradient(135deg,#103c35,#0d6b57 58%,#187e69); }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    .eyebrow { display: inline-block; padding: 5px 11px; border: 1px solid rgba(255,255,255,.35); border-radius: 99px; font-size: 13px; letter-spacing: .08em; }
+    h1 { max-width: 900px; margin: 18px 0 12px; font-size: clamp(34px,6vw,62px); line-height: 1.1; letter-spacing: -.035em; }
+    .lead { max-width: 760px; margin: 0; color: rgba(255,255,255,.86); font-size: 19px; }
+    .hero-meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 30px; color: rgba(255,255,255,.72); font-size: 14px; }
+    .nav { position: sticky; top: 0; z-index: 10; background: rgba(244,247,245,.94); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+    .nav .wrap { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; }
+    .nav a { flex: 0 0 auto; padding: 7px 11px; color: var(--muted); text-decoration: none; border-radius: 9px; font-size: 14px; }
+    .nav a:hover { background: var(--panel); color: var(--ink); }
+    main { padding: 48px 0 80px; }
+    section { margin: 0 0 72px; scroll-margin-top: 72px; }
+    h2 { margin: 0 0 10px; font-size: clamp(27px,4vw,38px); line-height: 1.25; letter-spacing: -.02em; }
+    h3 { margin: 0 0 8px; font-size: 19px; line-height: 1.35; }
+    .section-intro { max-width: 790px; margin: 0 0 28px; color: var(--muted); }
+    .plain { padding: 26px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .analogy { display: grid; grid-template-columns: 96px 1fr; gap: 22px; align-items: center; }
+    .desk { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; background: var(--green-soft); color: var(--green); font-size: 46px; }
+    .grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .card { padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 15px; }
+    .card p { margin: 0; color: var(--muted); }
+    .tag { display: inline-block; margin-bottom: 11px; padding: 3px 9px; border-radius: 99px; background: var(--green-soft); color: var(--green); font-size: 12px; font-weight: 700; }
+    .map { display: grid; gap: 14px; margin-bottom: 28px; padding: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .map-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; align-items: stretch; }
+    .map-node { display: grid; place-items: center; min-height: 72px; padding: 10px; text-align: center; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); }
+    .map-node small { display: block; color: var(--muted); }
+    .map-core { color: #fff; background: var(--green); border-color: var(--green); }
+    .map-core small { color: rgba(255,255,255,.76); }
+    .map-arrow { text-align: center; color: var(--green); font-size: 28px; line-height: 1; }
+    .map-band { padding: 12px 16px; text-align: center; border-radius: 11px; background: var(--blue-soft); color: var(--blue); }
+    .map-band strong { margin-right: 12px; }
+    .flow-shell { padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+    .steps { display: grid; grid-template-columns: repeat(7,1fr); gap: 8px; }
+    .step-btn { min-height: 82px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: #fff; cursor: pointer; }
+    .step-btn span { display: block; color: var(--green); font-size: 12px; font-weight: 700; }
+    .step-btn[aria-selected="true"] { color: #fff; background: var(--green); border-color: var(--green); }
+    .step-btn[aria-selected="true"] span { color: rgba(255,255,255,.72); }
+    .step-detail { min-height: 126px; margin-top: 16px; padding: 20px; background: var(--green-soft); border-radius: 12px; }
+    .step-detail p { margin: 8px 0 0; }
+    .inout { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: stretch; }
+    .io-box { padding: 24px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
+    .arrow { display: grid; place-items: center; color: var(--green); font-size: 32px; }
+    ul { margin: 10px 0 0; padding-left: 21px; }
+    .layers { display: grid; gap: 12px; }
+    .layer { display: grid; grid-template-columns: 78px 1fr 220px; gap: 18px; align-items: center; padding: 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+    .layer-no { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; color: #fff; background: var(--green); font-weight: 800; }
+    .layer p { margin: 4px 0 0; color: var(--muted); }
+    .when { padding: 10px 12px; border-radius: 10px; background: var(--amber-soft); color: var(--amber); font-size: 14px; }
+    .budget { display: grid; grid-template-columns: 1.1fr .9fr; gap: 22px; }
+    .meter { overflow: hidden; display: flex; height: 54px; border-radius: 11px; background: #e6ebe8; }
+    .meter > div { display: grid; place-items: center; color: #fff; font-size: 12px; text-align: center; }
+    .m1 { width: 16%; background: #235347; } .m2 { width: 42%; background: #34806d; } .m3 { width: 17%; background: #4a6fa3; } .m4 { width: 25%; background: #bd7a31; }
+    .formula { margin-top: 13px; padding: 14px; border-left: 4px solid var(--green); background: var(--green-soft); font-family: ui-monospace,Consolas,monospace; }
+    .scenario { display: grid; grid-template-columns: 240px 1fr; gap: 22px; }
+    .scenario-menu { display: grid; gap: 8px; align-content: start; }
+    .scenario-menu button { padding: 12px 14px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); cursor: pointer; }
+    .scenario-menu button[aria-pressed="true"] { color: #fff; background: var(--blue); border-color: var(--blue); }
+    .scenario-panel { padding: 25px; background: var(--blue-soft); border-radius: 14px; }
+    .scenario-panel ol { padding-left: 22px; }
+    .boundary { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .yes, .no { padding: 23px; border-radius: 14px; }
+    .yes { background: var(--green-soft); } .no { background: #fbe8e7; }
+    .yes h3 { color: var(--green); } .no h3 { color: var(--red); }
+    details { margin-bottom: 10px; padding: 14px 17px; background: var(--panel); border: 1px solid var(--line); border-radius: 11px; }
+    summary { cursor: pointer; font-weight: 700; }
+    details p { margin-bottom: 0; color: var(--muted); }
+    .sources { font-size: 14px; color: var(--muted); }
+    code { padding: 2px 5px; border-radius: 5px; background: #e7ece9; font-family: ui-monospace,Consolas,monospace; font-size: .9em; }
+    footer { padding: 30px 0 50px; color: var(--muted); border-top: 1px solid var(--line); font-size: 14px; }
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr 1fr; } .steps { grid-template-columns: 1fr 1fr; }
+      .map-row { grid-template-columns: 1fr 1fr; } .map-row .map-node:last-child { grid-column: 1 / -1; }
+      .layer { grid-template-columns: 64px 1fr; } .when { grid-column: 2; }
+      .budget, .scenario { grid-template-columns: 1fr; } .scenario-menu { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 560px) {
+      .hero { padding-top: 48px; } .grid, .boundary { grid-template-columns: 1fr; }
+      .map-row { grid-template-columns: 1fr; } .map-row .map-node:last-child { grid-column: auto; }
+      .analogy { grid-template-columns: 1fr; } .inout { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); }
+      .scenario-menu { grid-template-columns: 1fr; } .layer { grid-template-columns: 52px 1fr; padding: 15px; }
+      .layer-no { width: 46px; height: 46px; } .when { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <span class="eyebrow">NEXTAGENT · CONTEXT MANAGEMENT</span>
+      <h1>给每次回答，准备一张可靠的工作台</h1>
+      <p class="lead">上下文管理不是“把所有聊天记录都塞给模型”，而是在安全边界内，挑出当前真正需要的指令、历史、工具、附件和预算，再整理成模型能正确理解的一份输入。</p>
+      <div class="hero-meta"><span>面向：产品、交付、测试与初学开发者</span><span>代码基线：origin/main @ 8ebb157ca</span><span>核验日期：2026-08-11</span></div>
+    </div>
+  </header>
+
+  <nav class="nav" aria-label="页面目录"><div class="wrap">
+    <a href="#what">一句话理解</a><a href="#features">功能全景</a><a href="#flow">运行流程</a><a href="#budget">预算与压缩</a><a href="#cases">真实场景</a><a href="#boundary">边界</a><a href="#terms">术语</a>
+  </div></nav>
+
+  <main class="wrap">
+    <section id="what">
+      <h2>一句话理解：它像一位会整理材料的值班工程师</h2>
+      <p class="section-intro">模型的上下文窗口有限，就像值班台的桌面有限。上下文引擎负责在每次调用模型前重新整理桌面。</p>
+      <div class="plain analogy">
+        <div class="desk" aria-hidden="true">▤</div>
+        <div><h3>不是“记住一切”，而是“这一次摆对东西”</h3><p>当前问题必须在桌上；相关历史按完整轮次放好；超长日志只放摘要和取件单；工具和附件先过权限检查；还要为模型回答预留空间。最终得到的不是数据库原文，而是一次性的、受治理的“模型工作台”。</p></div>
+      </div>
+    </section>
+
+    <section id="features">
+      <h2>它包含哪些功能</h2>
+      <p class="section-intro">这些能力共同回答五个问题：用谁的配置、看哪些内容、能用什么工具、装不下怎么办、出了问题如何解释。</p>
+      <div class="map" role="img" aria-label="上下文管理功能关系图：可信坐标与五类输入进入上下文引擎，经过装配、选择、容量治理和渲染，形成最终模型输入；作用域安全和诊断监控贯穿全程。">
+        <div class="map-row">
+          <div class="map-node"><strong>可信坐标</strong><small>Owner / Agent / Run</small></div>
+          <div class="map-node"><strong>Agent Assembly</strong><small>版本、Prompt、模型</small></div>
+          <div class="map-node"><strong>Active Context</strong><small>当前请求与历史</small></div>
+          <div class="map-node"><strong>Capability</strong><small>Tool / Skill / 生成消息</small></div>
+          <div class="map-node"><strong>附件与条件记忆</strong><small>受控补充材料</small></div>
+        </div>
+        <div class="map-arrow" aria-hidden="true">↓</div>
+        <div class="map-row">
+          <div class="map-node map-core"><strong>① 装配</strong><small>锁定版本和作用域</small></div>
+          <div class="map-node map-core"><strong>② 选择</strong><small>模型、能力、完整历史</small></div>
+          <div class="map-node map-core"><strong>③ 容量治理</strong><small>通用/RAG 微压缩、大内容、预算、摘要</small></div>
+          <div class="map-node map-core"><strong>④ Render</strong><small>批量加载与协议校验</small></div>
+          <div class="map-node map-core"><strong>⑤ 模型输入</strong><small>messages + tools + options</small></div>
+        </div>
+        <div class="map-arrow" aria-hidden="true">↓</div>
+        <div class="map-row">
+          <div class="map-node"><strong>agent-model</strong><small>调用模型</small></div>
+          <div class="map-node"><strong>Fallback</strong><small>换模型后重新装配</small></div>
+          <div class="map-node"><strong>Runtime</strong><small>生命周期、Retry、Fork</small></div>
+          <div class="map-node"><strong>Gateway</strong><small>规范事实与外置内容</small></div>
+          <div class="map-node"><strong>可选 Plugin</strong><small>Context Monitor</small></div>
+        </div>
+        <div class="map-band"><strong>贯穿全程</strong>Owner Scope + Agent Scope 安全隔离 · Budget / Compression / Attachment Evidence · Safe Error · Observability</div>
+      </div>
+      <div class="grid">
+        <article class="card"><span class="tag">身份与范围</span><h3>作用域校验</h3><p>使用可信的租户/用户、Agent、Session、Request、Run 坐标取数据，避免串租户、串用户或串 Agent。</p></article>
+        <article class="card"><span class="tag">会话历史</span><h3>完整轮次选择</h3><p>优先保护当前问题；历史只按完整 Turn 纳入，丢弃残缺工具调用、隐藏替换结果与不可见消息。</p></article>
+        <article class="card"><span class="tag">模型窗口</span><h3>Token 预算</h3><p>根据所选模型的窗口大小，扣除回答预留，再决定系统提示、历史、工具和附件各能占多少。</p></article>
+        <article class="card"><span class="tag">容量治理</span><h3>多层压缩</h3><p>通用工具和历史 RAG 使用两套独立微压缩规则；之后处理单个超大内容，必要时再摘要更早对话。</p></article>
+        <article class="card"><span class="tag">大内容</span><h3>外置与按需读回</h3><p>超长日志等内容存入受控工作区，模型只看到预览和引用，需要时通过 Read 分页取回。</p></article>
+        <article class="card"><span class="tag">提示工程</span><h3>Prompt 装配</h3><p>按用途、语言、Agent 版本和运行变量组装系统提示，并划分稳定区与动态区以支持缓存。</p></article>
+        <article class="card"><span class="tag">能力治理</span><h3>Tool / Skill 可见性</h3><p>只披露当前 accepted Agent 被允许使用的能力；拒绝列表具有最终排除权，Capability 生成消息也只能在受控位置与大小限制内插入。</p></article>
+        <article class="card"><span class="tag">模型路由</span><h3>选择与 Fallback</h3><p>选择受治理且可用的模型；切换到不同窗口的备用模型后，会重新做整套装配和预算。</p></article>
+        <article class="card"><span class="tag">输入材料</span><h3>附件处理</h3><p>解析文本、Blob、二进制和不可用附件，纳入预算；正文、路径与原始字节不进入普通诊断。</p></article>
+        <article class="card"><span class="tag">最终边界</span><h3>Render 与协议校验</h3><p>批量加载所选引用，重放 RAG/通用微压缩和大内容替换，校验 Tool Call/Result、附件及 Provider Options，形成统一模型输入。</p></article>
+        <article class="card"><span class="tag">长期知识</span><h3>记忆协作</h3><p>核心 Context Engine 不自行检索记忆；应用层可在首轮调用前按绑定条件召回 L1/L2 记忆和用户特征，经补充预算准入后一次性注入。</p></article>
+        <article class="card"><span class="tag">连续性</span><h3>Fork 与 Retry</h3><p>Fork 取目标点之前的规范历史，不复制运行中状态；Retry 排除已被替换的旧回答。</p></article>
+        <article class="card"><span class="tag">可诊断</span><h3>证据与安全降级</h3><p>Observed Context Engine 投影选中、省略、降级、压缩和模型选择证据；压缩前后 Hook 可扩展，可选 Context Monitor 观察演进且不阻断主路径。</p></article>
+      </div>
+    </section>
+
+    <section id="flow">
+      <h2>一次模型调用，内部怎么运行</h2>
+      <p class="section-intro">点击步骤查看详情。核心采用 <code>assemble → render</code> 两阶段：先做决定，再把决定变成模型输入。</p>
+      <div class="flow-shell">
+        <div class="steps" role="tablist" aria-label="上下文装配步骤">
+          <button class="step-btn" role="tab" aria-selected="true" data-step="0"><span>01</span>锁定坐标</button>
+          <button class="step-btn" role="tab" aria-selected="false" data-step="1"><span>02</span>加载状态</button>
+          <button class="step-btn" role="tab" aria-selected="false" data-step="2"><span>03</span>选模型与能力</button>
+          <button class="step-btn" role="tab" aria-selected="false" data-step="3"><span>04</span>选择历史</button>
+          <button class="step-btn" role="tab" aria-selected="false" data-step="4"><span>05</span>压缩与预算</button>
+          <button class="step-btn" role="tab" aria-selected="false" data-step="5"><span>06</span>形成 Assembly</button>
+          <button class="step-btn" role="tab" aria-selected="false" data-step="6"><span>07</span>Render 并调用</button>
+        </div>
+        <div class="step-detail" id="step-detail" role="tabpanel" aria-live="polite"></div>
+      </div>
+      <div class="inout" style="margin-top:20px">
+        <div class="io-box"><h3>输入：可信坐标 + 意图</h3><ul><li>Session / Request / Run / Step</li><li>Owner Scope 与 Agent 版本</li><li>语言、Prompt 用途、运行变量</li><li>可选的受治理能力补丁</li></ul></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="io-box"><h3>输出：RenderedModelInput</h3><ul><li>整理后的 messages</li><li>允许使用的 tools</li><li>模型信息与受控 options</li><li>不会携带数据库对象或客户端越权字段</li></ul></div>
+      </div>
+    </section>
+
+    <section id="budget">
+      <h2>内容太多时，如何保证“装得下”</h2>
+      <p class="section-intro">系统先计算可用输入空间，并保护当前请求。不是粗暴地从字符串中间切断，而是按语义和风险逐层处理。</p>
+      <div class="budget">
+        <div class="plain"><h3>窗口示意（并非固定比例）</h3><div class="meter" aria-label="模型窗口由系统提示、历史、工具附件和回答预留组成"><div class="m1">系统提示</div><div class="m2">历史与当前问题</div><div class="m3">工具/附件</div><div class="m4">回答预留</div></div><div class="formula">可用输入 = 模型上下文窗口 − 最大输出预留</div><p style="color:var(--muted)">当前用户请求和最小安全上下文是硬保护项；实在放不下时明确失败，不静默丢掉关键问题。</p></div>
+        <div class="plain"><h3>为什么要重新计算</h3><p>不同模型的上下文窗口不同。若主模型失败并切换到更小的备用模型，旧预算立即失效。NextAgent 会重新选择 Prompt、历史、能力、压缩策略和最终输入。</p></div>
+      </div>
+      <div class="layers" style="margin-top:22px">
+        <article class="layer"><div class="layer-no">1A</div><div><h3>通用 Micro-compact：收起旧工具输出</h3><p>只处理 Bash、Read、Grep、Glob、Write、Python 白名单。候选超过 10 条时保留最近 5 条，把更旧结果换成有界占位；不调用模型。</p></div><div class="when">规则：历史白名单 Tool Result &gt; 10，keepRecent = 5</div></article>
+        <article class="layer"><div class="layer-no">1B</div><div><h3>历史 RAG Micro-compact：全部换成占位</h3><p>扫描当前请求之前所有 canonical 已完成历史轮次，把其中每一条 <code>Rag</code> Result 都替换成确定性有界占位；不受“超过 10 条”或“保留最近 5 条”影响。当前请求内的 RAG 始终保持完整。</p></div><div class="when">目的：保留历史问答结论，不让旧检索正文持续占满窗口</div></article>
+        <article class="layer"><div class="layer-no">2</div><div><h3>Large-content：预览 + 引用</h3><p>单个 Tool Result 太大时只留有限预览，原文保存到受控位置；模型可用 offset / limit 按需分页读取。</p></div><div class="when">适合：数 MB 日志、超长命令结果、二进制附件</div></article>
+        <article class="layer"><div class="layer-no">3</div><div><h3>Summary compression：总结更早对话</h3><p>接近模型窗口上限时，把更早的完整 Turns 生成可追踪 SUMMARY，同时保留最近历史原文；提交带版本校验和幂等键，并清理已失效的 micro-compact state。</p></div><div class="when">适合：经历很多轮仍需继续的长会话</div></article>
+      </div>
+      <div class="plain" style="margin-top:18px"><h3>真实执行顺序</h3><p><code>选择完整历史 → 通用 + RAG Micro-compact → Large-content 替换 → Token 预算 → 必要时 Summary compression → Render 时确定性重放</code></p><p style="color:var(--muted)">RAG 压缩与通用微压缩在同一个 micro-compact 阶段执行，但资格规则完全独立；它不是 RAG 检索本身，也不会删除 canonical 历史。</p></div>
+    </section>
+
+    <section id="cases">
+      <h2>放到真实场景里看</h2>
+      <p class="section-intro">选择一个常见问题，看看上下文管理在背后做了什么。</p>
+      <div class="scenario">
+        <div class="scenario-menu" aria-label="场景选择">
+          <button aria-pressed="true" data-case="log">5 MB 网元日志</button>
+          <button aria-pressed="false" data-case="follow">追问“那该怎么办？”</button>
+          <button aria-pressed="false" data-case="fallback">切换备用模型</button>
+          <button aria-pressed="false" data-case="rag">多轮 RAG 问答</button>
+          <button aria-pressed="false" data-case="scope">请求了别人的 Session</button>
+        </div>
+        <div class="scenario-panel" id="scenario-panel" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="boundary">
+      <h2>它负责什么，又不负责什么</h2>
+      <p class="section-intro">边界清楚，才能理解为什么上下文管理不是“所有与聊天有关的功能”。</p>
+      <div class="boundary">
+        <div class="yes"><h3>Context Engine 负责</h3><ul><li>为本次模型调用选材料</li><li>窗口、Token 与压缩策略</li><li>Prompt 和能力披露</li><li>附件与大内容的安全投影</li><li>形成最终模型输入</li></ul></div>
+        <div class="no"><h3>它不拥有</h3><ul><li>请求生命周期与调度（agent-runtime）</li><li>长期记忆生命周期（agent-memory）</li><li>模型厂商 SDK（agent-model）</li><li>Web 会话投影（agent-channel-web）</li><li>数据库驱动与持久化细节（gateway-local）</li></ul></div>
+      </div>
+    </section>
+
+    <section id="terms">
+      <h2>看懂代码前，先认这几个词</h2>
+      <p class="section-intro">展开即可查看通俗解释。</p>
+      <details><summary>Context Assembly 是什么？</summary><p>一次“装配决定”的结果：选了哪些消息、哪个模型、哪些能力、采用什么 Prompt、预算如何分配。它还不是最终发送给模型的完整文本。</p></details>
+      <details><summary>RenderedModelInput 是什么？</summary><p>Render 阶段把 Assembly 指向的材料重新批量加载、校验并转换后得到的最终模型输入，包含 messages、tools 和受控模型选项。</p></details>
+      <details><summary>Active Context 是什么？</summary><p>某个 Session 当前可用于继续对话的规范上下文快照。历史选择只从同一个快照出发，避免边读边变导致前后不一致。</p></details>
+      <details><summary>Turn 是什么？</summary><p>一次完整对话轮次，通常从用户问题开始，中间可能包含工具调用与结果，最后以 Assistant 回答或 Summary 结束。残缺 Turn 不会被拆碎后塞给模型。</p></details>
+      <details><summary>Owner Scope 与 Agent Scope 是什么？</summary><p>Owner Scope 回答“这是哪个租户/用户的数据”；Agent Scope 回答“这是哪个 Agent 的配置与数据”。主路径读取需要同时满足两层隔离。</p></details>
+    </section>
+
+    <section class="sources">
+      <h2>核验依据</h2>
+      <p>本页基于最新远端代码中的 <code>docs/developer/08-context-management.md</code>、<code>packages/agent-context-engine/src/</code>、<code>packages/agent-app/src/composition/context-engine-composition.ts</code>、<code>packages/agent-app/src/composition/user-query-memory-recall-hook.ts</code>，以及 context engine、contract、architecture、smoke/e2e 相关测试目录整理。页面用通俗语言归纳，不替代 OpenSpec 与 TypeScript contract。</p>
+    </section>
+  </main>
+
+  <footer><div class="wrap">NextAgent 上下文管理说明 · 以代码与规格为准 · 生成基线 origin/main @ 8ebb157ca</div></footer>
+
+  <script>
+    const stepData = [
+      ['锁定可信坐标','请求进入后，先使用可信来源确定 Owner Scope、Agent、Session、Request 和 Run。客户端不能用请求体覆盖身份或 Agent。'],
+      ['加载一致快照','读取 owner + agent + session scoped 的 Active Context，并按 accepted agentId / agentVersion 找到固定的 Agent Assembly。'],
+      ['选择模型、Prompt 与能力','解析可用模型和兼容模板，应用允许/拒绝的 Tool 策略；只披露当前 Agent 被治理后可见的 Capability。'],
+      ['选择当前请求与完整历史','当前根 USER 消息必须能解析；历史按完整 Turn 分组，隐藏替换、残缺 Tool Call/Result 和不可见内容整体排除。'],
+      ['压缩、外置并做预算门控','依次处理旧工具结果、超大内容和窗口预算；必要时生成历史摘要。当前问题若仍装不下，则明确返回预算不足。'],
+      ['形成 Context Assembly','记录消息引用、System Prompt、可见能力、模型与选中/省略/降级/压缩证据。这是一份可审计的“装配决定”。'],
+      ['重新加载、校验并渲染','批量加载所选消息，重放压缩与大内容替换，验证 Tool 协议和附件，形成 RenderedModelInput 后交给 agent-model。']
+    ];
+    const detail = document.getElementById('step-detail');
+    function renderStep(index) { const [title, text] = stepData[index]; detail.innerHTML = `<h3>${title}</h3><p>${text}</p>`; }
+    document.querySelectorAll('.step-btn').forEach((button) => button.addEventListener('click', () => {
+      document.querySelectorAll('.step-btn').forEach((b) => b.setAttribute('aria-selected','false'));
+      button.setAttribute('aria-selected','true'); renderStep(Number(button.dataset.step));
+    }));
+    renderStep(0);
+
+    const cases = {
+      log: ['5 MB 网元日志', ['Tool Result 被识别为超大文本。','原文外置到当前 Owner / Session 的受控 Execution Workspace。','模型输入只保留有限预览与 ContentRef。','确需细节时，模型通过 Read 的 offset / limit 分页读回。'], '结果：模型窗口不会被一份日志占满，原文仍可追溯，并且跨租户无法读取。'],
+      follow: ['追问“那该怎么办？”', ['系统先解析当前这句短问题。','上一轮“小区 KPI 查询 → Tool 结果 → 诊断结论”作为完整 Turn 纳入候选。','预算允许时保留整个 Turn，而不是只摘一条孤立消息。','模型因此能判断“那”指向上一轮的诊断结果。'], '结果：指代关系连续，Tool Call / Result 协议仍保持完整。'],
+      fallback: ['切换备用模型', ['主模型调用失败，模型选择服务排除已尝试模型。','选择 accepted Agent 中允许 fallback 的候选模型。','按新模型窗口重新装配 Prompt、历史、工具、附件和预算。','生成新的 RenderedModelInput 后再次调用。'], '结果：不会把按 128K 窗口准备的输入直接塞给 64K 模型。'],
+      rag: ['多轮 RAG 问答', ['第一、二轮都调用 Rag 并形成完整回答。','进入第三轮时，系统扫描全部已完成历史轮次，而不只看紧邻上一轮。','第一、二轮每条历史 Rag 原始 results 都换成有界占位，历史 USER 与最终 Assistant 结论仍保留。','第三轮当前请求新产生的所有 Rag Result 保持完整。'], '结果：旧检索正文不再重复消耗 Token，当前检索证据仍完整，Tool Call / Result 配对不变。'],
+      scope: ['请求了别人的 Session', ['身份来自可信 channel / auth boundary。','上下文读取同时携带 Owner Scope 与 Agent Scope。','Session 坐标不匹配时，读取或装配安全失败。','Safe Error 不暴露对方是否存在、内容或路径。'], '结果：租户 A 看不到租户 B 的历史、附件、记忆或外置日志。']
+    };
+    const scenarioPanel = document.getElementById('scenario-panel');
+    function renderCase(key) { const [title, steps, result] = cases[key]; scenarioPanel.innerHTML = `<h3>${title}</h3><ol>${steps.map(s=>`<li>${s}</li>`).join('')}</ol><p><strong>${result}</strong></p>`; }
+    document.querySelectorAll('[data-case]').forEach((button) => button.addEventListener('click', () => {
+      document.querySelectorAll('[data-case]').forEach((b) => b.setAttribute('aria-pressed','false'));
+      button.setAttribute('aria-pressed','true'); renderCase(button.dataset.case);
+    }));
+    renderCase('log');
+  </script>
+</body>
+</html>

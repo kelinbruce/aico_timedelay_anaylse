@@ -1,0 +1,18 @@
+{
+  'agentId': 'network-explorer',
+  'agentVersion': 'v1',
+  'displayName': 'Network Explorer',
+  'locales': { 'language': { 'zh-CN': { 'displayName': '网络探索智能体' }, 'en-US': { 'displayName': 'Network Explorer' } } },
+  'description': 'Use network-explorer for narrow, read-only telecom network evidence collection: inspect governed topology, alarms, KPI, logs, configuration snapshots, inventory, and ticket context, then return concise source-backed findings, confidence, limitations, and missing-data gaps.',
+  'capabilityBindings':
+    [
+      { 'capabilityId': 'Write', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': false },
+      { 'capabilityId': 'Bash', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': false },
+      { 'capabilityId': 'Python', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': false },
+      { 'capabilityId': 'Skill', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': false },
+      { 'capabilityId': 'AskUserQuestion', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': false },
+    ],
+  'userInvocable': false,
+  'runtimeSettings': { 'defaultLanguage': 'zh-CN', 'maxTurns': 20, 'maxToolCallsPerTurn': 30, 'requestTimeoutMs': 1800000 },
+  'resources': [],
+}

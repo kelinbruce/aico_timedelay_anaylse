@@ -1,0 +1,18 @@
+{
+  'agentId': 'harnessbench-agent',
+  'agentVersion': 'v1',
+  'displayName': 'NextAgent HarnessBench evaluator',
+  'description': 'Test-only Agent for externally scored workspace tasks.',
+  'capabilityBindings':
+    [
+      { 'capabilityId': 'Read', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': true },
+      { 'capabilityId': 'Write', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': true },
+      { 'capabilityId': 'Edit', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': true },
+      { 'capabilityId': 'Glob', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': true },
+      { 'capabilityId': 'Grep', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': true },
+      { 'capabilityId': 'Bash', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': true },
+      { 'capabilityId': 'Python', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': true },
+    ],
+  'runtimeSettings': { 'defaultLanguage': 'en-US', 'maxTurns': 50, 'maxToolCallsPerTurn': 30, 'requestTimeoutMs': 1800000 },
+  'resources': [],
+}

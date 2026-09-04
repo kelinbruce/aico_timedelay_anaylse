@@ -1,0 +1,169 @@
+swagger: '2.0'
+info:
+  title: Attachment API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/sessions/{sessionId}/files/upload:
+    post:
+      operationId: uploadFile
+      summary: Upload a file attachment to a session
+      tags:
+        - Attachment
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: file
+          in: formData
+          required: true
+          type: file
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/files/tmp/{tempRunId}:
+    delete:
+      operationId: deleteTempFile
+      summary: Delete a temporary uploaded file
+      tags:
+        - Attachment
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: tempRunId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: fileName
+          in: query
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 255
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/files/download:
+    get:
+      operationId: downloadFile
+      summary: Download a HOFS file by complete object name
+      tags:
+        - Attachment
+      produces:
+        - application/json
+        - application/octet-stream
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: path
+          in: query
+          required: true
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: File stream
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+            Content-Length:
+              schema:
+                type: integer
+            Content-Type:
+              schema:
+                type: string
+          schema:
+            type: file
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '503':
+          description: Service unavailable
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  TempFileDeleteQuery:
+    type: object
+    required:
+      - fileName
+    properties:
+      fileName:
+        type: string
+        minLength: 1
+        maxLength: 255
+    additionalProperties: false

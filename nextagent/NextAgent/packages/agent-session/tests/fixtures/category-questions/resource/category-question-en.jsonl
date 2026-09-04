@@ -1,0 +1,2 @@
+{"category":"Inventory","questions":[{"question":"Query current stock quantity for SKU001","fixed":true}],"records":[]}
+{"category":"Sales","questions":[],"records":[{"category":"Daily Sales","questions":[{"question":"Query sales amount for laptops in the past 24 hours","fixed":false}]}]}

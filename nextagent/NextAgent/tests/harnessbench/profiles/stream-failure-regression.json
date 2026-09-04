@@ -1,0 +1,14 @@
+{
+  "profileId": "stream-failure-regression",
+  "nonScoring": true,
+  "taskIds": [
+    "037-policy-clause-retrieval",
+    "041-frontend-state-bug",
+    "042-api-schema-migration",
+    "050-multitable-join-analysis",
+    "077-archive-manifest-defense",
+    "078-local-api-cursor-retry-ledger",
+    "079-smallfile-batch-reject-ledger",
+    "103-policy-update-replan-diff"
+  ]
+}

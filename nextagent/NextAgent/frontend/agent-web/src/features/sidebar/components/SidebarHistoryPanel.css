@@ -1,0 +1,162 @@
+.sidebar-history-panel {
+  --sidebar-history-panel-left: 0px;
+  --sidebar-history-panel-top: 0px;
+  position: fixed;
+  left: var(--sidebar-history-panel-left);
+  top: var(--sidebar-history-panel-top);
+  width: 374px;
+  height: 508px;
+  border-radius: 16px;
+  box-sizing: border-box;
+  padding: 16px;
+  background: var(--color-bg-tooltip);
+  box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.16);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+:root[data-theme='dark'] .sidebar-history-panel,
+:root[data-theme='evening'] .sidebar-history-panel {
+  box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar-history-panel-title {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 28px;
+  color: var(--color-text-primary);
+}
+
+.sidebar-history-panel-search {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 32px;
+}
+
+.sidebar-history-panel-search-input {
+  height: 32px !important;
+  line-height: normal !important;
+  padding: 0 11px 0 5px !important;
+  box-sizing: border-box;
+}
+
+.sidebar-history-panel-search-input::placeholder {
+  line-height: normal !important;
+}
+
+.sidebar-history-panel-search,
+.sidebar-history-panel-search .ant-input-affix-wrapper,
+.sidebar-history-panel-search-input {
+  background: transparent !important;
+}
+
+.sidebar-history-panel-search-icon {
+  color: var(--color-text-tertiary);
+}
+
+.sidebar-history-panel-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-history-panel-status {
+  display: block;
+  padding: 8px;
+}
+
+.sidebar-history-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 6px;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 120ms ease;
+}
+
+.sidebar-history-panel-row:hover,
+.sidebar-history-panel-row--hovered {
+  background: rgba(230, 242, 253, 1);
+  color: rgba(0, 103, 209, 1);
+}
+
+:root[data-theme='dark'] .sidebar-history-panel-row:hover,
+:root[data-theme='dark'] .sidebar-history-panel-row--hovered,
+:root[data-theme='evening'] .sidebar-history-panel-row:hover,
+:root[data-theme='evening'] .sidebar-history-panel-row--hovered {
+  background: rgba(0, 103, 209, 0.4);
+  color: rgba(255, 255, 255, 1);
+}
+
+.sidebar-history-panel-row-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: inherit !important;
+}
+
+.sidebar-history-panel-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #191919;
+  cursor: pointer;
+  font-size: 18px;
+  visibility: hidden;
+  flex-shrink: 0;
+}
+
+:root[data-theme='dark'] .sidebar-history-panel-delete,
+:root[data-theme='evening'] .sidebar-history-panel-delete {
+  color: #dfdfdf;
+}
+
+.sidebar-history-panel-row:hover .sidebar-history-panel-delete,
+.sidebar-history-panel-row--hovered .sidebar-history-panel-delete {
+  visibility: visible;
+}
+
+.sidebar-history-panel-delete-icon path {
+  transition: fill 120ms ease, stroke 120ms ease;
+}
+
+.sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-lid,
+.sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-handle,
+.sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-can {
+  fill: none;
+}
+
+:root[data-theme='dark'] .sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-lid,
+:root[data-theme='dark'] .sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-handle,
+:root[data-theme='dark'] .sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-can,
+:root[data-theme='evening'] .sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-lid,
+:root[data-theme='evening'] .sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-handle,
+:root[data-theme='evening'] .sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-can {
+  fill: currentColor;
+}
+
+.sidebar-history-panel-delete-icon .sidebar-history-panel-delete-icon-line {
+  stroke: #000000;
+  fill: none;
+  stroke-width: 1;
+  transform: scaleY(1.25);
+  transform-box: fill-box;
+  transform-origin: center;
+}

@@ -1,0 +1,92 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "outDir": "../dist/tests",
+    "tsBuildInfoFile": "../dist/tsbuildinfo/tests.tsbuildinfo",
+    "types": ["node", "vitest"]
+  },
+  "include": [
+    "**/*.test.ts",
+    "**/*-helpers.ts",
+    "fixtures/local-gateway.ts",
+    "fixtures/test-agent.ts",
+    "fixtures/capability.ts",
+    "helpers/model-stream-fixture.ts",
+    "setup.ts",
+    "../packages/*/tests/*-helpers.ts",
+    "../packages/*/tests/**/*.test.ts",
+    "../packages/agent-dev-workbench/web/src/process-graph-layout.ts",
+    "../src/process-fatal.ts",
+    "e2e/**/*.ts"
+  ],
+  "exclude": ["TESTClaw/**"],
+  "references": [
+    {
+      "path": "../packages/agent-common"
+    },
+    {
+      "path": "../packages/agent-local-file-roll"
+    },
+    {
+      "path": "../packages/agent-log"
+    },
+    {
+      "path": "../packages/agent-contracts"
+    },
+    {
+      "path": "../packages/agent-runtime"
+    },
+    {
+      "path": "../packages/agent-session"
+    },
+    {
+      "path": "../packages/agent-attachment-runtime"
+    },
+    {
+      "path": "../packages/agent-context-engine"
+    },
+    {
+      "path": "../packages/agent-memory"
+    },
+    {
+      "path": "../packages/agent-core"
+    },
+    {
+      "path": "../packages/agent-model"
+    },
+    {
+      "path": "../packages/agent-channel-common"
+    },
+    {
+      "path": "../packages/agent-channel-web"
+    },
+    {
+      "path": "../packages/agent-app-frontend-hosting"
+    },
+    {
+      "path": "../packages/agent-platform-gateway-local"
+    },
+    {
+      "path": "../packages/agent-platform-gateway-remote"
+    },
+    {
+      "path": "../packages/agent-remote-deployment"
+    },
+    {
+      "path": "../packages/agent-capability"
+    },
+    {
+      "path": "../packages/agent-observability"
+    },
+    {
+      "path": "../packages/agent-app"
+    },
+    {
+      "path": "../packages/agent-dev-workbench"
+    },
+    {
+      "path": "../packages/agent-test-kit"
+    }
+  ]
+}

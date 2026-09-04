@@ -1,0 +1,1033 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADNClaw 智能体运行时关键设计汇报</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d8dee8;
+      --paper: #ffffff;
+      --bg: #f5f7fb;
+      --blue: #1f6feb;
+      --cyan: #0f8b8d;
+      --green: #15803d;
+      --amber: #b45309;
+      --red: #b42318;
+      --slate: #344054;
+      --soft-blue: #eaf2ff;
+      --soft-cyan: #e9f7f7;
+      --soft-green: #eaf7ef;
+      --soft-amber: #fff4df;
+      --soft-red: #fdeceb;
+      --shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.65;
+    }
+
+    .hero {
+      color: #fff;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(255,255,255,0.18), transparent 24%),
+        linear-gradient(135deg, #102a43 0%, #165d8f 46%, #0f766e 100%);
+      padding: 48px 40px 38px;
+    }
+
+    .hero-inner, main, .nav-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      opacity: 0.88;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 38px;
+      line-height: 1.18;
+      font-weight: 750;
+    }
+
+    .hero p {
+      max-width: 900px;
+      margin: 18px 0 0;
+      font-size: 18px;
+      opacity: 0.94;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 30px;
+    }
+
+    .hero-metric {
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.11);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 112px;
+    }
+
+    .hero-metric strong {
+      display: block;
+      font-size: 26px;
+      line-height: 1.2;
+      margin-bottom: 7px;
+    }
+
+    .hero-metric span {
+      display: block;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-inner {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 10px 24px;
+    }
+
+    .nav-inner a {
+      color: var(--slate);
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 9px 12px;
+      border-radius: 7px;
+      font-size: 14px;
+    }
+
+    .nav-inner a:hover {
+      background: var(--soft-blue);
+      color: var(--blue);
+    }
+
+    main {
+      padding: 28px 24px 64px;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      margin: 0 0 22px;
+      padding: 28px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 25px;
+      line-height: 1.25;
+    }
+
+    h3 {
+      margin: 24px 0 10px;
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin: 0 0 20px;
+      max-width: 980px;
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .card h3, .card h4 {
+      margin: 0 0 8px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 650;
+      margin: 0 6px 8px 0;
+      border: 1px solid transparent;
+    }
+
+    .blue { background: var(--soft-blue); color: var(--blue); border-color: #bdd7ff; }
+    .cyan { background: var(--soft-cyan); color: var(--cyan); border-color: #bfe9e9; }
+    .green { background: var(--soft-green); color: var(--green); border-color: #c8ecd5; }
+    .amber { background: var(--soft-amber); color: var(--amber); border-color: #f8d99c; }
+    .red { background: var(--soft-red); color: var(--red); border-color: #fac5c1; }
+
+    .diagram {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 18px;
+      overflow-x: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #24324a;
+      white-space: pre;
+    }
+
+    .visual {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      padding: 18px;
+      margin-top: 14px;
+      overflow-x: auto;
+    }
+
+    .lane-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .lane-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .lane-card h4 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .lane-card .chain {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #eef4ff;
+      border: 1px solid #d4e4ff;
+      color: #244b75;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .arrow {
+      color: var(--blue);
+      font-weight: 800;
+    }
+
+    .system-map {
+      display: grid;
+      grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.1fr) minmax(260px, 1.25fr) minmax(180px, 0.9fr);
+      gap: 14px;
+      align-items: stretch;
+      min-width: 900px;
+    }
+
+    .map-column {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      position: relative;
+    }
+
+    .map-column h4 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      color: var(--slate);
+    }
+
+    .map-stack {
+      display: grid;
+      gap: 8px;
+    }
+
+    .map-node {
+      border: 1px solid #d5e2f2;
+      border-radius: 7px;
+      background: #f7fbff;
+      padding: 10px;
+      min-height: 48px;
+    }
+
+    .map-node strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .map-node span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .runtime-column {
+      border: 2px solid #1f6feb;
+      background: linear-gradient(180deg, #f4f9ff 0%, #eaf2ff 100%);
+      box-shadow: 0 14px 28px rgba(31, 111, 235, 0.16);
+    }
+
+    .runtime-column h4 {
+      color: #174ea6;
+    }
+
+    .runtime-node {
+      border-color: #80b7ff;
+      background: #ffffff;
+      box-shadow: inset 4px 0 0 #1f6feb;
+    }
+
+    .runtime-node strong {
+      color: #174ea6;
+      font-size: 14px;
+    }
+
+    .map-column:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 20px;
+      z-index: 2;
+    }
+
+    .swimlane {
+      display: grid;
+      grid-template-columns: 170px repeat(5, minmax(135px, 1fr));
+      gap: 8px;
+      min-width: 960px;
+    }
+
+    .swim-head, .swim-cell, .swim-label {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      padding: 10px;
+      min-height: 56px;
+    }
+
+    .swim-head {
+      background: #f2f5fa;
+      color: var(--slate);
+      font-weight: 700;
+      min-height: 42px;
+    }
+
+    .swim-label {
+      background: #fbfcfe;
+      font-weight: 700;
+      color: var(--slate);
+    }
+
+    .swim-cell {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .swim-cell.active {
+      background: #edf7ff;
+      border-color: #b9ddff;
+      color: #244b75;
+      font-weight: 650;
+    }
+
+    .runtime-lane {
+      border: 2px solid #1f6feb;
+      background: #eef6ff;
+      color: #174ea6;
+    }
+
+    .runtime-lane-cell {
+      border-color: #9cc9ff;
+      background: #f4f9ff;
+    }
+
+    .runtime-lane-cell.active {
+      background: #ddecff;
+      border-color: #1f6feb;
+      color: #174ea6;
+      box-shadow: inset 4px 0 0 #1f6feb;
+    }
+
+    .hook-track {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      gap: 8px;
+      min-width: 980px;
+      margin-bottom: 12px;
+    }
+
+    .hook-stage {
+      border: 1px solid #cbd8ea;
+      border-radius: 8px;
+      background: #fff;
+      padding: 11px;
+      min-height: 90px;
+      position: relative;
+    }
+
+    .hook-stage:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -13px;
+      top: 35px;
+      color: var(--blue);
+      font-weight: 800;
+    }
+
+    .hook-stage strong {
+      display: block;
+      color: var(--slate);
+      font-size: 12px;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .hook-stage span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 11px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #344054;
+      background: #f2f5fa;
+      font-weight: 700;
+    }
+
+    td code, .code {
+      color: #26476f;
+      background: #eef4ff;
+      border: 1px solid #d4e4ff;
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+
+    li { margin: 6px 0; }
+
+    .callout {
+      border-left: 4px solid var(--blue);
+      background: #f3f8ff;
+      padding: 14px 16px;
+      border-radius: 6px;
+      margin: 16px 0;
+      color: #25415f;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 116px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .flow-step::after {
+      content: "→";
+      position: absolute;
+      right: -13px;
+      top: 42%;
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    .flow-step:last-child::after { content: ""; }
+
+    .flow-step strong {
+      display: block;
+      margin-bottom: 7px;
+    }
+
+    .flow-step span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 28px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid, .grid-4, .grid-3, .grid-2, .flow {
+        grid-template-columns: 1fr;
+      }
+      .flow-step::after { content: ""; }
+      h1 { font-size: 30px; }
+      section { padding: 22px; }
+    }
+
+    @media print {
+      nav { display: none; }
+      body { background: #fff; }
+      section { box-shadow: none; break-inside: avoid; }
+      .hero { background: #102a43; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">ADNClaw · 智能体运行时关键设计汇报 · 2026-05-13</div>
+      <h1>面向本地 Web 智能体的可靠运行时底座</h1>
+      <p>
+        本报告面向管理层和技术评审，说明智能体运行时对用户可见的黑盒能力、对开发者可见的接口和集成边界，以及当前代码已经落位的核心设计。
+      </p>
+      <div class="hero-grid">
+        <div class="hero-metric"><strong>1 个权威入口</strong><span>submit / cancel / retry / edit 统一进入 RuntimeCommandPort</span></div>
+        <div class="hero-metric"><strong>50 并发会话</strong><span>默认全局执行并发 50，有界队列和会话级串行</span></div>
+        <div class="hero-metric"><strong>2 种流式通道</strong><span>SSE 与 WebSocket 同等支持，由部署配置选择</span></div>
+        <div class="hero-metric"><strong>5 类事实源</strong><span>历史消息、执行记录、工作上下文、恢复快照、过程事件分工清晰</span></div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="#summary">一页结论</a>
+      <a href="#context">上下文与黑盒</a>
+      <a href="#position">系统位置</a>
+      <a href="#example">请求示例</a>
+      <a href="#core-design">正确性设计</a>
+      <a href="#governance">可靠性与治理</a>
+      <a href="#code-map">代码落点</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="summary">
+      <h2>一页结论</h2>
+      <p class="lead">
+        智能体运行时的定位不是“聊天接口”，而是承载长链路智能体执行的治理层。它把 Web UI、未来 IM/A2A/AgentLink/事件中心等入口统一成相同的运行时命令，把模型、工具、Skill、InvokedAgent 等执行统一纳入可取消、可恢复、可审计的生命周期。
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <span class="tag blue">用户价值</span>
+          <h3>看得见过程，控得住执行</h3>
+          <p>用户能看到流式回答、思考/进度、能力调用步骤和最终结果；同时能取消运行中请求，重试或编辑最近结束的请求。</p>
+        </div>
+        <div class="card">
+          <span class="tag cyan">工程价值</span>
+          <h3>入口不再各自实现状态机</h3>
+          <p>所有入口只做协议适配和事件投影，请求执行状态机、准入、队列、终态提交和恢复都由 runtime 统一承担。</p>
+        </div>
+        <div class="card">
+          <span class="tag green">演进价值</span>
+          <h3>为领域智能体二开保留边界</h3>
+          <p>能力、策略、Hook、模板、Assembly 可定制；但不能绕过 admission、session isolation、checkpoint、terminal commit 和 observability。</p>
+        </div>
+      </div>
+      <div class="callout">
+        <strong>核心判断：</strong>当前设计已经把“用户体验”和“运行时正确性”拆清楚。用户看到的是会话、流、步骤和结果；开发者接入的是命令、事件、能力、上下文、网关和 Hook；系统内部坚持单一事实源和单终态提交。
+      </div>
+    </section>
+
+    <section id="context">
+      <h2>系统上下文与用户黑盒能力</h2>
+      <p class="lead">
+        ADNClaw 智能体运行时为 Web 交互、Agent 执行、能力调用和平台服务提供统一执行底座。Web UI 是用户入口，Runtime 是请求执行治理层，Agent 是被托管的业务执行者；Skill、Tool、InvokedAgent、Model、Context Engine 都是 Agent 执行过程中使用的能力或服务。
+      </p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h4>不是普通聊天</h4>
+          <p>一次用户请求可能持续较久，期间会调用模型、工具、Skill、远程 Agent、附件和用户确认。</p>
+        </div>
+        <div class="card">
+          <h4>不是前端状态机</h4>
+          <p>取消、重试、编辑、终态结果、历史可见性必须由后端权威状态决定，不能由浏览器本地推断。</p>
+        </div>
+        <div class="card">
+          <h4>不是单进程内存任务</h4>
+          <p>浏览器刷新、服务重启、外部调用返回、终态提交失败都需要可恢复、可审计的持久化边界。</p>
+        </div>
+      </div>
+
+      <h3>用户可见能力</h3>
+      <table>
+        <thead>
+          <tr><th>能力</th><th>规格</th><th>用户感知</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>流式交互</td><td>SSE / WebSocket 同等支持，部署时选择；响应增量渲染。</td><td>不用等整段生成完成，能看到过程。</td></tr>
+          <tr><td>运行透明</td><td>状态、思考/进度、能力调用、降级和终态都通过统一事件流呈现。</td><td>知道智能体正在做什么，卡在哪里。</td></tr>
+          <tr><td>历史继续</td><td>会话历史基于可见 <code>SessionMessage</code>，不依赖长期保存 token 增量。</td><td>刷新或重新打开后能看到稳定最终历史。</td></tr>
+          <tr><td>附件</td><td>最多 3 个文件，单个不超过 5 MiB；支持 Word、Excel、PDF、Markdown。</td><td>能基于报告、表格、runbook 提问。</td></tr>
+          <tr><td>请求控制</td><td>运行中可取消；最近结束请求可重试或编辑后重新提交。</td><td>长任务可控，输入错误可修正。</td></tr>
+          <tr><td>双语</td><td>中文/英文自动适配，电信术语保持原文。</td><td>中文提问中夹带 core network routing 等术语不会被误译。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>成功标准</h3>
+      <div class="grid-4">
+        <div class="card"><h4>首段响应</h4><p>标准请求 3 秒内看到首个流式片段。</p></div>
+        <div class="card"><h4>并发会话</h4><p>支持至少 50 个并发活跃会话。</p></div>
+        <div class="card"><h4>附件拦截</h4><p>100% 非法附件必须在请求执行前被拦截，并给出清晰解释。</p></div>
+        <div class="card"><h4>历史恢复</h4><p>100% 已提交的历史状态必须从权威 <code>SessionMessage</code> 恢复；无法恢复时必须返回明确错误。</p></div>
+      </div>
+
+      <h3>最小概念对照</h3>
+      <table>
+        <thead>
+          <tr><th>通用说法</th><th>代码/规格名称</th><th>一句话解释</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>会话</td><td><code>UserSession</code></td><td>一个用户的一段连续对话容器。</td></tr>
+          <tr><td>历史消息</td><td><code>SessionMessage</code></td><td>用户输入、最终回答和需要保留的能力结果，是历史展示的权威来源。</td></tr>
+          <tr><td>执行记录</td><td><code>RequestRun</code></td><td>一次请求执行尝试的生命周期记录，包含状态、版本、锁和终态提交状态。</td></tr>
+          <tr><td>工作上下文</td><td><code>RequestContext</code></td><td>一次执行过程中的临时工作态，记录当前 run、消息引用和能力调用轨迹。</td></tr>
+          <tr><td>恢复快照</td><td><code>RequestContextCheckpoint</code></td><td>外部调用和终态边界前后的恢复点，用于避免重复副作用。</td></tr>
+          <tr><td>过程事件</td><td><code>RunTimelineEvent</code></td><td>运行状态、思考增量、能力步骤、用户输入阻塞和终态的统一事件事实。</td></tr>
+          <tr><td>通道事件</td><td><code>StreamEnvelope</code></td><td>把过程事件投影成 Web SSE/WS 可消费的输出格式。</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>阅读建议：</strong>
+        先把 Runtime 理解为“智能体请求的执行操作系统”：它不替 Agent 做业务判断，但负责把所有请求、能力调用、流式事件、取消恢复和最终结果纳入统一治理。
+      </div>
+    </section>
+
+    <section id="position">
+      <h2>Runtime 在系统中的位置</h2>
+      <p class="lead">
+        Runtime 是系统中的中心治理层。入口适配、会话、附件、Agent、上下文、模型、能力和网关都围绕 Runtime 的执行边界协作；任何模块都不应单独拥有请求状态机。
+      </p>
+      <div class="visual">
+        <div class="system-map">
+          <div class="map-column">
+            <h4>用户入口</h4>
+            <div class="map-stack">
+              <div class="map-node"><strong>Web UI</strong><span>输入、附件、取消、重试、编辑</span></div>
+              <div class="map-node"><strong>SSE / WebSocket</strong><span>接收状态、步骤和结果</span></div>
+            </div>
+          </div>
+          <div class="map-column">
+            <h4>通道适配</h4>
+            <div class="map-stack">
+              <div class="map-node"><strong>agent-channel-web</strong><span>协议、身份、请求转换</span></div>
+              <div class="map-node"><strong>StreamEnvelope</strong><span>把过程事件投影给浏览器</span></div>
+            </div>
+          </div>
+          <div class="map-column runtime-column">
+            <h4>Runtime 中心治理层</h4>
+            <div class="map-stack">
+              <div class="map-node runtime-node"><strong>agent-runtime</strong><span>唯一命令入口、准入、队列、执行记录、终态提交、事件发布</span></div>
+              <div class="map-node"><strong>agent-session</strong><span>会话、历史、所有权、latest 规则</span></div>
+              <div class="map-node"><strong>attachment / stores</strong><span>附件、RunStore、CheckpointStore、TimelineStore</span></div>
+            </div>
+          </div>
+          <div class="map-column">
+            <h4>执行与能力</h4>
+            <div class="map-stack">
+              <div class="map-node"><strong>Agent</strong><span>业务循环和能力调用决策</span></div>
+              <div class="map-node"><strong>Context + Model</strong><span>上下文组装和模型输出</span></div>
+              <div class="map-node"><strong>Capability + Gateway</strong><span>Skill、Tool、InvokedAgent、平台服务</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="pill">Runtime 权威边界：RuntimeCommandPort</span>
+          <span class="pill">Runtime 发布事实：RunTimelineEvent</span>
+          <span class="pill">通道输出：StreamEnvelope</span>
+        </div>
+      </div>
+
+      <h3>模块边界</h3>
+      <table>
+        <thead>
+          <tr><th>模块</th><th>开发者需要知道的黑盒行为</th><th>禁止越界</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>agent-channel-web</code></td><td>REST + SSE + WebSocket；把事件投影为 Web 可消费 envelope。</td><td>不拥有领域事件，不直接推进请求状态机。</td></tr>
+          <tr><td><code>agent-runtime</code></td><td>准入、队列、会话 lane、run 生命周期、取消、重试、编辑、终态提交。</td><td>不做业务下一步决策，不拼 prompt。</td></tr>
+          <tr><td><code>agent-session</code></td><td>会话、历史、所有权、latest request 规则、可见消息查询。</td><td>不拥有执行队列、checkpoint 时机、terminal commit。</td></tr>
+          <tr><td><code>agent-core</code></td><td><code>Agent</code> 负责 direct answer、tool_use、Skill/Tool/InvokedAgent 调用决策。</td><td>不直接写 session/run/checkpoint/channel。</td></tr>
+          <tr><td><code>agent-context-engine</code></td><td>根据 location + intent 选择上下文、模板、模型输入。</td><td>调用方不预选上下文条目。</td></tr>
+          <tr><td><code>agent-capability-spi</code></td><td>能力发现和执行契约，能力结果进入统一事件与消息链路。</td><td>能力不能绕过 runtime 的恢复、取消和审计边界。</td></tr>
+          <tr><td><code>agent-platform-gateway-*</code></td><td>本地/远程网关适配，统一提供 session/run/checkpoint/capability/model 相关外部服务。</td><td>网关不定义运行时状态机语义。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="example">
+      <h2>端到端示例：一次网络排障请求如何被处理</h2>
+      <p class="lead">
+        下面用一个典型请求说明黑盒体验和内部协作关系。示例重点不是具体诊断算法，而是 Runtime 如何把用户请求、附件、上下文、Agent、能力调用和流式展示纳入同一条可控执行链路。
+      </p>
+
+      <div class="callout">
+        <strong>用户输入示例：</strong>
+        “请根据附件中的告警日志和拓扑说明，分析华东核心网到计费系统间歇性超时的可能原因，并给出排查步骤。”
+      </div>
+
+      <h3>请求处理链路</h3>
+      <table>
+        <thead>
+          <tr><th>阶段</th><th>Runtime 黑盒行为</th><th>上下游配合</th><th>输出事实</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1. 入口接收</td>
+            <td>Web 通道把 HTTP 请求转换成 runtime submit 命令。</td>
+            <td><code>agent-channel-web</code> 解析身份、会话、附件引用；不直接执行 Agent。</td>
+            <td>标准化命令进入 <code>RuntimeCommandPort</code>。</td>
+          </tr>
+          <tr>
+            <td>2. 准入校验</td>
+            <td>检查会话归属、输入有效性、附件数量和系统容量。</td>
+            <td><code>agent-session</code> 提供会话和所有权；<code>agent-attachment-runtime</code> 校验附件。</td>
+            <td>非法请求直接拒绝；合法请求进入执行。</td>
+          </tr>
+          <tr>
+            <td>3. 创建执行边界</td>
+            <td>写入用户 root message，创建执行记录和初始工作上下文。</td>
+            <td>store/gateway 持久化历史消息、执行记录和初始恢复点。</td>
+            <td><code>REQUEST_ACCEPTED</code> 过程事件。</td>
+          </tr>
+          <tr>
+            <td>4. 有界调度</td>
+            <td>按全局并发、队列和会话 active/pending 深度调度执行。</td>
+            <td><code>SessionLaneService</code> 保证同一会话默认单 active request。</td>
+            <td>请求进入 queued/executing 状态。</td>
+          </tr>
+          <tr>
+            <td>5. Agent 执行</td>
+            <td>托管 Agent，提供执行记录、工作上下文和事件端口。</td>
+            <td>Agent 调用 Context Engine 组装模型输入，调用 Model 生成思考/内容，必要时选择 Skill/Tool/InvokedAgent。</td>
+            <td><code>LLM_THINKING_DELTA</code>、<code>LLM_CONTENT_DELTA</code>、<code>CAPABILITY_STARTED</code> 等。</td>
+          </tr>
+          <tr>
+            <td>6. 能力调用</td>
+            <td>在模型/能力外部调用前后保存恢复边界，支持取消和避免重复副作用。</td>
+            <td>Capability SPI 路由到内置工具、Skill、本地脚本或远程平台能力；Gateway 处理平台服务访问。</td>
+            <td>能力结果事件；需要保留时写入 capability result 历史消息。</td>
+          </tr>
+          <tr>
+            <td>7. 终态提交</td>
+            <td>先持久化最终回答、能力结果、执行状态、终态事件和恢复快照，再允许对外展示终态。</td>
+            <td><code>TerminalWriteCoordinator</code> 负责终态提交边界；channel 只投影已提交事件。</td>
+            <td><code>REQUEST_COMPLETED</code> / <code>REQUEST_FAILED</code> / <code>REQUEST_CANCELED</code>。</td>
+          </tr>
+          <tr>
+            <td>8. 流式投影</td>
+            <td>把统一过程事件交给通道投影策略。</td>
+            <td><code>agent-channel-web</code> 转换为 SSE/WS <code>StreamEnvelope</code>；断线后按 sequence replay。</td>
+            <td>浏览器看到状态、步骤、内容和最终结果。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>协作泳道</h3>
+      <div class="visual">
+        <div class="swimlane">
+          <div class="swim-head">参与方</div>
+          <div class="swim-head">提交</div>
+          <div class="swim-head">接受与调度</div>
+          <div class="swim-head">执行业务</div>
+          <div class="swim-head">终态提交</div>
+          <div class="swim-head">流式呈现</div>
+
+          <div class="swim-label">Web UI</div>
+          <div class="swim-cell active">输入 + 附件</div>
+          <div class="swim-cell">显示已接受</div>
+          <div class="swim-cell">展示 thinking / content delta</div>
+          <div class="swim-cell">等待最终状态</div>
+          <div class="swim-cell active">呈现 Markdown / Mermaid / 步骤</div>
+
+          <div class="swim-label">agent-channel-web</div>
+          <div class="swim-cell active">转换为 submit 命令</div>
+          <div class="swim-cell">订阅过程事件</div>
+          <div class="swim-cell">不执行 Agent</div>
+          <div class="swim-cell">只接收已提交终态</div>
+          <div class="swim-cell active">投影 StreamEnvelope</div>
+
+          <div class="swim-label runtime-lane">agent-runtime</div>
+          <div class="swim-cell runtime-lane-cell active">接收 RuntimeCommandPort</div>
+          <div class="swim-cell runtime-lane-cell active">准入、lane、执行记录、REQUEST_ACCEPTED</div>
+          <div class="swim-cell runtime-lane-cell">托管 Agent，排序事件</div>
+          <div class="swim-cell runtime-lane-cell active">terminal durable commit</div>
+          <div class="swim-cell runtime-lane-cell active">发布终态事件</div>
+
+          <div class="swim-label">Agent + 能力</div>
+          <div class="swim-cell">无入口职责</div>
+          <div class="swim-cell">读取工作上下文</div>
+          <div class="swim-cell active">Context Engine、Model、Skill、Tool、InvokedAgent</div>
+          <div class="swim-cell">返回业务结果</div>
+          <div class="swim-cell">发出中间过程事实</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>关键点：</strong>
+        上下游模块都围绕 Runtime 的执行边界协作。Channel 不执行 Agent，Session 不调度请求，Agent 不提交终态，Capability 不绕过 checkpoint，Gateway 不定义状态机；每个模块只在自己的黑盒职责内工作。
+      </div>
+    </section>
+
+    <section id="core-design">
+      <h2>核心设计：Runtime 如何保证请求正确执行</h2>
+      <p class="lead">
+        运行时的核心不是某一个类，而是几类事实源和控制边界的组合。它们共同保证同一个请求只有一个生命周期解释、一个终态结果、一个恢复路径。
+      </p>
+
+      <h3>核心事实源与诊断视图</h3>
+      <div class="grid-3">
+        <div class="card"><span class="tag blue">历史事实</span><h4>SessionMessage</h4><p>用户输入、最终助手输出、需要保留的 capability result。历史展示默认读取它。</p></div>
+        <div class="card"><span class="tag cyan">生命周期</span><h4>执行记录 <small>Run Execution Record</small></h4><p>一次请求执行尝试的标准运行记录；代码名为 <code>RequestRun</code>，包含 runId、状态、版本、重试次数、终态提交状态和锁信息。</p></div>
+        <div class="card"><span class="tag green">工作内存</span><h4>RequestContext</h4><p>一次 run 的 requestContextId、messageRefs、activeStepId、executedCapabilityTraces。</p></div>
+        <div class="card"><span class="tag amber">恢复快照</span><h4>RequestContextCheckpoint</h4><p>模型/能力外部调用前后和终态边界的可恢复快照，防重复副作用。</p></div>
+        <div class="card"><span class="tag red">过程事实</span><h4>RunTimelineEvent</h4><p>流式展示、关键步骤、降级、用户输入暂停、终态结果的 canonical event。</p></div>
+        <div class="card"><span class="tag blue">诊断视图</span><h4>ExecutionTrace</h4><p>聚合一次请求的模型、能力、降级、耗时与结果，服务排障和复盘。</p></div>
+      </div>
+
+      <h3>为什么不能混用事实源</h3>
+      <table>
+        <thead>
+          <tr><th>错误做法</th><th>风险</th><th>正确边界</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>把 token 增量长期存成历史</td><td>历史恢复依赖流缓冲，重连和清理复杂。</td><td>增量默认 live-only；最终历史写入 <code>SessionMessage</code>。</td></tr>
+          <tr><td>让 session 负责执行状态</td><td>历史查询与执行锁混在一起，重试/编辑容易错。</td><td>执行记录管生命周期，session 管历史和 latest 投影。</td></tr>
+          <tr><td>让 Agent 直接提交终态消息</td><td>失败重试、重复 terminal、可见性替换难以统一。</td><td>Agent 返回业务结果，runtime 做终态提交。</td></tr>
+          <tr><td>用 checkpoint 做聊天历史</td><td>checkpoint 是恢复工作态，不适合用户历史展示。</td><td>checkpoint 只服务恢复和幂等。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>主流程</h3>
+      <div class="flow">
+        <div class="flow-step"><strong>1. 入口适配</strong><span>Web REST 接收输入和附件引用，转换为 runtime command。</span></div>
+        <div class="flow-step"><strong>2. 准入与建模</strong><span>验证身份、会话、附件、latest 规则，创建 root message 与执行记录。</span></div>
+        <div class="flow-step"><strong>3. 有界调度</strong><span>全局并发、队列、会话 active/pending 控制，默认单会话串行。</span></div>
+        <div class="flow-step"><strong>4. Agent 执行</strong><span>Agent 调用 Context Engine、Model、Capability，并发出中间事件。</span></div>
+        <div class="flow-step"><strong>5. 终态提交</strong><span>写最终消息、run 状态、终态事件、checkpoint，再投影给客户端。</span></div>
+      </div>
+
+      <h3>事件流与历史显示的关系</h3>
+      <table>
+        <thead>
+          <tr><th>数据</th><th>用途</th><th>持久化策略</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>LLM_CONTENT_DELTA</code> / <code>LLM_THINKING_DELTA</code></td><td>运行中实时渲染答案和思考/进度。</td><td>默认 live-only，可放入有界 replay buffer。</td></tr>
+          <tr><td><code>CAPABILITY_STARTED</code> / <code>CAPABILITY_COMPLETED</code></td><td>展示工具、Skill、Agent 调用步骤。</td><td>按 key-step 策略可持久化。</td></tr>
+          <tr><td><code>REQUEST_COMPLETED</code> / <code>FAILED</code> / <code>CANCELED</code> / <code>SUPERSEDED</code></td><td>唯一终态解释。</td><td>终态必须持久化并在 durable commit 后投影。</td></tr>
+          <tr><td><code>SessionMessage</code></td><td>历史打开和上下文组装。</td><td>持久化；默认只返回 visible 历史。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="governance">
+      <h2>可靠性、恢复与治理机制</h2>
+      <p class="lead">
+        电信运维场景要求失败可解释、执行可取消、外部副作用不重复、过载不拖垮系统。运行时通过有界执行、checkpoint、单终态提交和低基数监控来满足这些要求。
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <span class="tag blue">有界执行</span>
+          <h3>并发与队列</h3>
+          <p>默认 <code>globalExecutionConcurrency=50</code>、<code>globalQueueCapacity=100</code>、<code>perSessionActiveExecution=1</code>、<code>perSessionPendingDepth=3</code>，使用虚拟线程执行模式。</p>
+        </div>
+        <div class="card">
+          <span class="tag amber">取消与替换</span>
+          <h3>Latest Request 规则</h3>
+          <p>取消只作用于非终态请求；重试/编辑只作用于最近已结束请求；同会话新请求可 supersede 队列中或安全边界上的旧请求。</p>
+        </div>
+        <div class="card">
+          <span class="tag green">恢复</span>
+          <h3>Checkpoint before / after side effect</h3>
+          <p>模型或能力外部调用前保存幂等边界，返回后保存结果引用；终态提交失败进入 pending terminal commit，由恢复路径幂等补交。</p>
+        </div>
+        <div class="card">
+          <span class="tag cyan">重连</span>
+          <h3>SSE / WS Replay</h3>
+          <p>客户端携带 lastSeenSequence，服务端从 replay buffer 连续补发；缺口过大时刷新最近可见 <code>SessionMessage</code>。</p>
+        </div>
+      </div>
+
+      <h3>生命周期 Hook</h3>
+      <p>
+        Hook 是受控治理边界，不是旁路监听器。系统 Hook 可承担 checkpoint-before-side-effect 等不可禁用的安全门；自定义 Hook 可做治理、审计、参数收窄或结果投影，但不能直接改变 Runtime 状态机。
+      </p>
+      <div class="visual">
+        <div class="hook-track">
+          <div class="hook-stage"><strong>BEFORE_REQUEST_ACCEPT</strong><span>准入、配额、请求元数据</span></div>
+          <div class="hook-stage"><strong>BEFORE_PLANNING</strong><span>规划提示、上下文装配 hint</span></div>
+          <div class="hook-stage"><strong>BEFORE_MODEL_INVOKE</strong><span>模型输入、安全门、参数策略</span></div>
+          <div class="hook-stage"><strong>AFTER_MODEL_RESULT</strong><span>模型结果投影、tool-call 约束</span></div>
+          <div class="hook-stage"><strong>BEFORE_CAPABILITY_INVOKE</strong><span>能力参数、权限、checkpoint</span></div>
+          <div class="hook-stage"><strong>AFTER_CAPABILITY_RESULT</strong><span>结果净化、摘要、持久化前投影</span></div>
+          <div class="hook-stage"><strong>BEFORE_AGENT_TERMINAL</strong><span>终态消息、最终审计、提交前保护</span></div>
+        </div>
+        <div class="legend">
+          <span class="pill">执行顺序：SYSTEM → CUSTOM → order → hookId</span>
+          <span class="pill">结果语义：CONTINUE / BLOCK / DEGRADED / SKIPPED</span>
+          <span class="pill">变更方式：BoundaryMutation</span>
+        </div>
+      </div>
+
+      <h3>监控口径</h3>
+      <table>
+        <thead>
+          <tr><th>层级</th><th>监控重点</th><th>约束</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Runtime</td><td>请求接受、拒绝、排队、终态、取消、重试、编辑、恢复。</td><td>以执行记录和 canonical lifecycle 为准。</td></tr>
+          <tr><td>Core / Model</td><td>prompt 长度、首字/首 token 时延、chunk 间隔、总耗时、模型失败。</td><td>不泄露 prompt、thinking 或模型原文。</td></tr>
+          <tr><td>Capability</td><td>工具/Skill/InvokedAgent 成功率、失败类别、超时、耗时。</td><td>不把 raw args/result 放进聚合标签。</td></tr>
+          <tr><td>Channel</td><td>投影、投递、慢客户端、重放缺口、断连恢复。</td><td>不把通道异常解释成 runtime 执行失败。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="code-map">
+      <h2>当前代码落点与设计依据</h2>
+      <p class="lead">
+        本报告基于 <code>specs/001-telecom-network-agent</code>、OpenSpec 当前规格和设计，以及当前代码实现抽样核对。下表列出最关键的代码落点，便于后续技术评审追踪。
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>设计点</th><th>当前代码落点</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Runtime 命令入口</td><td><code>modules/agent-runtime-spi/.../RuntimeCommandPort.java</code><br><code>modules/agent-runtime/.../RuntimeCommandOrchestrator.java</code></td><td>submit/cancel/retry/edit 均由 runtime port 和 orchestrator 承接。</td></tr>
+          <tr><td>托管 Agent</td><td><code>modules/agent-runtime-spi/.../Agent.java</code><br><code>modules/agent-core/.../Agent 实现类</code></td><td>Agent 消费执行记录、工作上下文和事件端口，返回 AgentRunResult。</td></tr>
+          <tr><td>执行生命周期</td><td><code>modules/agent-common/.../RequestRun.java</code></td><td>代码名 <code>RequestRun</code>；业务含义是一次请求的执行记录，保存 runId、attempt、status、version、terminalCommitState、锁和时间边界。</td></tr>
+          <tr><td>运行工作态</td><td><code>modules/agent-context-spi/.../RequestContext.java</code></td><td>保存 requestContextId、runId、messageRefs、capability traces、active step。</td></tr>
+          <tr><td>事件事实</td><td><code>modules/agent-runtime-spi/.../RunTimelineEvent.java</code><br><code>modules/agent-runtime/.../InProcessRunTimelineEventPublisher.java</code></td><td>统一承载流式过程、关键步骤、用户输入和终态。</td></tr>
+          <tr><td>Web 流式通道</td><td><code>WebStreamResource.java</code><br><code>WebStreamWebSocketEndpoint.java</code><br><code>StreamEnvelopeProjector.java</code></td><td>SSE/WS 共享投影语义和 replay buffer。</td></tr>
+          <tr><td>准入和调度</td><td><code>AdmissionControlService.java</code><br><code>AgentExecutionSchedulerConfig.java</code><br><code>SessionLaneService.java</code></td><td>身份、会话、附件、全局并发、队列、会话级串行控制。</td></tr>
+          <tr><td>终态提交</td><td><code>TerminalWriteCoordinator.java</code></td><td>终态写入成功后才释放 lane 和允许终态投影。</td></tr>
+          <tr><td>Checkpoint 恢复</td><td><code>RequestRunCheckpointRecoveryService.java</code></td><td>读取和保存 checkpoint，支撑 queued/executing/pending terminal recovery。</td></tr>
+          <tr><td>Lifecycle Hook</td><td><code>HookExecutorService.java</code><br><code>modules/agent-runtime-spi/.../hooks/*</code></td><td>system/custom、排序、typed boundary、mutation 校验。</td></tr>
+          <tr><td>会话与历史</td><td><code>agent-session/service/*</code><br><code>SessionHistoryQueryPort.java</code></td><td>所有权、latest policy、title、可见历史和 Context Engine 查询端口。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>规格和设计依据</h3>
+      <div class="grid-2">
+        <div class="card">
+          <h4>基础规格</h4>
+          <p><code>specs/001-telecom-network-agent/spec.md</code>、<code>plan.md</code>、<code>contracts/agent-runtime-spi.md</code>、<code>contracts/runtime-event-contract.md</code>。</p>
+        </div>
+        <div class="card">
+          <h4>OpenSpec 当前能力</h4>
+          <p><code>openspec/specs/agent-request-execution/spec.md</code>、<code>runtime-streaming-events/spec.md</code>、<code>request-control/spec.md</code>，以及 checkpoint、hook、monitoring 相关 change design。</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>设计结论：</strong>
+        ADNClaw Runtime 将智能体执行从“会话中的一次回答”提升为“可控、可恢复、可审计的一次运行”。它通过清晰接口隔离 Web 体验、Agent 业务循环、能力执行和平台网关，为多入口接入、托管部署和领域智能体二次开发保留稳定边界。
+      </div>
+
+      <div class="footer">ADNClaw Runtime Key Design Report · 2026-05-13</div>
+    </section>
+  </main>
+</body>
+</html>
+

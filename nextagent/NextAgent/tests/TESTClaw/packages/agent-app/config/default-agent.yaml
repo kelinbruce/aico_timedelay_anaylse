@@ -1,0 +1,22 @@
+{
+  'agentId': 'default-agent',
+  'agentType': 'default',
+  'agentVersion': 'v1',
+  'displayName': 'NextAgent telecom agent',
+  'description': 'Default telecom network operations agent.',
+  'workspaceDir': 'default-agent',
+  'modelIds': ['MiniMax-M2.7-highspeed'],
+  'promptTemplateIds': ['minimal-telecom'],
+  'capabilityBindings': [],
+  'runtimeSettings':
+    {
+      'defaultLanguage': 'zh-CN',
+      'defaultModelId': 'MiniMax-M2.7-highspeed',
+      'defaultPromptTemplateId': 'minimal-telecom',
+      'maxTurns': 3,
+      'maxToolCallsPerTurn': 30,
+      'maxContextMessages': 20,
+      'requestTimeoutMs': 1800000,
+    },
+  'resources': [],
+}

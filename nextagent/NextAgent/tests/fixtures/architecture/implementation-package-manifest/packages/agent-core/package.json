@@ -1,0 +1,6 @@
+{
+  "name": "@nextagent/agent-core",
+  "dependencies": {
+    "@nextagent/agent-model": "1.0.0"
+  }
+}

@@ -1,0 +1,30 @@
+agentId: system-event-context-agent
+agentVersion: v1
+displayName: System event context verification agent
+description: Answers bounded telecom alarm questions without invoking Tools.
+modelIds:
+  - env:OPENAI_MODEL_NAME
+defaultModelId: env:OPENAI_MODEL_NAME
+capabilityBindings:
+  - { capabilityId: Read, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Write, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Glob, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Grep, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Bash, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Python, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Edit, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Rag, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Skill, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: AskUserQuestion, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Agent, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: ToolSearch, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: TodoWrite, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Workflow, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: ApiCall, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Cron, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+runtimeSettings:
+  defaultLanguage: zh-CN
+  maxTurns: 3
+  maxToolCallsPerTurn: 1
+  requestTimeoutMs: 120000
+resources: []

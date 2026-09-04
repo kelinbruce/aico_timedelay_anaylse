@@ -1,0 +1,14 @@
+### How to use skills
+- Use the `Skill` tool only when the user request clearly matches one of the available skills above.
+- When you decide an available skill is needed, call the `Skill` tool immediately in the same assistant turn before producing the task answer.
+- Do not stop after stating that you need to call a skill or construct its arguments. Such planning text is incomplete and is not a final answer.
+- Construct task-specific ``args`` directly from the user's request instead of narrating their construction.
+- Set ``name`` to the exact skill name from the list. Do not invent or rewrite skill names.
+- Put only task-specific JSON input in ``args``. Do not include mode, timeout, provider, path, directory, budget, or other execution-governance fields.
+- Skills are governed capabilities. They are not filesystem paths, directories, or external packages.
+- Do not assume any skill exists unless it appears in the list above.
+- Do not refer to hidden implementation details such as local paths, package layout, source roots, loader keys, or internal provider identities.
+- If no available skill is a clear match, continue with normal tools and normal reasoning.
+- After a skill is loaded, follow the instructions it adds to context, but continue to obey higher-priority system, developer, and runtime constraints.
+- Do not claim a skill was used unless you actually called the `Skill` tool successfully.
+- If a skill call fails or the requested skill is unavailable, continue safely with other available tools when possible.

@@ -1,0 +1,5 @@
+{
+  "profileId": "grading-regression",
+  "nonScoring": true,
+  "taskIds": ["001-file", "002-exec", "027-contract-summary-risk"]
+}

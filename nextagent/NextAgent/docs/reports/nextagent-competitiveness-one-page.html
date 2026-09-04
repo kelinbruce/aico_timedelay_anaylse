@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NextAgent 竞争力一页汇报</title>
+  <style>
+    :root {
+      --brand: rgb(212, 28, 38);
+      --brand-deep: rgb(168, 18, 28);
+      --gold: rgb(206, 135, 72);
+      --gold-light: rgb(238, 198, 159);
+      --ink: rgb(46, 49, 56);
+      --text: rgb(72, 76, 84);
+      --muted: rgb(128, 132, 140);
+      --line: rgb(219, 222, 226);
+      --soft: rgb(246, 247, 249);
+      --white: rgb(255, 255, 255);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: rgb(236, 238, 242);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "Noto Sans SC", Arial, sans-serif;
+    }
+
+    .slide {
+      width: min(100vw, 1600px);
+      aspect-ratio: 16 / 9;
+      position: relative;
+      overflow: hidden;
+      padding: 28px 58px 34px;
+      background:
+        radial-gradient(circle at 82% 19%, rgba(212, 28, 38, 0.05), transparent 27%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.98)),
+        var(--white);
+      box-shadow: 0 18px 48px rgba(46, 49, 56, 0.18);
+      display: grid;
+      grid-template-rows: auto auto 330px 190px;
+      gap: 12px;
+    }
+
+    .network {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.4;
+      background-image: url("data:image/svg+xml,%3Csvg width='1600' height='900' viewBox='0 0 1600 900' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23cfd2d7' stroke-width='2'%3E%3Cpath d='M-80 104L186 28L374 156L660 32L900 172L1160 46L1680 136'/%3E%3Cpath d='M16 318L250 178L500 286L730 142L1040 278L1280 126L1620 260'/%3E%3Cpath d='M120 36L250 178L374 156L500 286L660 32L730 142L900 172L1040 278L1160 46L1280 126'/%3E%3Cpath d='M42 540L242 430L452 520L706 390L954 518L1200 394L1540 500'/%3E%3C/g%3E%3Cg fill='%23c7cbd0'%3E%3Ccircle cx='186' cy='28' r='6'/%3E%3Ccircle cx='374' cy='156' r='5'/%3E%3Ccircle cx='660' cy='32' r='6'/%3E%3Ccircle cx='900' cy='172' r='5'/%3E%3Ccircle cx='1160' cy='46' r='6'/%3E%3Ccircle cx='250' cy='178' r='5'/%3E%3Ccircle cx='500' cy='286' r='5'/%3E%3Ccircle cx='730' cy='142' r='6'/%3E%3Ccircle cx='1040' cy='278' r='5'/%3E%3Ccircle cx='1280' cy='126' r='6'/%3E%3Ccircle cx='242' cy='430' r='5'/%3E%3Ccircle cx='706' cy='390' r='6'/%3E%3Ccircle cx='1200' cy='394' r='5'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+    }
+
+    .ribbon {
+      position: absolute;
+      left: -80px;
+      right: -80px;
+      bottom: 18px;
+      height: 150px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ribbon::before,
+    .ribbon::after {
+      content: "";
+      position: absolute;
+      left: -40px;
+      right: -40px;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    .ribbon::before {
+      top: 0;
+      height: 128px;
+      background: linear-gradient(180deg, rgba(238, 198, 159, 0.92), rgba(206, 135, 72, 0.88));
+      transform: rotate(-1.2deg);
+    }
+
+    .ribbon::after {
+      top: 48px;
+      height: 118px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(212, 28, 38, 0.98) 76%);
+      transform: rotate(0.8deg);
+    }
+
+    .red-band {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 30px;
+      background: var(--brand);
+      z-index: 0;
+    }
+
+    header,
+    .target,
+    .middle,
+    .bottom {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      column-gap: 24px;
+      min-height: 50px;
+    }
+
+    .title-line {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .logo {
+      color: var(--brand);
+      font-size: 19px;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--brand);
+      font-size: 38px;
+      line-height: 1.1;
+      letter-spacing: 0;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .en {
+      color: var(--ink);
+      font-size: 18px;
+      letter-spacing: 0.06em;
+      line-height: 1.1;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .motto {
+      color: var(--text);
+      font-size: 15px;
+      text-align: right;
+      white-space: nowrap;
+      padding-top: 4px;
+    }
+
+    .motto::after {
+      content: "";
+      display: block;
+      width: 26px;
+      height: 3px;
+      margin: 9px 0 0 auto;
+      background: var(--brand);
+      border-radius: 2px;
+    }
+
+    .target {
+      display: grid;
+      grid-template-columns: 176px 1fr;
+      gap: 18px;
+      align-items: stretch;
+      padding: 10px 18px;
+      border: 1px solid rgba(212, 28, 38, 0.16);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 8px 22px rgba(46, 49, 56, 0.07);
+    }
+
+    .target-title {
+      display: grid;
+      align-content: center;
+      border-right: 1px solid var(--line);
+      padding-right: 18px;
+    }
+
+    .target-title .small {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .target-title .large {
+      margin-top: 3px;
+      color: var(--brand);
+      font-size: 28px;
+      line-height: 1.08;
+      font-weight: 900;
+    }
+
+    .target-main {
+      display: grid;
+      align-content: center;
+      gap: 7px;
+    }
+
+    .target-line {
+      position: relative;
+      min-width: 0;
+      padding-left: 16px;
+      border-left: 4px solid var(--brand);
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.18;
+      font-weight: 800;
+    }
+
+    .middle {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .card {
+      min-width: 0;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 24px rgba(46, 49, 56, 0.08);
+      padding: 11px 14px 10px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 7px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      right: 18px;
+      bottom: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      transform: rotate(45deg);
+      background: rgba(212, 28, 38, 0.06);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--line);
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-num {
+      color: var(--brand);
+      font-size: 31px;
+      line-height: 0.9;
+      font-weight: 800;
+      opacity: 0.92;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .card-head::before {
+      content: "";
+      width: 32px;
+      height: 4px;
+      background: var(--brand);
+      border-radius: 4px;
+      flex: 0 0 auto;
+    }
+
+    .card h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1.15;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .card.gold {
+      border-top: 5px solid var(--gold);
+    }
+
+    .card.gold .card-head::before,
+    .card.gold .tagline {
+      background: var(--gold);
+    }
+
+    .card.strategy {
+      border-top: 5px solid var(--brand);
+    }
+
+    .card.strategy .card-head::before,
+    .card.strategy .tagline {
+      background: var(--brand);
+    }
+
+    .rows {
+      display: grid;
+      gap: 5px;
+      align-content: stretch;
+      position: relative;
+      z-index: 1;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      align-items: center;
+      min-height: 49px;
+      border-left: 4px solid var(--brand);
+      border-radius: 7px;
+      background: var(--soft);
+      overflow: hidden;
+    }
+
+    .row-label {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 6px;
+      color: var(--brand);
+      font-size: 12px;
+      line-height: 1.12;
+      text-align: center;
+      font-weight: 900;
+      background: rgba(212, 28, 38, 0.06);
+    }
+
+    .row-text {
+      padding: 5px 8px;
+      color: var(--text);
+      font-size: 10.7px;
+      line-height: 1.18;
+      font-weight: 650;
+    }
+
+    .row-text b {
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .gold .row {
+      border-left-color: var(--gold);
+    }
+
+    .gold .row-label {
+      color: rgb(139, 86, 38);
+      background: rgba(206, 135, 72, 0.1);
+    }
+
+    .tagline {
+      min-height: 28px;
+      display: grid;
+      align-content: center;
+      border-radius: 7px;
+      padding: 5px 10px;
+      color: var(--white);
+      font-size: 11px;
+      line-height: 1.16;
+      font-weight: 900;
+      position: relative;
+      z-index: 1;
+      background: var(--brand);
+    }
+
+    .project-list {
+      display: grid;
+      gap: 7px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .project-item {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 10px;
+      align-items: center;
+      min-height: 70px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, rgba(206, 135, 72, 0.08), rgba(246, 247, 249, 0.92));
+      border: 1px solid rgba(206, 135, 72, 0.18);
+      padding: 6px 9px;
+    }
+
+    .project-logo {
+      width: 58px;
+      height: 58px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: transparent;
+    }
+
+    .project-logo svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .project-copy h3 {
+      margin: 0 0 4px;
+      color: rgb(139, 86, 38);
+      font-size: 13px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .project-copy p {
+      margin: 0;
+      color: var(--text);
+      font-size: 10.7px;
+      line-height: 1.2;
+      font-weight: 650;
+    }
+
+    .strategy-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .strategy-list li {
+      position: relative;
+      min-height: 34px;
+      padding: 5px 8px 5px 28px;
+      border-radius: 7px;
+      background: var(--soft);
+      color: var(--text);
+      font-size: 10.3px;
+      line-height: 1.14;
+      font-weight: 700;
+      display: grid;
+      align-content: center;
+    }
+
+    .strategy-list li::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      margin-top: -5px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: inset 0 0 0 3px var(--white);
+      border: 1px solid rgba(206, 135, 72, 0.3);
+    }
+
+    .compet-table {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: auto repeat(6, 1fr);
+      border: 1px solid rgba(212, 28, 38, 0.16);
+      border-radius: 7px;
+      overflow: hidden;
+      background: var(--white);
+    }
+
+    .compet-row {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      min-height: 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .compet-row:first-child {
+      border-top: 0;
+      color: var(--white);
+      background: var(--brand);
+      font-weight: 900;
+    }
+
+    .compet-row span,
+    .compet-row b {
+      display: grid;
+      align-content: center;
+      padding: 3px 5px;
+      font-size: 8.8px;
+      line-height: 1.08;
+    }
+
+    .compet-row span {
+      color: var(--brand);
+      background: rgba(212, 28, 38, 0.06);
+      font-weight: 900;
+    }
+
+    .compet-row:first-child span,
+    .compet-row:first-child b {
+      color: var(--white);
+      background: transparent;
+    }
+
+    .compet-row b {
+      color: var(--text);
+      font-weight: 700;
+      border-left: 1px solid var(--line);
+      background: rgba(212, 28, 38, 0.035);
+    }
+
+    .bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: stretch;
+      gap: 16px;
+      padding: 13px 18px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(206, 135, 72, 0.34);
+      box-shadow: 0 8px 20px rgba(46, 49, 56, 0.06);
+    }
+
+    .bottom-panel {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .bottom-panel + .bottom-panel {
+      border-left: 1px solid var(--line);
+      padding-left: 16px;
+    }
+
+    .bottom-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .bottom-heading h2 {
+      margin: 0;
+      color: var(--brand);
+      font-size: 20px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .bottom-heading span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .progress {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .progress-item {
+      min-width: 0;
+      padding: 7px 6px 6px;
+      border-radius: 7px;
+      background: var(--soft);
+      border-top: 4px solid var(--brand);
+      text-align: center;
+    }
+
+    .progress-item:nth-child(2) {
+      border-top-color: var(--gold);
+    }
+
+    .progress-item:nth-child(3) {
+      border-top-color: var(--brand-deep);
+    }
+
+    .progress-item strong {
+      display: block;
+      color: var(--brand);
+      font-size: 15px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .progress-item:nth-child(2) strong {
+      color: rgb(139, 86, 38);
+    }
+
+    .progress-item:nth-child(3) strong {
+      color: var(--brand-deep);
+    }
+
+    .progress-item span {
+      display: block;
+      margin-top: 5px;
+      color: var(--text);
+      font-size: 10.2px;
+      line-height: 1.16;
+      font-weight: 750;
+    }
+
+    .next-lines {
+      display: grid;
+      gap: 6px;
+      align-content: center;
+    }
+
+    .next-line {
+      position: relative;
+      min-width: 0;
+      padding-left: 34px;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.22;
+      font-weight: 650;
+    }
+
+    .next-line::before {
+      content: attr(data-no);
+      position: absolute;
+      left: 0;
+      top: 0.02em;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--brand);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .source-note {
+      position: absolute;
+      right: 58px;
+      bottom: 7px;
+      z-index: 2;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 9px;
+      line-height: 1;
+      font-weight: 600;
+    }
+
+    code {
+      font-family: "Cascadia Mono", Consolas, monospace;
+      color: var(--brand-deep);
+      background: rgba(212, 28, 38, 0.07);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    @media print {
+      body {
+        background: var(--white);
+      }
+
+      .slide {
+        width: 100vw;
+        height: 100vh;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide" aria-label="NextAgent 竞争力一页汇报">
+    <div class="network" aria-hidden="true"></div>
+    <div class="ribbon" aria-hidden="true"></div>
+    <div class="red-band" aria-hidden="true"></div>
+
+    <header>
+      <div class="title-line">
+        <div class="logo">NextAgent</div>
+        <h1>网络智能体框架竞争力汇报</h1>
+        <div class="en">COMPETITIVENESS</div>
+      </div>
+      <div class="motto">电信级 · 可治理 · 可交付</div>
+    </header>
+
+    <section class="target" aria-label="目标">
+      <div class="target-title">
+        <div class="small">WHY / 目标牵引</div>
+        <div class="large">核心目标</div>
+      </div>
+      <div class="target-main">
+        <div class="target-line">匹配模型技术演进，建设 LAM 编排 Skill、Tool、SubAgent 的框架，提升网络智能体的泛化性和智能感。</div>
+        <div class="target-line">实现电信级可靠性，支撑长时任务运行、人工接管、过程可观测、结论可解释和审计可追溯。</div>
+        <div class="target-line">形成受治理的能力接入底座，让管控单元、客户系统和业界新技术快速纳入网络运维智能体生态。</div>
+      </div>
+    </section>
+
+    <main class="middle">
+      <article class="card">
+        <div class="card-top">
+          <div class="card-num">01</div>
+          <div class="card-head"><h2>业务诉求</h2></div>
+        </div>
+        <div class="rows">
+          <div class="row">
+            <div class="row-label">任务泛化</div>
+            <div class="row-text"><b>网络任务形态复杂：</b>需要模型能按场景组合 Skill、Tool、SubAgent、知识检索和客户 API。</div>
+          </div>
+          <div class="row">
+            <div class="row-label">长时可靠</div>
+            <div class="row-text"><b>诊断不是一次问答：</b>跨告警、KPI、拓扑、工单和工具执行时，需要可暂停、可恢复、终态一致。</div>
+          </div>
+          <div class="row">
+            <div class="row-label">人机协同</div>
+            <div class="row-text"><b>高风险动作要可控：</b>澄清、确认、授权、人工接管都要在同一运行生命周期内暂停、恢复和超时。</div>
+          </div>
+          <div class="row">
+            <div class="row-label">生态接入</div>
+            <div class="row-text"><b>能力来源持续变化：</b>管控单元、客户系统、SOP、API 工具和业界新技术要快速接入且受治理。</div>
+          </div>
+        </div>
+        <div class="tagline">业务结论：客户需要的是能编排能力、稳定运行、可被接管并接入生产网络的智能体框架。</div>
+      </article>
+
+      <article class="card gold">
+        <div class="card-top">
+          <div class="card-num">02</div>
+          <div class="card-head"><h2>同类项目缺口</h2></div>
+        </div>
+        <div class="project-list">
+          <div class="project-item">
+            <div class="project-logo" aria-label="Claude Code logo">
+              <svg viewBox="0 0 64 64" role="img">
+                <path d="M20 34c0-9 5-15 13-15 5 0 9 2 11 6l-8 4c-1-2-2-3-4-3-3 0-5 3-5 8s2 8 5 8c2 0 4-1 5-3l8 4c-2 4-6 6-12 6-8 0-13-6-13-15Z" fill="#2e3138" />
+                <text x="32" y="56" text-anchor="middle" font-size="7" font-family="Arial" font-weight="700" fill="#a8121c">CODE</text>
+              </svg>
+            </div>
+            <div class="project-copy">
+              <h3>Claude Code</h3>
+              <p><b>缺口：</b>面向软件研发提效，不负责电信生产运维的工具治理、权限隔离、审计追溯和运行恢复。</p>
+            </div>
+          </div>
+          <div class="project-item">
+            <div class="project-logo" aria-label="OpenClaw logo">
+              <svg viewBox="0 0 64 64" role="img">
+                <path d="M18 39c8-18 20-23 31-15" fill="none" stroke="#d41c26" stroke-width="6" stroke-linecap="round" />
+                <path d="M20 42c4-9 10-14 18-15" fill="none" stroke="#ce8748" stroke-width="5" stroke-linecap="round" />
+                <path d="M32 43c3-6 7-9 13-9" fill="none" stroke="#d41c26" stroke-width="4" stroke-linecap="round" />
+                <text x="32" y="55" text-anchor="middle" font-size="8" font-family="Arial" font-weight="800" fill="#a8121c">CLAW</text>
+              </svg>
+            </div>
+            <div class="project-copy">
+              <h3>OpenClaw</h3>
+              <p><b>缺口：</b>通用入口、技能和多渠道有参考价值，但行业生产仍需重建权限、能力目录、审计和质量约束。</p>
+            </div>
+          </div>
+          <div class="project-item">
+            <div class="project-logo" aria-label="Hermes Agent logo">
+              <svg viewBox="0 0 64 64" role="img">
+                <path d="M14 36c9-2 16-7 21-16 2 9 7 14 15 16-10 2-18 0-24-6-3 4-7 6-12 6Z" fill="#ce8748" />
+                <path d="M28 42h9" stroke="#d41c26" stroke-width="5" stroke-linecap="round" />
+                <path d="M32 18v26" stroke="#2e3138" stroke-width="4" stroke-linecap="round" />
+                <text x="32" y="55" text-anchor="middle" font-size="8" font-family="Arial" font-weight="800" fill="#a8121c">HERMES</text>
+              </svg>
+            </div>
+            <div class="project-copy">
+              <h3>Hermes Agent</h3>
+              <p><b>缺口：</b>学习、记忆和 Skill 改进值得借鉴，但网络经验仍要结构化治理、授权隔离和可遗忘审计。</p>
+            </div>
+          </div>
+        </div>
+        <div class="tagline">选型结论：三类项目机制可吸收，但缺口都落在生产控制面，直接二开会改到主路径。</div>
+      </article>
+
+      <article class="card strategy">
+        <div class="card-top">
+          <div class="card-num">03</div>
+          <div class="card-head"><h2>策略与竞争力</h2></div>
+        </div>
+        <ul class="strategy-list" aria-label="构建策略">
+          <li>面向 LAM 演进，把 Tool、Skill、SubAgent、RAG、记忆和客户 API 统一纳入 Capability 编排。</li>
+          <li>面向生产运行，让 runtime 拥有长任务生命周期、暂停恢复、人工输入、终态提交和可观测事实。</li>
+          <li>面向生态接入，以 OpenSpec、Gateway、Sandbox 和验收门禁约束管控单元与新技术快速接入。</li>
+        </ul>
+        <div class="compet-table" aria-label="竞争力表格">
+          <div class="compet-row"><span>竞争力</span><b>差异化规格 / 量化口径</b></div>
+          <div class="compet-row"><span>LAM 编排</span><b>统一 Capability：Tool / Skill / Agent 三类能力；SubAgent 以 governed AGENT descriptor 调用。</b></div>
+          <div class="compet-row"><span>任务泛化</span><b>覆盖告警、KPI、拓扑、工单、CLI/API、RAG、记忆等跨系统诊断输入。</b></div>
+          <div class="compet-row"><span>长时可靠</span><b>同 session lane 串行调度；支持 cancel / retry / edit / terminal commit / stream resume-replay。</b></div>
+          <div class="compet-row"><span>人机接管</span><b>3 类 PendingInput：QUESTION、CONFIRMATION、AUTHORIZATION；超时默认非批准。</b></div>
+          <div class="compet-row"><span>隔离审计</span><b>2 层 Scope：Agent Scope + Owner Scope；Session 绑定 agentId，Run 固化 assembly。</b></div>
+          <div class="compet-row"><span>快速接入</span><b>4 道接入门禁：OpenSpec、Gateway、Sandbox、schema/architecture validation。</b></div>
+        </div>
+      </article>
+    </main>
+
+    <section class="bottom" aria-label="进展和下一步计划">
+      <div class="bottom-panel" aria-label="当前进展">
+        <div class="bottom-heading">
+          <h2>当前进展</h2>
+          <span>NOW</span>
+        </div>
+        <div class="progress">
+          <div class="progress-item">
+            <strong>主链路成型</strong>
+            <span>会话、提交、SSE/WS、历史、取消、重试、编辑、live-tail 和终态提交已进入稳定基线。</span>
+          </div>
+          <div class="progress-item">
+            <strong>平台能力铺底</strong>
+            <span>Capability、RAG、长期记忆、风险治理、可观测、分享/标注/推荐问题和本地运行包已落地。</span>
+          </div>
+          <div class="progress-item">
+            <strong>验证体系建立</strong>
+            <span>contract、architecture、release package、security、resilience、P1/P2 场景门禁支撑可重复验收。</span>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-panel" aria-label="下一步计划">
+        <div class="bottom-heading">
+          <h2>下一步计划</h2>
+          <span>NEXT</span>
+        </div>
+        <div class="next-lines">
+          <div class="next-line" data-no="1">围绕网络诊断样板场景，补齐告警/KPI/拓扑/工单/工具链的端到端演示和客户系统适配。</div>
+          <div class="next-line" data-no="2">继续强化长期记忆、经验抽取、Skill 沉淀和领域知识治理，让专家经验形成可复用资产。</div>
+          <div class="next-line" data-no="3">把安全、容量、恢复、审计和可观测门禁沉淀成发布准入标准，支撑行业交付和二次开发生态。</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="source-note">参考：agentframework-tech-selection-decision-v7.html / observability-progress-one-page.html / NextAgent v2.0 Release Doc</div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,153 @@
+openapi: 3.0.0
+info:
+  version: v2-batch-create
+  title: AgentMemory LongTermMemory Batch Create Delta
+  description: 长期记忆批量新增接口增量契约；其余操作沿用已归档的长期记忆 V2 契约。
+paths:
+  /rest/naie/memory/v2/long-term-mem/batch:
+    post:
+      tags:
+        - LongTermMemoryStore
+      operationId: batchCreateLongTermMemory
+      summary: 批量创建长期记忆
+      description: 批量创建 1 至 100 条长期记忆，单条准入失败不影响其他条目。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchCreateLongTermMemoryReq'
+      responses:
+        '200':
+          description: 批量创建结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchCreateLtmResult'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+components:
+  schemas:
+    BatchCreateLongTermMemoryReq:
+      type: object
+      additionalProperties: false
+      properties:
+        tenantId:
+          type: string
+          minLength: 1
+          maxLength: 64
+        userId:
+          type: string
+          minLength: 1
+          maxLength: 64
+        agentId:
+          type: string
+          minLength: 1
+          maxLength: 64
+        memoryInstance:
+          type: string
+          minLength: 1
+          maxLength: 64
+        items:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/BatchCreateLtmItem'
+      required:
+        - tenantId
+        - userId
+        - agentId
+        - items
+    BatchCreateLtmItem:
+      type: object
+      additionalProperties: false
+      properties:
+        memoryId:
+          type: string
+          minLength: 1
+          maxLength: 64
+        memoryType:
+          type: string
+          enum: [FACTUAL, CONCEPTUAL, PROCEDURAL, USER_CHARACTERISTICS]
+        knowledgeSourceType:
+          type: string
+          enum: [LEARNED, CONFIGURED, SYSTEM_DEFAULT]
+        briefIndex:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        content:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        labels:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            minLength: 1
+            maxLength: 256
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        source:
+          type: string
+          maxLength: 4096
+        idempotencyKey:
+          type: string
+          minLength: 1
+          maxLength: 128
+        state:
+          type: string
+          enum: [ACTIVE, ARCHIVED]
+        archiveReason:
+          type: string
+          maxLength: 128
+      required:
+        - memoryType
+        - knowledgeSourceType
+        - briefIndex
+        - content
+    BatchCreateLtmResult:
+      type: object
+      additionalProperties: false
+      properties:
+        successCount:
+          type: integer
+          minimum: 0
+        failCount:
+          type: integer
+          minimum: 0
+        memoryIds:
+          type: array
+          items:
+            type: string
+      required:
+        - successCount
+        - failCount
+        - memoryIds
+    LtmError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        retryable:
+          type: boolean
+      required:
+        - code
+        - message
+        - retryable

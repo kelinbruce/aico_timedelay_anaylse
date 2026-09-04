@@ -1,0 +1,5 @@
+id: fix-session-list-validation
+title: Align session list validation errors with API documentation
+status: draft
+owner: agent-channel-web
+schema: spec-driven

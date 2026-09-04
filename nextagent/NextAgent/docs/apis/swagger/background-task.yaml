@@ -1,0 +1,208 @@
+swagger: '2.0'
+info:
+  title: Background Task API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/sessions/{sessionId}/background-tasks:
+    get:
+      operationId: listBackgroundTasks
+      summary: List background tasks for a session
+      tags:
+        - BackgroundTask
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/BackgroundTaskListResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/background-tasks/{taskId}/output:
+    get:
+      operationId: getBackgroundTaskOutput
+      summary: Get output of a background task
+      tags:
+        - BackgroundTask
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: taskId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: stream
+          in: query
+          required: false
+          type: string
+          enum:
+            - stdout
+            - stderr
+        - name: limitBytes
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 6
+          pattern: ^\d+$
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/BackgroundTaskOutputResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/background-tasks/{taskId}/kill:
+    post:
+      operationId: killBackgroundTask
+      summary: Kill a running background task
+      tags:
+        - BackgroundTask
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: taskId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/BackgroundTaskKillResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  BackgroundTaskListResponse:
+    type: object
+    required:
+      - tasks
+    properties:
+      tasks:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+    additionalProperties: false
+  BackgroundTaskOutputQuery:
+    type: object
+    properties:
+      stream:
+        type: string
+        enum:
+          - stdout
+          - stderr
+      limitBytes:
+        type: string
+        minLength: 1
+        maxLength: 6
+        pattern: ^\d+$
+    additionalProperties: false
+  BackgroundTaskOutputResponse:
+    type: object
+    required:
+      - content
+      - truncated
+      - stream
+    properties:
+      truncated:
+        type: boolean
+      stream:
+        type: string
+        enum:
+          - stdout
+          - stderr
+    additionalProperties: false
+  BackgroundTaskKillResponse:
+    type: object
+    required:
+      - status
+    properties:
+      status:
+        type: string
+        minLength: 1
+    additionalProperties: false

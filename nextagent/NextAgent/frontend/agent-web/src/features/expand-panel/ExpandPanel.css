@@ -1,0 +1,8 @@
+.expand-panel-root {
+  background: #fff;
+}
+
+[data-theme='dark'] .expand-panel-root,
+[data-theme='evening'] .expand-panel-root {
+  background: #393939;
+}

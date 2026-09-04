@@ -1,0 +1,1427 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NextAgent 过程可视、可解释、可观测、可审计设计</title>
+  <style>
+    :root {
+      --canvas: #f3f5f7;
+      --paper: #ffffff;
+      --ink: #111820;
+      --muted: #5d6874;
+      --rule: #c9d0d7;
+      --panel: #edf1f4;
+      --accent: #1687a7;
+      --accent-soft: #d9f0f5;
+      --blue: #2878d4;
+      --amber: #b86b00;
+      --amber-soft: #fff1d6;
+      --green: #16784b;
+      --green-soft: #ddf3e8;
+      --red: #a23c44;
+      --slide-w: 1280px;
+      --slide-h: 720px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+    }
+
+    .deck {
+      position: relative;
+      width: var(--slide-w);
+      height: var(--slide-h);
+      transform-origin: center center;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      overflow: hidden;
+      background: var(--paper);
+      padding: 40px 48px 34px;
+    }
+
+    .slide.active { display: block; }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h2 {
+      max-width: 1140px;
+      font-size: 48px;
+      line-height: 1.12;
+      letter-spacing: -.035em;
+      font-weight: 760;
+    }
+
+    .subhead {
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1.55;
+    }
+
+    .page-no {
+      position: absolute;
+      right: 60px;
+      bottom: 24px;
+      width: 72px;
+      color: #7b8590;
+      font-size: 14px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .source {
+      position: absolute;
+      left: 48px;
+      bottom: 23px;
+      max-width: 1030px;
+      color: #7a848f;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .accent-rule {
+      width: 150px;
+      height: 5px;
+      margin-top: 18px;
+      background: var(--accent);
+    }
+
+    /* Slide 1 */
+    .cover {
+      padding: 42px 52px 40px;
+    }
+
+    .cover::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 235px;
+      height: 100%;
+      background: #101922;
+    }
+
+    .cover .cover-body {
+      position: relative;
+      z-index: 1;
+      width: 930px;
+      margin-top: 118px;
+    }
+
+    .cover h1 {
+      font-size: 66px;
+      line-height: 1.08;
+      letter-spacing: -.055em;
+      font-weight: 780;
+    }
+
+    .cover .lead {
+      width: 825px;
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1.55;
+    }
+
+    .cover .thesis {
+      position: absolute;
+      left: 52px;
+      right: 285px;
+      bottom: 42px;
+      display: grid;
+      grid-template-columns: 145px 1fr;
+      gap: 22px;
+      align-items: center;
+      padding-top: 17px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .cover .thesis b {
+      color: var(--accent);
+      font-size: 17px;
+    }
+
+    .cover .thesis span {
+      font-size: 21px;
+      font-weight: 650;
+    }
+
+    .cover .right-rail {
+      position: absolute;
+      z-index: 2;
+      top: 52px;
+      right: 38px;
+      width: 162px;
+      height: 610px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .cover .right-rail strong {
+      display: block;
+      font-size: 27px;
+      line-height: 1.15;
+      letter-spacing: .02em;
+    }
+
+    .cover .right-rail small {
+      display: block;
+      margin-top: 7px;
+      color: #aebac5;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .cover .rail-index {
+      color: #6fd5e8;
+      font-size: 14px;
+      letter-spacing: .16em;
+    }
+
+    /* Slide 2 */
+    .roles-intro {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .roles-intro .subhead {
+      width: 410px;
+      padding-bottom: 4px;
+      text-align: right;
+    }
+
+    .role-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-top: 54px;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .role {
+      min-height: 350px;
+      padding: 24px 28px 22px 0;
+    }
+
+    .role + .role {
+      padding-left: 28px;
+      border-left: 1px solid var(--rule);
+    }
+
+    .role .role-id {
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 760;
+      letter-spacing: .08em;
+    }
+
+    .role h3 {
+      margin-top: 14px;
+      font-size: 29px;
+      line-height: 1.22;
+    }
+
+    .role .persona {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .role .question {
+      margin-top: 34px;
+      min-height: 84px;
+      font-size: 22px;
+      line-height: 1.42;
+      font-weight: 650;
+    }
+
+    .role .answer {
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .common-foundation {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: 235px 1fr;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .common-foundation b {
+      font-size: 20px;
+    }
+
+    .foundation-items {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .foundation-items span {
+      padding-left: 13px;
+      border-left: 4px solid var(--accent);
+    }
+
+    /* Slide 3 */
+    .feature-context {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-top: 12px;
+    }
+
+    .feature-context > div {
+      min-height: 58px;
+      padding: 8px 12px 6px 0;
+      border-top: 2px solid var(--rule);
+    }
+
+    .feature-context b,
+    .feature-method-label b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 780;
+      letter-spacing: .08em;
+    }
+
+    .feature-method-label {
+      display: flex;
+      gap: 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 680;
+    }
+
+    .feature-context p {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.36;
+    }
+
+    .feature-method-label {
+      margin-top: 12px;
+    }
+
+    .process-lane {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 24px;
+      margin-top: 17px;
+      padding-top: 24px;
+    }
+
+    .process-lane::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 12px;
+      right: 12px;
+      height: 2px;
+      background: var(--rule);
+    }
+
+    .process-step {
+      position: relative;
+      min-height: 112px;
+    }
+
+    .process-step::before {
+      content: "";
+      position: absolute;
+      top: -30px;
+      left: 0;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 6px var(--accent-soft);
+    }
+
+    .process-step.current::before {
+      box-shadow: 0 0 0 9px var(--accent-soft);
+    }
+
+    .process-step .step-kicker {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 780;
+      letter-spacing: .09em;
+    }
+
+    .process-step h3 {
+      margin-top: 9px;
+      font-size: 21px;
+      line-height: 1.25;
+    }
+
+    .process-step.current h3 {
+      color: var(--accent);
+    }
+
+    .process-step p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.38;
+    }
+
+    .process-facets {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-top: 10px;
+    }
+
+    .process-facet {
+      padding: 14px 18px;
+      background: var(--panel);
+      border-left: 4px solid var(--accent);
+    }
+
+    .process-facet b {
+      display: block;
+      font-size: 17px;
+    }
+
+    .process-facet p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .process-benefits {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 12px;
+    }
+
+    .process-benefit {
+      min-height: 90px;
+      padding: 12px 20px;
+      background: var(--panel);
+    }
+
+    .process-benefit.transparency {
+      color: #fff;
+      background: #14212b;
+    }
+
+    .process-benefit .benefit-id {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 780;
+      letter-spacing: .08em;
+    }
+
+    .process-benefit b {
+      display: block;
+      margin-top: 4px;
+      font-size: 18px;
+    }
+
+    .process-benefit p {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.32;
+    }
+
+    .process-benefit.transparency p {
+      color: #c7d2dc;
+    }
+
+    /* Slide 4 */
+    .fact-line {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 28px;
+      margin-top: 18px;
+      padding-top: 24px;
+    }
+
+    .fact-line::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 12px;
+      right: 12px;
+      height: 2px;
+      background: var(--rule);
+    }
+
+    .fact-step {
+      position: relative;
+      min-height: 156px;
+    }
+
+    .fact-step::before {
+      content: "";
+      position: absolute;
+      top: -30px;
+      left: 0;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 0 6px var(--accent-soft);
+    }
+
+    .fact-step .step-kicker {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 780;
+      letter-spacing: .09em;
+    }
+
+    .fact-step h3 {
+      margin-top: 11px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .fact-step p {
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .explain-bottom {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 30px;
+      margin-top: 12px;
+    }
+
+    .visible-strip {
+      padding: 18px 20px;
+      background: var(--panel);
+      border-left: 6px solid var(--accent);
+    }
+
+    .visible-strip b,
+    .evidence-callout b {
+      display: block;
+      font-size: 20px;
+    }
+
+    .visible-strip p {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .evidence-callout {
+      padding: 18px 20px;
+      color: #fff;
+      background: #14212b;
+    }
+
+    .evidence-callout p {
+      margin-top: 7px;
+      color: #c7d2dc;
+      font-size: 15px;
+      line-height: 1.42;
+    }
+
+    /* Slides 5–6 */
+    .capability-flow {
+      display: grid;
+      grid-template-columns: 250px 1fr 300px;
+      gap: 28px;
+      margin-top: 10px;
+      min-height: 220px;
+    }
+
+    .flow-source,
+    .flow-result {
+      padding: 20px;
+    }
+
+    .flow-source {
+      color: #fff;
+      background: #13212b;
+    }
+
+    .flow-result {
+      background: var(--accent-soft);
+      border-top: 4px solid var(--accent);
+    }
+
+    .flow-source .label,
+    .flow-result .label {
+      color: #76d4e6;
+      font-size: 12px;
+      font-weight: 780;
+      letter-spacing: .08em;
+    }
+
+    .flow-result .label { color: var(--accent); }
+
+    .flow-source h3,
+    .flow-result h3 {
+      margin-top: 10px;
+      font-size: 22px;
+      line-height: 1.28;
+    }
+
+    .flow-source p,
+    .flow-result p {
+      margin-top: 11px;
+      color: #c7d0d8;
+      font-size: 14px;
+      line-height: 1.42;
+    }
+
+    .flow-result p { color: var(--muted); }
+
+    .signal-grid,
+    .audit-facts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .signal,
+    .audit-fact {
+      padding: 15px 16px;
+      background: var(--panel);
+      border-left: 4px solid var(--accent);
+    }
+
+    .signal b,
+    .audit-fact b {
+      display: block;
+      font-size: 17px;
+    }
+
+    .signal p,
+    .audit-fact p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.36;
+    }
+
+    .audit-flow {
+      grid-template-columns: 1fr 230px 1fr;
+    }
+
+    .audit-record {
+      padding: 20px;
+      color: #fff;
+      background: #13212b;
+      border-top: 4px solid var(--accent);
+    }
+
+    .audit-record b {
+      display: block;
+      color: #76d4e6;
+      font-size: 19px;
+    }
+
+    .audit-record p {
+      margin-top: 12px;
+      color: #c7d0d8;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .audit-questions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .audit-question {
+      padding: 16px;
+      border: 1px solid var(--rule);
+    }
+
+    .audit-question b {
+      color: var(--accent);
+      font-size: 17px;
+    }
+
+    .audit-question p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .feature-outcomes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 12px;
+    }
+
+    .feature-outcome {
+      min-height: 92px;
+      padding: 13px 18px;
+      background: var(--panel);
+      border-left: 5px solid var(--accent);
+    }
+
+    .feature-outcome.standard {
+      color: #fff;
+      background: #13212b;
+    }
+
+    .feature-outcome .outcome-id {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 780;
+      letter-spacing: .08em;
+    }
+
+    .feature-outcome.standard .outcome-id { color: #76d4e6; }
+
+    .feature-outcome b {
+      display: block;
+      margin-top: 4px;
+      font-size: 17px;
+    }
+
+    .feature-outcome p {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .feature-outcome.standard p { color: #c7d0d8; }
+
+    /* Slide 7 */
+    .architecture-claim {
+      width: 1140px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    .architecture-stack {
+      position: relative;
+      display: grid;
+      grid-template-columns: 164px 1fr;
+      grid-template-rows: 76px 66px 66px 76px;
+      column-gap: 16px;
+      row-gap: 12px;
+      margin-top: 18px;
+    }
+
+    .architecture-stack::before {
+      content: "";
+      position: absolute;
+      left: 154px;
+      top: 36px;
+      bottom: 36px;
+      width: 2px;
+      background: var(--rule);
+    }
+
+    .arch-label {
+      position: relative;
+      align-self: center;
+      padding-left: 46px;
+    }
+
+    .arch-label::before {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      top: 17px;
+      right: 3px;
+      width: 10px;
+      height: 10px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .arch-label b {
+      display: block;
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: .08em;
+    }
+
+    .arch-label span {
+      display: block;
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 780;
+    }
+
+    .source-modules,
+    .governance-items,
+    .application-views {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .source-module {
+      padding: 12px 14px;
+      background: var(--panel);
+      border-top: 3px solid var(--rule);
+    }
+
+    .source-module code {
+      display: block;
+      color: var(--accent);
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .source-module p {
+      margin-top: 5px;
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 650;
+    }
+
+    .fact-stream {
+      display: grid;
+      grid-template-columns: 1.05fr 1.18fr 1.05fr 1.22fr 1.05fr;
+      align-items: center;
+      height: 66px;
+      padding: 0 12px;
+      color: #fff;
+      background: #13212b;
+    }
+
+    .fact-stream span {
+      padding: 0 12px;
+      border-right: 1px solid #42505b;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 650;
+      text-align: center;
+    }
+
+    .fact-stream span:last-child { border-right: none; }
+    .fact-stream small { color: #8fd8e6; font-size: 11px; }
+
+    .governance-items {
+      padding: 9px 12px;
+      background: var(--accent-soft);
+      border-top: 3px solid var(--accent);
+    }
+
+    .governance-item {
+      padding: 0 12px;
+      border-right: 1px solid #a9d2dc;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .governance-item:last-child { border-right: none; }
+    .governance-item b { display: block; margin-bottom: 3px; font-size: 14px; }
+    .governance-item span { color: var(--muted); }
+
+    .application-view {
+      padding: 12px 14px;
+      border: 1px solid var(--rule);
+      border-left: 4px solid var(--accent);
+    }
+
+    .application-view b {
+      display: block;
+      color: var(--accent);
+      font-size: 18px;
+    }
+
+    .application-view span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .architecture-principle {
+      margin-top: 13px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .architecture-principle strong { color: var(--ink); }
+
+    /* Slide 8 */
+    .slide[data-title="当前成熟度"] h2 { max-width: 900px; }
+
+    .status-legend {
+      position: absolute;
+      top: 58px;
+      right: 48px;
+      display: flex;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-legend span::before {
+      content: "";
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      margin-right: 7px;
+      vertical-align: 1px;
+      border-radius: 50%;
+    }
+
+    .done::before { background: var(--green); }
+    .doing::before { background: var(--amber); }
+    .next::before { background: var(--blue); }
+
+    .maturity-table {
+      display: grid;
+      grid-template-columns: 150px 1.08fr 1fr .92fr;
+      margin-top: 44px;
+      border-top: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .maturity-table > div {
+      min-height: 79px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .maturity-table > div:nth-last-child(-n+4) { border-bottom: none; }
+    .maturity-table > div:not(:nth-child(4n+1)) { border-left: 1px solid var(--rule); }
+
+    .maturity-table .head {
+      min-height: 44px;
+      padding-top: 11px;
+      padding-bottom: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 780;
+      letter-spacing: .06em;
+    }
+
+    .maturity-table .dimension {
+      font-size: 18px;
+      font-weight: 780;
+    }
+
+    .maturity-table .dimension small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .maturity-table .cell {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .maturity-table .cell strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 7px;
+      vertical-align: 1px;
+      border-radius: 50%;
+    }
+
+    .status-dot.is-done { background: var(--green); }
+    .status-dot.is-doing { background: var(--amber); }
+    .status-dot.is-next { background: var(--blue); }
+
+    .closing-line {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 20px;
+      align-items: start;
+      margin-top: 18px;
+    }
+
+    .closing-line h3 {
+      font-size: 23px;
+      color: var(--accent);
+    }
+
+    .closing-line p {
+      font-size: 19px;
+      line-height: 1.55;
+      font-weight: 620;
+    }
+
+    .controls {
+      position: fixed;
+      right: 18px;
+      bottom: 16px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 9px;
+      color: #fff;
+      background: rgba(17, 24, 32, .86);
+      border-radius: 20px;
+      font-size: 13px;
+      user-select: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .16s ease;
+    }
+
+    .controls.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .controls button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      color: #fff;
+      background: transparent;
+      border: 1px solid #71808d;
+      border-radius: 50%;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .controls button:hover { background: #29404f; }
+
+    @media print {
+      html, body {
+        overflow: visible;
+        background: #fff;
+      }
+      body { display: block; }
+      .deck {
+        width: 1280px !important;
+        height: auto !important;
+        transform: none !important;
+      }
+      .slide {
+        position: relative;
+        display: block !important;
+        width: 1280px;
+        height: 720px;
+        break-after: page;
+      }
+      .controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="NextAgent 过程可视、可解释、可观测、可审计设计演示">
+    <section class="slide cover active" data-title="封面">
+      <p class="eyebrow">NEXTAGENT / TELECOM AGENT BACKEND</p>
+      <div class="cover-body">
+        <h1>让智能体运行过程清晰可见，<br>依据充分、异常可定位、操作可追溯</h1>
+        <div class="accent-rule"></div>
+        <p class="lead">面向网络运维人员（智能体用户）、平台运维人员与开发及集成人员的<br>过程可视 · 可解释 · 可观测 · 可审计设计</p>
+      </div>
+      <div class="thesis">
+        <b>当前结论</b>
+        <span>四项能力共用可信运行事实，分别解决用户体验、结论信任、平台保障和责任治理问题</span>
+      </div>
+      <aside class="right-rail" aria-label="四项设计目标">
+        <div class="rail-index">01 — 08</div>
+        <div><strong>过程可视</strong><small>掌握任务进展、关键操作和介入时点</small></div>
+        <div><strong>可解释</strong><small>核查结论依据、判断理由和可信程度</small></div>
+        <div><strong>可观测</strong><small>发现异常、定位原因与慢点</small></div>
+        <div><strong>可审计</strong><small>追溯操作主体、权限范围和执行结果</small></div>
+        <div><small>项目现状汇报<br>2026.07</small></div>
+      </aside>
+    </section>
+
+    <section class="slide" data-title="三类用户">
+      <div class="roles-intro">
+        <h2>三类用户基于同一事实开展工作，<br>但所需信息各有侧重</h2>
+        <p class="subhead">事实口径保持一致，呈现内容按照职责区分，做到必要、清晰、安全。</p>
+      </div>
+      <div class="role-columns">
+        <article class="role">
+          <div class="role-id">01 / 智能体使用</div>
+          <h3>网络运维人员</h3>
+          <p class="persona">智能体用户｜告警分析、故障定位、变更验证</p>
+          <p class="question">“任务进行到哪一步？<br>结论依据是什么？”</p>
+          <p class="answer">需要持续了解状态、进展、关键操作和介入时点，并能够核查结论依据与验证程度。</p>
+        </article>
+        <article class="role">
+          <div class="role-id">02 / 平台运行保障</div>
+          <h3>平台运维人员</h3>
+          <p class="persona">值守、稳定性保障、容量与恢复</p>
+          <p class="question">“平台是否稳定？<br>问题在哪里、影响多大？”</p>
+          <p class="answer">需要贯通一次运行的关键环节，及时发现异常、定位故障与慢点，并确认恢复结果。</p>
+        </article>
+        <article class="role">
+          <div class="role-id">03 / 建设与集成</div>
+          <h3>开发与集成人员</h3>
+          <p class="persona">智能体、能力与外部系统建设</p>
+          <p class="question">“哪项设计或变更影响了结果？<br>如何复现并防止再次发生？”</p>
+          <p class="answer">需要依据统一标识和规范化记录复现问题、判断影响范围，并通过规范和测试防止问题重复发生。</p>
+        </article>
+      </div>
+      <div class="common-foundation">
+        <b>共同底座</b>
+        <div class="foundation-items">
+          <span>统一运行时间线</span>
+          <span>稳定关联标识</span>
+          <span>用户与智能体范围隔离</span>
+          <span>统一脱敏与安全处理</span>
+        </div>
+      </div>
+      <div class="source">设计依据：项目架构边界、运行事实和安全隔离原则</div>
+      <div class="page-no">02 / 08</div>
+    </section>
+
+    <section class="slide" data-title="整体方案">
+      <h2>整体方案：以权威运行事实为基础，<br>经可信关联和安全投影形成分角色视图</h2>
+      <p class="architecture-claim">各模块在职责范围内形成权威事实，通过可信用户范围、可信智能体范围和稳定业务标识建立关联；任何视图都不得反向改写运行结果。</p>
+      <div class="architecture-stack" aria-label="NextAgent 四层技术架构">
+        <div class="arch-label"><b>01 / OWNERS</b><span>事实形成层</span></div>
+        <div class="source-modules">
+          <div class="source-module"><code>agent-runtime</code><p>请求生命周期、运行状态、统一时间线与终态提交</p></div>
+          <div class="source-module"><code>agent-core / agent-context-engine</code><p>任务编排、路径选择、信息取舍与决策证据</p></div>
+          <div class="source-module"><code>agent-model</code><p>模型调用归一化、流式结果与安全错误</p></div>
+          <div class="source-module"><code>agent-capability</code><p>能力选择、受控执行与结果记录</p></div>
+        </div>
+
+        <div class="arch-label"><b>02 / FACTS</b><span>事实关联层</span></div>
+        <div class="fact-stream">
+          <span><small>RequestRun</small><br>运行坐标</span>
+          <span><small>Canonical Timeline</small><br>统一时间线</span>
+          <span><small>Context / Route Evidence</small><br>取舍与路径证据</span>
+          <span><small>AI Resource Access</small><br>AI资源访问</span>
+          <span><small>Gateway Persistence</small><br>事实留存</span>
+        </div>
+
+        <div class="arch-label"><b>03 / PROJECT</b><span>安全投影层</span></div>
+        <div class="governance-items">
+          <div class="governance-item"><b>双重范围校验</b><span>用户范围 + 智能体范围</span></div>
+          <div class="governance-item"><b>稳定标识关联</b><span>会话 + 请求 + 运行 + 调用</span></div>
+          <div class="governance-item"><b>用户与开发投影</b><span>channel-web + dev-workbench</span></div>
+          <div class="governance-item"><b>观测与事件上报</b><span>observability + audit report</span></div>
+        </div>
+
+        <div class="arch-label"><b>04 / VIEWS</b><span>应用视图层</span></div>
+        <div class="application-views">
+          <div class="application-view"><b>过程可视</b><span>状态 · 进展 · 操作<br>面向网络运维人员</span></div>
+          <div class="application-view"><b>可解释</b><span>依据 · 选择 · 验证<br>面向网络运维人员</span></div>
+          <div class="application-view"><b>可观测</b><span>异常 · 慢点 · 健康<br>面向平台运维人员</span></div>
+          <div class="application-view"><b>可审计</b><span>主体 · AI资源 · 结果<br>面向治理与开发人员</span></div>
+        </div>
+      </div>
+      <p class="architecture-principle"><strong>关键边界：</strong>本项目形成并上报审计事件；接收、留存、防篡改、查询、归档及合规管理由外部审计平台负责。</p>
+      <div class="source">设计依据：可信身份、AI资源访问记录、稳定关联标识、审计事件上报与外部管理职责分离</div>
+      <div class="page-no">03 / 08</div>
+    </section>
+
+    <section class="slide" data-title="过程可视">
+      <h2>过程可视：说明任务正在做什么、<br>进展到何处、何时需要介入</h2>
+      <div class="feature-context">
+        <div><b>01 / 是什么</b><p>把真实状态和关键事件转化为连续、易懂的过程信息，回答“正在做什么、进展到何处”。</p></div>
+        <div><b>02 / 为什么</b><p>减少无反馈等待带来的不确定感，便于判断任务是否正常、是否继续以及何时介入。</p></div>
+      </div>
+      <div class="feature-method-label"><b>03 / 怎么做</b><span>以一次任务的完整过程为主线，持续呈现阶段状态、已完成事项、当前操作、下一步和介入提示</span></div>
+      <div class="process-lane" aria-label="一次智能体运行的用户过程视图">
+        <article class="process-step">
+          <div class="step-kicker">01 / 请求受理</div>
+          <h3>已受理</h3>
+          <p>任务已进入处理流程，并建立本次运行标识。</p>
+        </article>
+        <article class="process-step">
+          <div class="step-kicker">02 / 分析准备</div>
+          <h3>分析中</h3>
+          <p>汇集必要信息，呈现当前分析思路、阶段判断和执行安排。</p>
+        </article>
+        <article class="process-step current">
+          <div class="step-kicker">03 / 能力执行</div>
+          <h3>执行中</h3>
+          <p>显示当前使用的能力、操作类型及执行状态。</p>
+        </article>
+        <article class="process-step">
+          <div class="step-kicker">04 / 等待或恢复</div>
+          <h3>等待 / 恢复</h3>
+          <p>说明需要补充的信息、降级情况或连接恢复进展。</p>
+        </article>
+        <article class="process-step">
+          <div class="step-kicker">05 / 运行结束</div>
+          <h3>已结束</h3>
+          <p>明确完成、失败或取消，并标注结果是否经过验证。</p>
+        </article>
+      </div>
+      <div class="process-facets">
+        <div class="process-facet"><b>运行状态</b><p>受理、分析、执行、等待、完成、失败或取消</p></div>
+        <div class="process-facet"><b>思考与执行进展</b><p>当前思考、已完成事项、当前阶段和下一步</p></div>
+        <div class="process-facet"><b>关键操作</b><p>展示所用能力和操作状态；敏感参数按规则保护</p></div>
+      </div>
+      <div class="process-benefits">
+        <div class="process-benefit">
+          <div class="benefit-id">04 / 做成什么样</div>
+          <b>状态连续、进展明确、思考与操作可知</b>
+          <p>用户可随时了解当前状态、模型思考进展、关键操作、介入提示和最终结果。</p>
+        </div>
+        <div class="process-benefit transparency">
+          <div class="benefit-id">05 / 到什么程度</div>
+          <b>状态有据、顺序一致、断点可续</b>
+          <p>状态和操作以真实事件为准；模型思考过程按配置和权限展示，敏感信息按规则保护。</p>
+        </div>
+      </div>
+      <div class="source">设计依据：运行状态、过程记录、用户输入与结果证据相关设计</div>
+      <div class="page-no">04 / 08</div>
+    </section>
+
+    <section class="slide" data-title="可解释设计">
+      <h2>可解释：说明为何这样处理、<br>结论依据何在</h2>
+      <div class="feature-context">
+        <div><b>01 / 是什么</b><p>呈现模型思考过程，并说明关键结论的信息依据、选择理由、结果证据和验证程度。</p></div>
+        <div><b>02 / 为什么</b><p>帮助用户判断结论是否可信、识别尚未验证的假设，并决定是否需要补充信息或人工复核。</p></div>
+      </div>
+      <div class="feature-method-label"><b>03 / 怎么做</b><span>将模型思考、信息取舍、能力选择、执行结果和验证状态连接成可核查的结论证据链</span></div>
+      <div class="fact-line">
+        <article class="fact-step">
+          <div class="step-kicker">01 / 信息依据</div>
+          <h3>依据来自哪些信息</h3>
+          <p>说明使用了哪些信息，哪些信息未采用或降级使用，以及相应原因。</p>
+        </article>
+        <article class="fact-step">
+          <div class="step-kicker">02 / 决策理由</div>
+          <h3>为何采用这项能力</h3>
+          <p>说明为何采用相关查询、分析或验证能力，并区分“选择”与“执行”。</p>
+        </article>
+        <article class="fact-step">
+          <div class="step-kicker">03 / 结果证据</div>
+          <h3>结论依据是什么</h3>
+          <p>把关键结果与最终结论建立明确对应关系，只展示必要且安全的内容。</p>
+        </article>
+        <article class="fact-step">
+          <div class="step-kicker">04 / 验证程度</div>
+          <h3>结论验证到什么程度</h3>
+          <p>区分智能体判断、工具执行、系统验证和人工确认，明确标注未验证或降级部分。</p>
+        </article>
+      </div>
+      <div class="explain-bottom">
+        <div class="visible-strip">
+          <b>04 / 做成什么样：结论可核查、可复核、可纠正</b>
+          <p>用户能够了解模型如何形成判断，核查依据、选择理由和未验证环节；发现偏差时，可补充信息或复核。</p>
+        </div>
+        <div class="evidence-callout">
+          <b>05 / 到什么程度：重要结论均有依据和验证状态</b>
+          <p>重要结论可追溯到对应信息和结果；未验证或降级部分明确标注；任务完成不等于结论正确。</p>
+        </div>
+      </div>
+      <div class="source">依据：信息取舍、能力选择、执行轨迹和结果验证设计</div>
+      <div class="page-no">05 / 08</div>
+    </section>
+
+    <section class="slide" data-title="可观测">
+      <h2>可观测：让平台异常能够及时发现、<br>快速定位</h2>
+      <div class="feature-context">
+        <div><b>01 / 是什么</b><p>将智能体运行情况转化为可检索、可关联、可衡量的诊断信息，用于保障平台稳定运行。</p></div>
+        <div><b>02 / 为什么</b><p>支持快速发现异常、判断影响范围、定位故障与耗时环节，并验证恢复是否有效。</p></div>
+      </div>
+      <div class="feature-method-label"><b>03 / 怎么做</b><span>使用同一运行标识串联各环节，统一形成日志、指标、调用轨迹和健康信息</span></div>
+      <div class="capability-flow" aria-label="可观测实现流程">
+        <div class="flow-source">
+          <div class="label">运行事实</div>
+          <h3>记录真实运行情况</h3>
+          <p>请求状态、模型调用、能力执行、数据访问、结果传输、耗时和依赖健康。</p>
+        </div>
+        <div class="signal-grid">
+          <div class="signal"><b>日志</b><p>说明发生了什么、结果如何和原因。</p></div>
+          <div class="signal"><b>指标</b><p>反映数量、耗时、错误、容量和变化趋势。</p></div>
+          <div class="signal"><b>调用轨迹</b><p>还原各环节先后关系，定位故障和慢点。</p></div>
+          <div class="signal"><b>健康检查</b><p>判断依赖是否正常、哪里退化、是否恢复。</p></div>
+        </div>
+        <div class="flow-result">
+          <div class="label">诊断视图</div>
+          <h3>还原单次问题<br>判断整体趋势</h3>
+          <p>同一运行可贯通查询；所有信息先安全处理，再用于检索和分析。</p>
+        </div>
+      </div>
+      <div class="feature-outcomes">
+        <div class="feature-outcome"><div class="outcome-id">04 / 做成什么样</div><b>单次问题可还原，整体健康可判断</b><p>能够定位失败位置、主要耗时和影响范围，并观察容量、错误和恢复趋势。</p></div>
+        <div class="feature-outcome standard"><div class="outcome-id">05 / 到什么程度</div><b>跨环节可关联，异常与慢点可定位</b><p>同一运行可贯通查询；敏感信息统一脱敏；避免过细、过多的标识；监测故障不改变业务结果</p></div>
+      </div>
+      <div class="source">设计依据：结构化日志、稳定关联标识、运行指标、链路追踪、健康检查和统一脱敏设计</div>
+      <div class="page-no">06 / 08</div>
+    </section>
+
+    <section class="slide" data-title="可审计">
+      <h2>可审计：形成并上报AI资源访问记录，<br>为责任追溯和法律合规提供证据基础</h2>
+      <div class="feature-context">
+        <div><b>01 / 是什么</b><p>在关键节点形成可关联、可脱敏、可上报的标准审计事件。</p></div>
+        <div><b>02 / 为什么</b><p>为安全治理和事件复盘提供依据，并为适用法律法规、客户制度和监管核查提供合规证据基础。</p></div>
+      </div>
+      <div class="feature-method-label"><b>03 / 怎么做</b><span>当前项目采集最小必要事实并形成标准事件上报；外部审计平台负责接收、管理和使用</span></div>
+      <div class="capability-flow audit-flow" aria-label="可审计实现流程">
+        <div class="audit-facts">
+          <div class="audit-fact"><b>关键节点采集</b><p>覆盖身份确认、资源访问、能力执行、人工介入和任务结束。</p></div>
+          <div class="audit-fact"><b>最小必要校验</b><p>只形成责任追溯和合规所需的必要事实。</p></div>
+          <div class="audit-fact"><b>稳定关联</b><p>使用运行标识关联主体、资源、操作和结果。</p></div>
+          <div class="audit-fact"><b>脱敏与上报</b><p>脱敏后按统一接口上报。</p></div>
+        </div>
+        <div class="audit-record"><b>标准审计事件</b><p>主体、时间、用途<br>权限、操作、AI资源版本<br>结果与人工处置</p><p>统一结构 · 关联 · 脱敏</p></div>
+        <div class="audit-questions">
+          <div class="audit-question"><b>接收与校验</b><p>检查事件完整性和来源可信度。</p></div>
+          <div class="audit-question"><b>留存与防篡改</b><p>按合规策略保存并保护记录。</p></div>
+          <div class="audit-question"><b>查询与归档</b><p>支持检索、导出和归档管理。</p></div>
+          <div class="audit-question"><b>合规核查与举证</b><p>按权限提供核查和监管证据。</p></div>
+        </div>
+      </div>
+      <div class="feature-outcomes">
+        <div class="feature-outcome"><div class="outcome-id">04 / 做成什么样</div><b>AI资源访问有记录，责任链条可追溯</b><p>关键操作、授权依据、执行结果和人工处置能够按运行实例关联核查。</p></div>
+        <div class="feature-outcome standard"><div class="outcome-id">05 / 到什么程度</div><b>最小必要、职责分离、合规可扩展</b><p>本项目仅形成并上报必要事件；留存、防篡改、查询归档和合规管理由外部平台负责。</p></div>
+      </div>
+      <div class="source">法规参考：欧盟《人工智能法案》（适用的高风险AI系统）、《生成式人工智能服务管理暂行办法》；具体要求按场景评估</div>
+      <div class="page-no">07 / 08</div>
+    </section>
+
+    <section class="slide" data-title="当前成熟度">
+      <h2>四类能力已有技术基础，<br>用户解释、生产运维和合规治理仍需收口</h2>
+      <div class="status-legend" aria-label="状态图例">
+        <span class="done">已具备</span>
+        <span class="doing">优化重点</span>
+        <span class="next">设计边界 / 待决策</span>
+      </div>
+      <div class="maturity-table" role="table" aria-label="四项能力成熟度">
+        <div class="head">能力方向</div>
+        <div class="head">已具备基础</div>
+        <div class="head">当前优化重点</div>
+        <div class="head">设计边界与待决策</div>
+
+        <div class="dimension">过程可视<small>网络运维人员</small></div>
+        <div class="cell"><strong><span class="status-dot is-done"></span>状态投影与过程视图已具备</strong>已可展示请求、模型处理、能力调用、等待输入、降级和终态。</div>
+        <div class="cell"><strong><span class="status-dot is-doing"></span>提升网络运维任务可读性</strong>统一阶段名称，补充介入提示、异常处置和下一步。</div>
+        <div class="cell"><strong><span class="status-dot is-next"></span>状态事实与思考过程分开呈现</strong>状态和操作以系统事件为准；模型思考过程按配置和权限展示。</div>
+
+        <div class="dimension">可解释<small>网络运维人员</small></div>
+        <div class="cell"><strong><span class="status-dot is-done"></span>思考过程与解释性事实已具备</strong>已有模型思考过程、信息取舍、能力选择、执行结果、来源引用和安全原因码。</div>
+        <div class="cell"><strong><span class="status-dot is-doing"></span>建设思考与结论证据视图</strong>统一呈现思考过程、依据、选择理由、结果引用及验证状态。</div>
+        <div class="cell"><strong><span class="status-dot is-next"></span>思考过程可见，展示范围受控</strong>任务结束不等于结论正确；思考过程按配置和权限展示，敏感内容仍按安全规则处理。</div>
+
+        <div class="dimension">可观测<small>平台运维人员</small></div>
+        <div class="cell"><strong><span class="status-dot is-done"></span>基础观测和开发诊断已具备</strong>已有日志、指标、追踪、健康检查及单次运行过程图。</div>
+        <div class="cell"><strong><span class="status-dot is-doing"></span>落实生产级本地日志治理</strong>方案已形成；统一格式、事件覆盖、轮转、压缩和保留仍在实施。</div>
+        <div class="cell"><strong><span class="status-dot is-next"></span>集中运维需单独立项</strong>远程检索、告警看板、容量水位和远端运维平台不在当前范围。</div>
+
+        <div class="dimension">可审计<small>治理与开发人员</small></div>
+        <div class="cell"><strong><span class="status-dot is-done"></span>审计事件上报边界已明确</strong>本项目负责形成、关联、脱敏并上报，事件管理不在当前项目范围。</div>
+        <div class="cell"><strong><span class="status-dot is-doing"></span>补齐AI资源访问事件覆盖</strong>记录资源标识及版本、访问主体、权限与用途、操作结果和人工处置。</div>
+        <div class="cell"><strong><span class="status-dot is-next"></span>外部平台承担合规管理</strong>接收、留存、防篡改、查询、归档、期限策略和监管举证不由本项目负责。</div>
+      </div>
+      <div class="closing-line">
+        <h3>建议本阶段确认</h3>
+        <p>① 优化过程体验和结论证据视图；② 补齐AI资源访问事件并完成上报对接；③ 外部平台明确事件管理与合规策略。</p>
+      </div>
+      <div class="source">职责边界：当前项目负责审计事件形成与上报；事件管理、留存和合规举证属于外部平台</div>
+      <div class="page-no">08 / 08</div>
+    </section>
+  </main>
+
+  <nav class="controls" aria-label="演示控制">
+    <button type="button" id="prev" aria-label="上一页">‹</button>
+    <span id="counter">1 / 8</span>
+    <button type="button" id="next" aria-label="下一页">›</button>
+  </nav>
+
+  <script>
+    (() => {
+      const deck = document.querySelector('.deck');
+      const slides = [...document.querySelectorAll('.slide')];
+      const counter = document.getElementById('counter');
+      const controls = document.querySelector('.controls');
+      let current = Math.min(Math.max(Number(location.hash.slice(1)) || 1, 1), slides.length) - 1;
+      let controlsTimer;
+
+      function fit() {
+        const scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+        deck.style.transform = `scale(${scale})`;
+      }
+
+      function show(index) {
+        current = (index + slides.length) % slides.length;
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
+        counter.textContent = `${current + 1} / ${slides.length}`;
+        history.replaceState(null, '', `#${current + 1}`);
+        document.title = `${slides[current].dataset.title}｜NextAgent 过程可视、可解释、可观测、可审计设计`;
+      }
+
+      document.getElementById('prev').addEventListener('click', () => show(current - 1));
+      document.getElementById('next').addEventListener('click', () => show(current + 1));
+      window.addEventListener('keydown', (event) => {
+        if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(event.key)) show(current + 1);
+        if (['ArrowLeft', 'PageUp', 'Backspace'].includes(event.key)) show(current - 1);
+        if (event.key === 'Home') show(0);
+        if (event.key === 'End') show(slides.length - 1);
+      });
+      window.addEventListener('resize', fit);
+      window.addEventListener('mousemove', () => {
+        controls.classList.add('show');
+        clearTimeout(controlsTimer);
+        controlsTimer = setTimeout(() => controls.classList.remove('show'), 1200);
+      });
+      window.addEventListener('touchstart', () => controls.classList.add('show'), { passive: true });
+      fit();
+      show(current);
+    })();
+  </script>
+</body>
+</html>

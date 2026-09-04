@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-07-29
+depends:
+  - add-share-ops-hash-permission

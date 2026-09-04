@@ -1,0 +1,12 @@
+- [x] 1. 在 `agent-app/composition/watermark-composition.ts` 中新增 `WatermarkConfigProvider` 接口和 `createWatermarkConfigProvider` 工厂——带 `statSync` 指纹缓存的惰性读取，内部复用 `readWatermarkEnabled`。
+- [x] 2. 在 `composition-contracts.ts`（`WebChannelRegistrationContext`）中把 `watermarkEnabled?: boolean` 替换为 `getWatermarkEnabled?: () => boolean`。
+- [x] 3. 更新 `create-app.ts`——创建 `WatermarkConfigProvider` 而不是在启动时调用 `readWatermarkEnabled`；向 channel 层传递 `getWatermarkEnabled`。
+- [x] 4. 更新 `channel-composition.ts`——2 个注入点：binding 存在时总是注入 watermark port，传递 `getWatermarkEnabled` 而不是 `watermarkEnabled: true`。
+- [x] 5. 更新 `requests.ts`——把 `WebChannelDependencies.watermarkEnabled` 改为 `getWatermarkEnabled`；更新 3 个 transform 检查点和 2 个传播点。
+- [x] 6. 更新 `web-stream-delivery.ts`——把 `WebStreamDeliveryRequest.watermarkEnabled` 改为 `getWatermarkEnabled`；更新 1 个检查点。
+- [x] 7. 更新 `websocket.ts`——把 `WebSocketStreamDependencies.watermarkEnabled` 改为 `getWatermarkEnabled`；更新 1 个传播点。
+- [x] 8. 在 `watermark-config.test.ts` 中新增 provider 测试——验证惰性读取、缓存命中、文件变更时的缓存失效、文件缺失时的回退。
+- [x] 9. 运行 `openspec validate add-ts-watermark-lazy-config --strict`。
+- [x] 10. 为 watermark 测试文件运行定向 vitest。
+- [x] 11. 运行 `npm run lint:architecture`。
+- [x] 12. 验证所有修改的文件使用 CRLF 行尾。

@@ -1,0 +1,33 @@
+{
+  "name": "@nextagent/agent-observability",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-contracts": "1.0.0",
+    "@nextagent/agent-local-file-roll": "1.0.0",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "0.221.0",
+    "@opentelemetry/instrumentation": "0.221.0",
+    "@opentelemetry/instrumentation-http": "0.221.0",
+    "@opentelemetry/propagator-b3": "2.10.0",
+    "@opentelemetry/resources": "2.10.0",
+    "@opentelemetry/sdk-metrics": "2.10.0",
+    "@opentelemetry/sdk-trace-base": "2.10.0",
+    "@opentelemetry/sdk-trace-node": "2.10.0",
+    "@opentelemetry/semantic-conventions": "1.41.1"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  }
+}

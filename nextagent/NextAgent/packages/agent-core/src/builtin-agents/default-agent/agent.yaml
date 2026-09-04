@@ -1,0 +1,17 @@
+{
+  'agentId': 'default-agent',
+  'agentVersion': 'v1',
+  'displayName': 'NextAgent telecom agent',
+  'description': 'Default telecom network operations agent.',
+  'capabilityBindings':
+    [
+      { 'capabilityId': 'network-explorer', 'capabilityType': 'AGENT', 'providerId': 'builtin-agents', 'enabled': true },
+      { 'capabilityId': 'search_memory', 'capabilityType': 'TOOL', 'providerId': 'memory-tools', 'enabled': true },
+      { 'capabilityId': 'get_memory_detail', 'capabilityType': 'TOOL', 'providerId': 'memory-tools', 'enabled': true },
+      { 'capabilityId': 'add_memory', 'capabilityType': 'TOOL', 'providerId': 'memory-tools', 'enabled': true },
+      { 'capabilityId': 'Rag', 'capabilityType': 'TOOL', 'providerId': 'builtin-tools', 'enabled': true },
+    ],
+  'hooks': [{ 'hookId': 'user-query-memory-recall', 'stages': ['BEFORE_MODEL_INVOKE'], 'enabled': true }],
+  'runtimeSettings': { 'defaultLanguage': 'zh-CN', 'maxTurns': 50, 'maxToolCallsPerTurn': 30, 'requestTimeoutMs': 1800000 },
+  'resources': [],
+}

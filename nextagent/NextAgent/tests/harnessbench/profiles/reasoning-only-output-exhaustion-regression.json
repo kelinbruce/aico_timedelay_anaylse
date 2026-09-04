@@ -1,0 +1,5 @@
+{
+  "profileId": "reasoning-only-output-exhaustion-regression",
+  "nonScoring": true,
+  "taskIds": ["021-batch-rename-transform", "037-policy-clause-retrieval"]
+}

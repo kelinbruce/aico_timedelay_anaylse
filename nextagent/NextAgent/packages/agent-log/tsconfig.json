@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-log.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "../agent-common" }, { "path": "../agent-local-file-roll" }]
+}

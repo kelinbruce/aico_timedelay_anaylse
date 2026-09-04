@@ -1,0 +1,8 @@
+id: refine-ts-tool-loop-empty-tool-name-recovery
+title: Refine TS tool loop empty tool-name recovery
+status: active
+created: 2026-07-17
+owners:
+  - guanyuanchao
+spec:
+  - ts-minimal-agent-kernel

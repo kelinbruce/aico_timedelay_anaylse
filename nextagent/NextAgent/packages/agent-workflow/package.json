@@ -1,0 +1,32 @@
+{
+  "name": "@nextagent/agent-workflow",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine/index.d.ts",
+      "import": "./dist/engine/index.js"
+    },
+    "./nodes": {
+      "types": "./dist/nodes/index.d.ts",
+      "import": "./dist/nodes/index.js"
+    }
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-contracts": "1.0.0",
+    "ajv": "8.18.0",
+    "js-yaml": "^5.2.1"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  }
+}

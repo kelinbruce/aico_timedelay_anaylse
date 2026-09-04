@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-channel-task.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../agent-contracts"
+    },
+    {
+      "path": "../agent-channel-common"
+    }
+  ]
+}

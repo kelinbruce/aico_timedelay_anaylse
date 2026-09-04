@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@nextagent/agent-contracts/model": ["packages/agent-contracts/src/model/index.ts"]
+    }
+  }
+}

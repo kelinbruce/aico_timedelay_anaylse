@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-remote-deployment.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../agent-app" },
+    { "path": "../agent-contracts" },
+    { "path": "../agent-platform-gateway-local" },
+    { "path": "../agent-platform-gateway-remote" }
+  ]
+}

@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NextAgent 当前系统架构、模块所有权、请求主路径、安全边界与部署形态。">
+  <title>NextAgent 系统架构</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #f5f7fa;
+      --surface: #ffffff;
+      --surface-muted: #f8fafc;
+      --text: #172033;
+      --muted: #5d687b;
+      --line: #dce3ec;
+      --accent: #155eef;
+      --accent-soft: #eaf1ff;
+      --code: #111827;
+      --shadow: 0 12px 36px rgba(23, 32, 51, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.72;
+    }
+    .page-shell {
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 920px);
+      gap: 32px;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+    .toc {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+    .toc-title { margin: 0 0 12px; font-size: 14px; font-weight: 700; color: var(--muted); letter-spacing: .06em; }
+    .toc a { display: block; padding: 5px 8px; border-radius: 7px; color: var(--muted); text-decoration: none; font-size: 14px; line-height: 1.45; }
+    .toc a:hover { color: var(--accent); background: var(--accent-soft); }
+    .toc a[data-level="3"] { padding-left: 22px; font-size: 13px; }
+    main {
+      min-width: 0;
+      padding: 46px 56px 64px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+    .document-meta {
+      margin: -20px 0 26px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    h1, h2, h3 { line-height: 1.3; scroll-margin-top: 24px; }
+    h1 { margin: 0 0 32px; font-size: clamp(32px, 5vw, 46px); letter-spacing: -.035em; }
+    h2 { margin: 48px 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--line); font-size: 25px; }
+    h3 { margin: 34px 0 14px; font-size: 19px; }
+    p { margin: 12px 0; }
+    ul, ol { padding-left: 24px; }
+    li + li { margin-top: 5px; }
+    a { color: var(--accent); text-underline-offset: 3px; }
+    strong { font-weight: 700; }
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: #eef2f7;
+      color: #a21caf;
+      font: 0.9em ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    pre {
+      max-width: 100%;
+      overflow: auto;
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #263247;
+      border-radius: 12px;
+      background: var(--code);
+      color: #e5edf8;
+      font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    pre code { padding: 0; background: transparent; color: inherit; }
+    .mermaid-diagram {
+      display: flex;
+      justify-content: center;
+      max-width: 100%;
+      margin: 20px 0;
+      overflow-x: auto;
+      border-color: var(--line);
+      background: var(--surface-muted);
+      color: var(--text);
+    }
+    .mermaid-diagram svg { max-width: 100%; height: auto; }
+    table {
+      display: table;
+      width: 100%;
+      margin: 18px 0 26px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td { padding: 11px 13px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--surface-muted); font-weight: 700; }
+    tbody tr:nth-child(even) { background: #fbfcfe; }
+    blockquote { margin: 18px 0; padding: 10px 18px; border-left: 4px solid var(--accent); background: var(--accent-soft); color: var(--muted); }
+    @media (max-width: 920px) {
+      .page-shell { display: block; padding: 0; }
+      .toc { position: static; max-height: none; margin: 0; border-width: 0 0 1px; border-radius: 0; box-shadow: none; }
+      main { padding: 32px 22px 48px; border: 0; border-radius: 0; box-shadow: none; }
+      table { display: block; overflow-x: auto; white-space: normal; }
+    }
+    @media print {
+      body { background: #fff; }
+      .page-shell { display: block; max-width: none; padding: 0; }
+      .toc, .document-meta { display: none; }
+      main { padding: 0; border: 0; box-shadow: none; }
+      h2, h3 { break-after: avoid; }
+      table, pre { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="toc" aria-label="目录">
+      <p class="toc-title">目录</p>
+      <nav id="toc"></nav>
+    </aside>
+    <main>
+      <p class="document-meta">由 <a href="../nextagent-architecture.md">nextagent-architecture.md</a> 同步生成 · 2026-07-29</p>
+      <h1>NextAgent 系统架构</h1>
+<p>本文介绍 NextAgent 当前代码所实现的系统架构，帮助使用者理解系统如何运行，帮助 Agent、Skill、平台集成和内核开发者判断改动应落在哪一层。</p>
+<p>本文是架构导读，不替代规格。行为和边界的权威来源依次为根目录 <code>AGENTS.md</code>、<code>openspec/specs/</code>、<code>openspec/designs/</code> 和已生效的 OpenSpec change。文中“当前实现”以仓库代码和配置为准；尚未形成完整产品能力的方向会明确标注边界。</p>
+<h2>1. 系统定位</h2>
+<p>NextAgent 是面向电信网络运维场景的 TypeScript 智能体框架。它把模型推理、会话和请求生命周期、Tool/Skill/Agent/Workflow 能力治理、知识与长期记忆、人机协同、受控执行、持久化恢复和可观测审计组织在一条可验证的主路径上。</p>
+<p>系统同时服务三类角色：</p>
+<ul>
+<li>直接使用智能体的网络运维人员：通过 Web 界面完成故障诊断、巡检分析、配置核查、知识问答和报告生成。</li>
+<li>对接网管、告警、编排等系统的集成方：通过 Task Channel 和回调进行异步机机调用。</li>
+<li>开发 Agent、Skill、Tool、Plugin 和平台适配器的开发者：在受控扩展边界内装配领域能力，避免分叉通用内核。</li>
+</ul>
+<p>架构由两层产品模型组成：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>解决的问题</th>
+<th>主要载体</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Generic Agent Kernel</td>
+<td>Agent 如何安全、可靠、可恢复地运行</td>
+<td>Runtime、Session、Context、Model、Capability、Gateway、Observability</td>
+</tr>
+<tr>
+<td>Network Agent Assembly</td>
+<td>当前网络 Agent 使用什么模型、提示词、能力和策略</td>
+<td><code>application.yaml</code>、<code>agent.yaml</code>、Prompt、Skill、Plugin、Hook、Policy</td>
+</tr>
+</tbody></table>
+<p>领域差异应优先通过 Agent Assembly 表达。只有当现有配置和扩展点无法表达新的通用行为时，才修改核心 contract 或 kernel，并先建立 OpenSpec change。</p>
+<h2>2. 总体架构</h2>
+<pre><code class="language-text">┌─────────────────────────────────────────────────────────────┐
+│                 入口适配层 (Entry Adapter Layer)           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │  Web UI     │  │     IM      │  │    A2A      │        │
+│  │  (本版本)   │  │  (预留)     │  │  (本版本)     │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘        │
+│  ┌─────────────┐  ┌─────────────┐                         │
+│  │ AgentLink   │  │ EventCenter │                         │
+│  │  (本版本)     │  │  (Task)     │                         │
+│  └─────────────┘  └─────────────┘                         │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  运行时核心 (Runtime Kernel)                 │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              运行时内核 (Runtime Kernel)               │  │
+│  │  - 请求生命周期管理                                     │  │
+│  │  - 准入控制                                            │  │
+│  │  - 会话级串行控制                                        │  │
+│  │  - 终态结果提交保证                                     │  │
+│  │  - RunTimelineEvent 发布、持久化策略和通道事件转换策略       │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │ 会话运行时   │  │ 上下文引擎   │  │ 查询策略    │        │
+│  │ Session     │  │ Context     │  │ Query       │        │
+│  │ Runtime     │  │ Engine      │  │ Policy      │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   控制器层 (Controller Layer)                 │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │       ModelDrivenAgent ｜ WorkflowDrivenAgent         │  │
+│  │  - 请求级业务循环                                       │  │
+│  │  - 步骤级模型路由                                       │  │
+│  │  - 能力调用决策                                         │  │
+│  │  - 流式 tool_use 解析                                  │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    能力层 (Capability Layer)                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
+│  │ 内置能力    │  │ 注册能力     │  │ 远程能力    │          │
+│  │ Built-in   │  │ Registered  │  │ Remote     │          │
+│  │ Skills/    │  │ Skills/    │  │ AgentReg/  │          │
+│  │ Tools/     │  │ Tools/     │  │ SkillHub/  │          │
+│  │ Invoked    │  │ Invoked    │  │ MCP        │          │
+│  │ Agents     │  │ Agents     │  │            │          │
+│  └─────────────┘  └─────────────┘  └─────────────┘          │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   平台层 (Platform Layer)                    │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
+│  │ 模型网关    │  │ 平台网关    │  │ 身份网关    │          │
+│  │ Model       │  │ Platform    │  │ Identity    │          │
+│  │ Gateway     │  │ Gateway     │  │ Gateway     │          │
+│  └─────────────┘  └─────────────┘  └─────────────┘          │
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+<blockquote>
+<p>图中的 Web UI 与 EventCenter/Task 对应当前仓库可直接验证的 Web、Task Channel。A2A 和 AgentLink 保留既有总体架构中的集成位置与版本标识，其具体部署是否已经交付必须以部署侧适配器、OpenSpec 和集成验收证据为准，不能仅由本仓库 package 推断；IM 仍是预留入口。</p>
+</blockquote>
+<p>这张图表达四个关键事实：</p>
+<ol>
+<li>Channel 只适配协议、可信身份和公开 DTO，不拥有请求生命周期。</li>
+<li><code>agent-runtime</code> 是所有请求命令和 canonical timeline 的唯一 owner。</li>
+<li><code>agent-core</code> 决定 Agent 内部业务路由与编排，Runtime 不做网络领域语义判断。</li>
+<li><code>agent-app</code> 是唯一 composition root；具体实现通过启动期装配进入系统，不在业务包内临时拼装。</li>
+</ol>
+<h2>3. 一次请求如何运行</h2>
+<h3>3.1 请求主路径</h3>
+<figure class="mermaid-diagram" aria-label="NextAgent 请求主路径时序图"><svg id="nextagent-request-sequence" width="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 2068px;" viewBox="-50 -10 2068 1188" role="graphics-document document" aria-roledescription="sequence"><g><rect x="1818" y="1102" fill="#eaeaea" stroke="#666" width="150" height="65" name="G" rx="3" ry="3" class="actor actor-bottom"></rect><text x="1893" y="1134.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="1893" dy="0">Gateway</tspan></text></g><g><rect x="1488" y="1102" fill="#eaeaea" stroke="#666" width="162" height="65" name="P" rx="3" ry="3" class="actor actor-bottom"></rect><text x="1569" y="1134.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="1569" dy="0">Capability / Workflow</tspan></text></g><g><rect x="1288" y="1102" fill="#eaeaea" stroke="#666" width="150" height="65" name="M" rx="3" ry="3" class="actor actor-bottom"></rect><text x="1363" y="1134.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="1363" dy="0">Model</tspan></text></g><g><rect x="1088" y="1102" fill="#eaeaea" stroke="#666" width="150" height="65" name="X" rx="3" ry="3" class="actor actor-bottom"></rect><text x="1163" y="1134.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="1163" dy="0">Context Engine</tspan></text></g><g><rect x="881" y="1102" fill="#eaeaea" stroke="#666" width="150" height="65" name="A" rx="3" ry="3" class="actor actor-bottom"></rect><text x="956" y="1134.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="956" dy="0">Agent Core</tspan></text></g><g><rect x="672" y="1102" fill="#eaeaea" stroke="#666" width="150" height="65" name="R" rx="3" ry="3" class="actor actor-bottom"></rect><text x="747" y="1134.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="747" dy="0">Runtime</tspan></text></g><g><rect x="391" y="1102" fill="#eaeaea" stroke="#666" width="150" height="65" name="C" rx="3" ry="3" class="actor actor-bottom"></rect><text x="466" y="1134.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="466" dy="0">Channel</tspan></text></g><g><rect x="0" y="1102" fill="#eaeaea" stroke="#666" width="150" height="65" name="U" rx="3" ry="3" class="actor actor-bottom"></rect><text x="75" y="1134.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="75" dy="0">Web / Task Client</tspan></text></g><g><line id="actor7" x1="1893" y1="65" x2="1893" y2="1102" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="G" data-et="life-line" data-id="G"></line><g id="root-7" data-et="participant" data-type="participant" data-id="G"><rect x="1818" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="G" rx="3" ry="3" class="actor actor-top"></rect><text x="1893" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="1893" dy="0">Gateway</tspan></text></g></g><g><line id="actor6" x1="1569" y1="65" x2="1569" y2="1102" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="P" data-et="life-line" data-id="P"></line><g id="root-6" data-et="participant" data-type="participant" data-id="P"><rect x="1488" y="0" fill="#eaeaea" stroke="#666" width="162" height="65" name="P" rx="3" ry="3" class="actor actor-top"></rect><text x="1569" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="1569" dy="0">Capability / Workflow</tspan></text></g></g><g><line id="actor5" x1="1363" y1="65" x2="1363" y2="1102" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="M" data-et="life-line" data-id="M"></line><g id="root-5" data-et="participant" data-type="participant" data-id="M"><rect x="1288" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="M" rx="3" ry="3" class="actor actor-top"></rect><text x="1363" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="1363" dy="0">Model</tspan></text></g></g><g><line id="actor4" x1="1163" y1="65" x2="1163" y2="1102" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="X" data-et="life-line" data-id="X"></line><g id="root-4" data-et="participant" data-type="participant" data-id="X"><rect x="1088" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="X" rx="3" ry="3" class="actor actor-top"></rect><text x="1163" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="1163" dy="0">Context Engine</tspan></text></g></g><g><line id="actor3" x1="956" y1="65" x2="956" y2="1102" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="A" data-et="life-line" data-id="A"></line><g id="root-3" data-et="participant" data-type="participant" data-id="A"><rect x="881" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="A" rx="3" ry="3" class="actor actor-top"></rect><text x="956" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="956" dy="0">Agent Core</tspan></text></g></g><g><line id="actor2" x1="747" y1="65" x2="747" y2="1102" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="R" data-et="life-line" data-id="R"></line><g id="root-2" data-et="participant" data-type="participant" data-id="R"><rect x="672" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="R" rx="3" ry="3" class="actor actor-top"></rect><text x="747" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="747" dy="0">Runtime</tspan></text></g></g><g><line id="actor1" x1="466" y1="65" x2="466" y2="1102" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="C" data-et="life-line" data-id="C"></line><g id="root-1" data-et="participant" data-type="participant" data-id="C"><rect x="391" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="C" rx="3" ry="3" class="actor actor-top"></rect><text x="466" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="466" dy="0">Channel</tspan></text></g></g><g><line id="actor0" x1="75" y1="65" x2="75" y2="1102" class="actor-line 200" stroke-width="0.5px" stroke="#999" name="U" data-et="life-line" data-id="U"></line><g id="root-0" data-et="participant" data-type="participant" data-id="U"><rect x="0" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" name="U" rx="3" ry="3" class="actor actor-top"></rect><text x="75" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor actor-box" style="text-anchor: middle; font-size: 16px; font-weight: 400;"><tspan x="75" dy="0">Web / Task Client</tspan></text></g></g><style>#nextagent-request-sequence{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#000000;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#nextagent-request-sequence .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#nextagent-request-sequence .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#nextagent-request-sequence .error-icon{fill:#552222;}#nextagent-request-sequence .error-text{fill:#552222;stroke:#552222;}#nextagent-request-sequence .edge-thickness-normal{stroke-width:1px;}#nextagent-request-sequence .edge-thickness-thick{stroke-width:3.5px;}#nextagent-request-sequence .edge-pattern-solid{stroke-dasharray:0;}#nextagent-request-sequence .edge-thickness-invisible{stroke-width:0;fill:none;}#nextagent-request-sequence .edge-pattern-dashed{stroke-dasharray:3;}#nextagent-request-sequence .edge-pattern-dotted{stroke-dasharray:2;}#nextagent-request-sequence .marker{fill:#666;stroke:#666;}#nextagent-request-sequence .marker.cross{stroke:#666;}#nextagent-request-sequence svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#nextagent-request-sequence p{margin:0;}#nextagent-request-sequence .actor{stroke:hsl(0, 0%, 83%);fill:#eee;stroke-width:1;}#nextagent-request-sequence rect.actor.outer-path[data-look="neo"]{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#nextagent-request-sequence rect.note[data-look="neo"]{stroke:#999;fill:#666;filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#nextagent-request-sequence text.actor&gt;tspan{fill:#333;stroke:none;}#nextagent-request-sequence .actor-line{stroke:hsl(0, 0%, 83%);}#nextagent-request-sequence .innerArc{stroke-width:1.5;stroke-dasharray:none;}#nextagent-request-sequence .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#333;}#nextagent-request-sequence .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#333;}#nextagent-request-sequence [id$="-arrowhead"] path{fill:#333;stroke:#333;}#nextagent-request-sequence .sequenceNumber{fill:white;}#nextagent-request-sequence [id$="-sequencenumber"]{fill:#333;}#nextagent-request-sequence [id$="-crosshead"] path{fill:#333;stroke:#333;}#nextagent-request-sequence .messageText{fill:#333;stroke:none;}#nextagent-request-sequence .labelBox{stroke:hsl(0, 0%, 83%);fill:#eee;filter:none;}#nextagent-request-sequence .labelText,#nextagent-request-sequence .labelText&gt;tspan{fill:#333;stroke:none;}#nextagent-request-sequence .loopText,#nextagent-request-sequence .loopText&gt;tspan{fill:#333;stroke:none;}#nextagent-request-sequence .sectionTitle,#nextagent-request-sequence .sectionTitle&gt;tspan{fill:#333;stroke:none;}#nextagent-request-sequence .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:hsl(0, 0%, 83%);fill:hsl(0, 0%, 83%);}#nextagent-request-sequence .note{stroke:#999;fill:#666;}#nextagent-request-sequence .noteText,#nextagent-request-sequence .noteText&gt;tspan{fill:#fff;stroke:none;font-weight:normal;}#nextagent-request-sequence .activation0{fill:#f4f4f4;stroke:#666;}#nextagent-request-sequence .activation1{fill:#f4f4f4;stroke:#666;}#nextagent-request-sequence .activation2{fill:#f4f4f4;stroke:#666;}#nextagent-request-sequence .actorPopupMenu{position:absolute;}#nextagent-request-sequence .actorPopupMenuPanel{position:absolute;fill:#eee;box-shadow:0px 8px 16px 0px rgba(0,0,0,0.2);filter:drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));}#nextagent-request-sequence .actor-man circle,#nextagent-request-sequence line{fill:#eee;stroke-width:2px;}#nextagent-request-sequence g rect.rect{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));stroke:#999;}#nextagent-request-sequence .node .neo-node{stroke:#999;}#nextagent-request-sequence [data-look="neo"].node rect,#nextagent-request-sequence [data-look="neo"].cluster rect,#nextagent-request-sequence [data-look="neo"].node polygon{stroke:url(#nextagent-request-sequence-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#nextagent-request-sequence [data-look="neo"].node path{stroke:url(#nextagent-request-sequence-gradient);stroke-width:1px;}#nextagent-request-sequence [data-look="neo"].node .outer-path{filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#nextagent-request-sequence [data-look="neo"].node .neo-line path{stroke:#999;filter:none;}#nextagent-request-sequence [data-look="neo"].node circle{stroke:url(#nextagent-request-sequence-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#nextagent-request-sequence [data-look="neo"].node circle .state-start{fill:#000000;}#nextagent-request-sequence [data-look="neo"].icon-shape .icon{fill:url(#nextagent-request-sequence-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#nextagent-request-sequence [data-look="neo"].icon-shape .icon-neo path{stroke:url(#nextagent-request-sequence-gradient);filter:drop-shadow( 1px 2px 2px rgba(185,185,185,1));}#nextagent-request-sequence :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g></g><defs><symbol id="nextagent-request-sequence-computer" width="24" height="24"><path transform="scale(.5)" d="M2 2v13h20v-13h-20zm18 11h-16v-9h16v9zm-10.228 6l.466-1h3.524l.467 1h-4.457zm14.228 3h-24l2-6h2.104l-1.33 4h18.45l-1.297-4h2.073l2 6zm-5-10h-14v-7h14v7z"></path></symbol></defs><defs><symbol id="nextagent-request-sequence-database" fill-rule="evenodd" clip-rule="evenodd"><path transform="scale(.5)" d="M12.258.001l.256.004.255.005.253.008.251.01.249.012.247.015.246.016.242.019.241.02.239.023.236.024.233.027.231.028.229.031.225.032.223.034.22.036.217.038.214.04.211.041.208.043.205.045.201.046.198.048.194.05.191.051.187.053.183.054.18.056.175.057.172.059.168.06.163.061.16.063.155.064.15.066.074.033.073.033.071.034.07.034.069.035.068.035.067.035.066.035.064.036.064.036.062.036.06.036.06.037.058.037.058.037.055.038.055.038.053.038.052.038.051.039.05.039.048.039.047.039.045.04.044.04.043.04.041.04.04.041.039.041.037.041.036.041.034.041.033.042.032.042.03.042.029.042.027.042.026.043.024.043.023.043.021.043.02.043.018.044.017.043.015.044.013.044.012.044.011.045.009.044.007.045.006.045.004.045.002.045.001.045v17l-.001.045-.002.045-.004.045-.006.045-.007.045-.009.044-.011.045-.012.044-.013.044-.015.044-.017.043-.018.044-.02.043-.021.043-.023.043-.024.043-.026.043-.027.042-.029.042-.03.042-.032.042-.033.042-.034.041-.036.041-.037.041-.039.041-.04.041-.041.04-.043.04-.044.04-.045.04-.047.039-.048.039-.05.039-.051.039-.052.038-.053.038-.055.038-.055.038-.058.037-.058.037-.06.037-.06.036-.062.036-.064.036-.064.036-.066.035-.067.035-.068.035-.069.035-.07.034-.071.034-.073.033-.074.033-.15.066-.155.064-.16.063-.163.061-.168.06-.172.059-.175.057-.18.056-.183.054-.187.053-.191.051-.194.05-.198.048-.201.046-.205.045-.208.043-.211.041-.214.04-.217.038-.22.036-.223.034-.225.032-.229.031-.231.028-.233.027-.236.024-.239.023-.241.02-.242.019-.246.016-.247.015-.249.012-.251.01-.253.008-.255.005-.256.004-.258.001-.258-.001-.256-.004-.255-.005-.253-.008-.251-.01-.249-.012-.247-.015-.245-.016-.243-.019-.241-.02-.238-.023-.236-.024-.234-.027-.231-.028-.228-.031-.226-.032-.223-.034-.22-.036-.217-.038-.214-.04-.211-.041-.208-.043-.204-.045-.201-.046-.198-.048-.195-.05-.19-.051-.187-.053-.184-.054-.179-.056-.176-.057-.172-.059-.167-.06-.164-.061-.159-.063-.155-.064-.151-.066-.074-.033-.072-.033-.072-.034-.07-.034-.069-.035-.068-.035-.067-.035-.066-.035-.064-.036-.063-.036-.062-.036-.061-.036-.06-.037-.058-.037-.057-.037-.056-.038-.055-.038-.053-.038-.052-.038-.051-.039-.049-.039-.049-.039-.046-.039-.046-.04-.044-.04-.043-.04-.041-.04-.04-.041-.039-.041-.037-.041-.036-.041-.034-.041-.033-.042-.032-.042-.03-.042-.029-.042-.027-.042-.026-.043-.024-.043-.023-.043-.021-.043-.02-.043-.018-.044-.017-.043-.015-.044-.013-.044-.012-.044-.011-.045-.009-.044-.007-.045-.006-.045-.004-.045-.002-.045-.001-.045v-17l.001-.045.002-.045.004-.045.006-.045.007-.045.009-.044.011-.045.012-.044.013-.044.015-.044.017-.043.018-.044.02-.043.021-.043.023-.043.024-.043.026-.043.027-.042.029-.042.03-.042.032-.042.033-.042.034-.041.036-.041.037-.041.039-.041.04-.041.041-.04.043-.04.044-.04.046-.04.046-.039.049-.039.049-.039.051-.039.052-.038.053-.038.055-.038.056-.038.057-.037.058-.037.06-.037.061-.036.062-.036.063-.036.064-.036.066-.035.067-.035.068-.035.069-.035.07-.034.072-.034.072-.033.074-.033.151-.066.155-.064.159-.063.164-.061.167-.06.172-.059.176-.057.179-.056.184-.054.187-.053.19-.051.195-.05.198-.048.201-.046.204-.045.208-.043.211-.041.214-.04.217-.038.22-.036.223-.034.226-.032.228-.031.231-.028.234-.027.236-.024.238-.023.241-.02.243-.019.245-.016.247-.015.249-.012.251-.01.253-.008.255-.005.256-.004.258-.001.258.001zm-9.258 20.499v.01l.001.021.003.021.004.022.005.021.006.022.007.022.009.023.01.022.011.023.012.023.013.023.015.023.016.024.017.023.018.024.019.024.021.024.022.025.023.024.024.025.052.049.056.05.061.051.066.051.07.051.075.051.079.052.084.052.088.052.092.052.097.052.102.051.105.052.11.052.114.051.119.051.123.051.127.05.131.05.135.05.139.048.144.049.147.047.152.047.155.047.16.045.163.045.167.043.171.043.176.041.178.041.183.039.187.039.19.037.194.035.197.035.202.033.204.031.209.03.212.029.216.027.219.025.222.024.226.021.23.02.233.018.236.016.24.015.243.012.246.01.249.008.253.005.256.004.259.001.26-.001.257-.004.254-.005.25-.008.247-.011.244-.012.241-.014.237-.016.233-.018.231-.021.226-.021.224-.024.22-.026.216-.027.212-.028.21-.031.205-.031.202-.034.198-.034.194-.036.191-.037.187-.039.183-.04.179-.04.175-.042.172-.043.168-.044.163-.045.16-.046.155-.046.152-.047.148-.048.143-.049.139-.049.136-.05.131-.05.126-.05.123-.051.118-.052.114-.051.11-.052.106-.052.101-.052.096-.052.092-.052.088-.053.083-.051.079-.052.074-.052.07-.051.065-.051.06-.051.056-.05.051-.05.023-.024.023-.025.021-.024.02-.024.019-.024.018-.024.017-.024.015-.023.014-.024.013-.023.012-.023.01-.023.01-.022.008-.022.006-.022.006-.022.004-.022.004-.021.001-.021.001-.021v-4.127l-.077.055-.08.053-.083.054-.085.053-.087.052-.09.052-.093.051-.095.05-.097.05-.1.049-.102.049-.105.048-.106.047-.109.047-.111.046-.114.045-.115.045-.118.044-.12.043-.122.042-.124.042-.126.041-.128.04-.13.04-.132.038-.134.038-.135.037-.138.037-.139.035-.142.035-.143.034-.144.033-.147.032-.148.031-.15.03-.151.03-.153.029-.154.027-.156.027-.158.026-.159.025-.161.024-.162.023-.163.022-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.011-.178.01-.179.008-.179.008-.181.006-.182.005-.182.004-.184.003-.184.002h-.37l-.184-.002-.184-.003-.182-.004-.182-.005-.181-.006-.179-.008-.179-.008-.178-.01-.176-.011-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.022-.162-.023-.161-.024-.159-.025-.157-.026-.156-.027-.155-.027-.153-.029-.151-.03-.15-.03-.148-.031-.146-.032-.145-.033-.143-.034-.141-.035-.14-.035-.137-.037-.136-.037-.134-.038-.132-.038-.13-.04-.128-.04-.126-.041-.124-.042-.122-.042-.12-.044-.117-.043-.116-.045-.113-.045-.112-.046-.109-.047-.106-.047-.105-.048-.102-.049-.1-.049-.097-.05-.095-.05-.093-.052-.09-.051-.087-.052-.085-.053-.083-.054-.08-.054-.077-.054v4.127zm0-5.654v.011l.001.021.003.021.004.021.005.022.006.022.007.022.009.022.01.022.011.023.012.023.013.023.015.024.016.023.017.024.018.024.019.024.021.024.022.024.023.025.024.024.052.05.056.05.061.05.066.051.07.051.075.052.079.051.084.052.088.052.092.052.097.052.102.052.105.052.11.051.114.051.119.052.123.05.127.051.131.05.135.049.139.049.144.048.147.048.152.047.155.046.16.045.163.045.167.044.171.042.176.042.178.04.183.04.187.038.19.037.194.036.197.034.202.033.204.032.209.03.212.028.216.027.219.025.222.024.226.022.23.02.233.018.236.016.24.014.243.012.246.01.249.008.253.006.256.003.259.001.26-.001.257-.003.254-.006.25-.008.247-.01.244-.012.241-.015.237-.016.233-.018.231-.02.226-.022.224-.024.22-.025.216-.027.212-.029.21-.03.205-.032.202-.033.198-.035.194-.036.191-.037.187-.039.183-.039.179-.041.175-.042.172-.043.168-.044.163-.045.16-.045.155-.047.152-.047.148-.048.143-.048.139-.05.136-.049.131-.05.126-.051.123-.051.118-.051.114-.052.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.051.07-.052.065-.051.06-.05.056-.051.051-.049.023-.025.023-.024.021-.025.02-.024.019-.024.018-.024.017-.024.015-.023.014-.023.013-.024.012-.022.01-.023.01-.023.008-.022.006-.022.006-.022.004-.021.004-.022.001-.021.001-.021v-4.139l-.077.054-.08.054-.083.054-.085.052-.087.053-.09.051-.093.051-.095.051-.097.05-.1.049-.102.049-.105.048-.106.047-.109.047-.111.046-.114.045-.115.044-.118.044-.12.044-.122.042-.124.042-.126.041-.128.04-.13.039-.132.039-.134.038-.135.037-.138.036-.139.036-.142.035-.143.033-.144.033-.147.033-.148.031-.15.03-.151.03-.153.028-.154.028-.156.027-.158.026-.159.025-.161.024-.162.023-.163.022-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.011-.178.009-.179.009-.179.007-.181.007-.182.005-.182.004-.184.003-.184.002h-.37l-.184-.002-.184-.003-.182-.004-.182-.005-.181-.007-.179-.007-.179-.009-.178-.009-.176-.011-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.022-.162-.023-.161-.024-.159-.025-.157-.026-.156-.027-.155-.028-.153-.028-.151-.03-.15-.03-.148-.031-.146-.033-.145-.033-.143-.033-.141-.035-.14-.036-.137-.036-.136-.037-.134-.038-.132-.039-.13-.039-.128-.04-.126-.041-.124-.042-.122-.043-.12-.043-.117-.044-.116-.044-.113-.046-.112-.046-.109-.046-.106-.047-.105-.048-.102-.049-.1-.049-.097-.05-.095-.051-.093-.051-.09-.051-.087-.053-.085-.052-.083-.054-.08-.054-.077-.054v4.139zm0-5.666v.011l.001.02.003.022.004.021.005.022.006.021.007.022.009.023.01.022.011.023.012.023.013.023.015.023.016.024.017.024.018.023.019.024.021.025.022.024.023.024.024.025.052.05.056.05.061.05.066.051.07.051.075.052.079.051.084.052.088.052.092.052.097.052.102.052.105.051.11.052.114.051.119.051.123.051.127.05.131.05.135.05.139.049.144.048.147.048.152.047.155.046.16.045.163.045.167.043.171.043.176.042.178.04.183.04.187.038.19.037.194.036.197.034.202.033.204.032.209.03.212.028.216.027.219.025.222.024.226.021.23.02.233.018.236.017.24.014.243.012.246.01.249.008.253.006.256.003.259.001.26-.001.257-.003.254-.006.25-.008.247-.01.244-.013.241-.014.237-.016.233-.018.231-.02.226-.022.224-.024.22-.025.216-.027.212-.029.21-.03.205-.032.202-.033.198-.035.194-.036.191-.037.187-.039.183-.039.179-.041.175-.042.172-.043.168-.044.163-.045.16-.045.155-.047.152-.047.148-.048.143-.049.139-.049.136-.049.131-.051.126-.05.123-.051.118-.052.114-.051.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.052.07-.051.065-.051.06-.051.056-.05.051-.049.023-.025.023-.025.021-.024.02-.024.019-.024.018-.024.017-.024.015-.023.014-.024.013-.023.012-.023.01-.022.01-.023.008-.022.006-.022.006-.022.004-.022.004-.021.001-.021.001-.021v-4.153l-.077.054-.08.054-.083.053-.085.053-.087.053-.09.051-.093.051-.095.051-.097.05-.1.049-.102.048-.105.048-.106.048-.109.046-.111.046-.114.046-.115.044-.118.044-.12.043-.122.043-.124.042-.126.041-.128.04-.13.039-.132.039-.134.038-.135.037-.138.036-.139.036-.142.034-.143.034-.144.033-.147.032-.148.032-.15.03-.151.03-.153.028-.154.028-.156.027-.158.026-.159.024-.161.024-.162.023-.163.023-.165.021-.166.02-.167.019-.169.018-.169.017-.171.016-.173.015-.173.014-.175.013-.175.012-.177.01-.178.01-.179.009-.179.007-.181.006-.182.006-.182.004-.184.003-.184.001-.185.001-.185-.001-.184-.001-.184-.003-.182-.004-.182-.006-.181-.006-.179-.007-.179-.009-.178-.01-.176-.01-.176-.012-.175-.013-.173-.014-.172-.015-.171-.016-.17-.017-.169-.018-.167-.019-.166-.02-.165-.021-.163-.023-.162-.023-.161-.024-.159-.024-.157-.026-.156-.027-.155-.028-.153-.028-.151-.03-.15-.03-.148-.032-.146-.032-.145-.033-.143-.034-.141-.034-.14-.036-.137-.036-.136-.037-.134-.038-.132-.039-.13-.039-.128-.041-.126-.041-.124-.041-.122-.043-.12-.043-.117-.044-.116-.044-.113-.046-.112-.046-.109-.046-.106-.048-.105-.048-.102-.048-.1-.05-.097-.049-.095-.051-.093-.051-.09-.052-.087-.052-.085-.053-.083-.053-.08-.054-.077-.054v4.153zm8.74-8.179l-.257.004-.254.005-.25.008-.247.011-.244.012-.241.014-.237.016-.233.018-.231.021-.226.022-.224.023-.22.026-.216.027-.212.028-.21.031-.205.032-.202.033-.198.034-.194.036-.191.038-.187.038-.183.04-.179.041-.175.042-.172.043-.168.043-.163.045-.16.046-.155.046-.152.048-.148.048-.143.048-.139.049-.136.05-.131.05-.126.051-.123.051-.118.051-.114.052-.11.052-.106.052-.101.052-.096.052-.092.052-.088.052-.083.052-.079.052-.074.051-.07.052-.065.051-.06.05-.056.05-.051.05-.023.025-.023.024-.021.024-.02.025-.019.024-.018.024-.017.023-.015.024-.014.023-.013.023-.012.023-.01.023-.01.022-.008.022-.006.023-.006.021-.004.022-.004.021-.001.021-.001.021.001.021.001.021.004.021.004.022.006.021.006.023.008.022.01.022.01.023.012.023.013.023.014.023.015.024.017.023.018.024.019.024.02.025.021.024.023.024.023.025.051.05.056.05.06.05.065.051.07.052.074.051.079.052.083.052.088.052.092.052.096.052.101.052.106.052.11.052.114.052.118.051.123.051.126.051.131.05.136.05.139.049.143.048.148.048.152.048.155.046.16.046.163.045.168.043.172.043.175.042.179.041.183.04.187.038.191.038.194.036.198.034.202.033.205.032.21.031.212.028.216.027.22.026.224.023.226.022.231.021.233.018.237.016.241.014.244.012.247.011.25.008.254.005.257.004.26.001.26-.001.257-.004.254-.005.25-.008.247-.011.244-.012.241-.014.237-.016.233-.018.231-.021.226-.022.224-.023.22-.026.216-.027.212-.028.21-.031.205-.032.202-.033.198-.034.194-.036.191-.038.187-.038.183-.04.179-.041.175-.042.172-.043.168-.043.163-.045.16-.046.155-.046.152-.048.148-.048.143-.048.139-.049.136-.05.131-.05.126-.051.123-.051.118-.051.114-.052.11-.052.106-.052.101-.052.096-.052.092-.052.088-.052.083-.052.079-.052.074-.051.07-.052.065-.051.06-.05.056-.05.051-.05.023-.025.023-.024.021-.024.02-.025.019-.024.018-.024.017-.023.015-.024.014-.023.013-.023.012-.023.01-.023.01-.022.008-.022.006-.023.006-.021.004-.022.004-.021.001-.021.001-.021-.001-.021-.001-.021-.004-.021-.004-.022-.006-.021-.006-.023-.008-.022-.01-.022-.01-.023-.012-.023-.013-.023-.014-.023-.015-.024-.017-.023-.018-.024-.019-.024-.02-.025-.021-.024-.023-.024-.023-.025-.051-.05-.056-.05-.06-.05-.065-.051-.07-.052-.074-.051-.079-.052-.083-.052-.088-.052-.092-.052-.096-.052-.101-.052-.106-.052-.11-.052-.114-.052-.118-.051-.123-.051-.126-.051-.131-.05-.136-.05-.139-.049-.143-.048-.148-.048-.152-.048-.155-.046-.16-.046-.163-.045-.168-.043-.172-.043-.175-.042-.179-.041-.183-.04-.187-.038-.191-.038-.194-.036-.198-.034-.202-.033-.205-.032-.21-.031-.212-.028-.216-.027-.22-.026-.224-.023-.226-.022-.231-.021-.233-.018-.237-.016-.241-.014-.244-.012-.247-.011-.25-.008-.254-.005-.257-.004-.26-.001-.26.001z"></path></symbol></defs><defs><symbol id="nextagent-request-sequence-clock" width="24" height="24"><path transform="scale(.5)" d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.848 12.459c.202.038.202.333.001.372-1.907.361-6.045 1.111-6.547 1.111-.719 0-1.301-.582-1.301-1.301 0-.512.77-5.447 1.125-7.445.034-.192.312-.181.343.014l.985 6.238 5.394 1.011z"></path></symbol></defs><defs><marker id="nextagent-request-sequence-arrowhead" refX="7.9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M -1 0 L 10 5 L 0 10 z"></path></marker></defs><defs><marker id="nextagent-request-sequence-crosshead" markerWidth="15" markerHeight="8" orient="auto" refX="4" refY="4.5"><path fill="none" stroke="#000000" stroke-width="1pt" d="M 1,2 L 6,7 M 6,2 L 1,7" style="stroke-dasharray: 0, 0;"></path></marker></defs><defs><marker id="nextagent-request-sequence-filled-head" refX="15.5" refY="7" markerWidth="20" markerHeight="28" orient="auto"><path d="M 18,7 L9,13 L14,7 L9,1 Z"></path></marker></defs><defs><marker id="nextagent-request-sequence-sequencenumber" refX="15" refY="15" markerWidth="60" markerHeight="40" orient="auto"><circle cx="15" cy="15" r="6"></circle></marker></defs><defs><marker id="nextagent-request-sequence-solidTopArrowHead" refX="7.9" refY="7.25" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M 0 0 L 10 8 L 0 8 z"></path></marker></defs><defs><marker id="nextagent-request-sequence-solidBottomArrowHead" refX="7.9" refY="0.75" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M 0 0 L 10 0 L 0 8 z"></path></marker></defs><defs><marker id="nextagent-request-sequence-stickTopArrowHead" refX="7.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M 0 0 L 7 7" stroke="black" stroke-width="1.5" fill="none"></path></marker></defs><defs><marker id="nextagent-request-sequence-stickBottomArrowHead" refX="7.5" refY="0" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M 0 7 L 7 0" stroke="black" stroke-width="1.5" fill="none"></path></marker></defs><g data-et="note" data-id="i4"><rect x="722" y="289" fill="#EDF2AE" stroke="#666" width="1196" height="39" class="note"></rect><text x="1320" y="294" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="noteText" dy="1em" style="font-size: 16px; font-weight: 400;"><tspan x="1320">固化 agentId、agentVersion、agentAssemblyRef</tspan></text></g><g data-et="control-structure" data-id="i16"><line x1="945" y1="659" x2="1904" y2="659" class="loopLine"></line><line x1="1904" y1="659" x2="1904" y2="842" class="loopLine"></line><line x1="945" y1="842" x2="1904" y2="842" class="loopLine"></line><line x1="945" y1="659" x2="945" y2="842" class="loopLine"></line><polygon points="945,659 995,659 995,672 986.6,679 945,679" class="labelBox"></polygon><text x="970" y="672" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="labelText" style="font-size: 16px; font-weight: 400;">opt</text><text x="1449.5" y="677" text-anchor="middle" class="loopText" style="font-size: 16px; font-weight: 400;"><tspan x="1449.5">[调用能力]</tspan></text></g><g data-et="control-structure" data-id="i19"><line x1="736" y1="384" x2="1914" y2="384" class="loopLine"></line><line x1="1914" y1="384" x2="1914" y2="944" class="loopLine"></line><line x1="736" y1="944" x2="1914" y2="944" class="loopLine"></line><line x1="736" y1="384" x2="736" y2="944" class="loopLine"></line><polygon points="736,384 786,384 786,397 777.6,404 736,404" class="labelBox"></polygon><text x="761" y="397" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="labelText" style="font-size: 16px; font-weight: 400;">loop</text><text x="1350" y="402" text-anchor="middle" class="loopText" style="font-size: 16px; font-weight: 400;"><tspan x="1350">[直到回答、挂起或终止]</tspan></text></g><text x="269" y="80" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">提交请求</text><line x1="76" y1="111" x2="462" y2="111" class="messageLine0" data-et="message" data-id="i0" data-from="U" data-to="C" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="467" y="126" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">Schema 校验并注入可信身份</text><path d="M 467,157 C 527,147 527,187 467,177" class="messageLine0" data-et="message" data-id="i1" data-from="C" data-to="C" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></path><text x="605" y="202" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">submit command</text><line x1="467" y1="233" x2="743" y2="233" class="messageLine0" data-et="message" data-id="i2" data-from="C" data-to="R" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="1319" y="248" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">创建或读取 Session，接受 RequestRun</text><line x1="748" y1="279" x2="1889" y2="279" class="messageLine0" data-et="message" data-id="i3" data-from="R" data-to="G" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="850" y="343" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">执行已绑定的 Agent</text><line x1="748" y1="374" x2="952" y2="374" class="messageLine0" data-et="message" data-id="i5" data-from="R" data-to="A" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="1058" y="434" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">请求模型上下文</text><line x1="957" y1="465" x2="1159" y2="465" class="messageLine0" data-et="message" data-id="i7" data-from="A" data-to="X" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="1527" y="480" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">查询历史、附件和 active context</text><line x1="1164" y1="511" x2="1889" y2="511" class="messageLine0" data-et="message" data-id="i8" data-from="X" data-to="G" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="1061" y="526" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">RenderedModelInput</text><line x1="1162" y1="557" x2="960" y2="557" class="messageLine1" data-et="message" data-id="i9" data-from="X" data-to="A" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="1158" y="572" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">调用授权的 model profile</text><line x1="957" y1="603" x2="1359" y2="603" class="messageLine0" data-et="message" data-id="i10" data-from="A" data-to="M" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="1161" y="618" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">归一化内容流或 tool use</text><line x1="1362" y1="649" x2="960" y2="649" class="messageLine1" data-et="message" data-id="i11" data-from="M" data-to="A" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="1261" y="709" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">解析并执行已授权 Capability</text><line x1="957" y1="740" x2="1565" y2="740" class="messageLine0" data-et="message" data-id="i13" data-from="A" data-to="P" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="1730" y="755" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">持久化、RAG、Sandbox 或远程服务</text><line x1="1570" y1="786" x2="1889" y2="786" class="messageLine0" data-et="message" data-id="i14" data-from="P" data-to="G" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="1264" y="801" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">受控结果</text><line x1="1568" y1="832" x2="960" y2="832" class="messageLine1" data-et="message" data-id="i15" data-from="P" data-to="A" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="853" y="857" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">发布执行事实</text><line x1="955" y1="888" x2="751" y2="888" class="messageLine1" data-et="message" data-id="i17" data-from="A" data-to="R" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="1319" y="903" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">排序并持久化 canonical timeline</text><line x1="748" y1="934" x2="1889" y2="934" class="messageLine0" data-et="message" data-id="i18" data-from="R" data-to="G" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="1319" y="959" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">checkpoint 与 terminal composite commit</text><line x1="748" y1="990" x2="1889" y2="990" class="messageLine0" data-et="message" data-id="i20" data-from="R" data-to="G" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="fill: none;"></line><text x="608" y="1005" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">canonical timeline / terminal fact</text><line x1="746" y1="1036" x2="470" y2="1036" class="messageLine1" data-et="message" data-id="i21" data-from="R" data-to="C" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line><text x="272" y="1051" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" class="messageText" dy="1em" style="font-size: 16px; font-weight: 400;">REST DTO 或 SSE / WebSocket StreamEnvelope</text><line x1="465" y1="1082" x2="79" y2="1082" class="messageLine1" data-et="message" data-id="i22" data-from="C" data-to="U" stroke-width="2" stroke="none" marker-end="url(#nextagent-request-sequence-arrowhead)" style="stroke-dasharray: 3, 3; fill: none;"></line></svg></figure>
+<p>请求接受时，Runtime 将 <code>agentId</code>、<code>agentVersion</code> 和 <code>agentAssemblyRef</code> 固化到 <code>RequestRun</code>。接受后的 Runtime、Core、Context、Model、Capability 和 Gateway 查询不得重新回退到默认 Agent，这保证重试、恢复和长任务执行期间使用同一份 Agent 装配事实。</p>
+<p>同一 Session 的请求通过 same-session lane 协调，不同 Session 可以在受控并发预算内运行。取消和超时通过 Runtime 持有的 cancellation context 向 Agent、Model、Capability 和可取消的远程 Gateway 边界传播。</p>
+<h3>3.2 事件、流和历史是三种不同事实</h3>
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>Owner</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>RunTimelineEvent</code></td>
+<td><code>agent-runtime</code></td>
+<td>请求执行过程的 canonical timeline、恢复和审计来源</td>
+</tr>
+<tr>
+<td><code>StreamEnvelope</code></td>
+<td>Channel projection</td>
+<td>面向 Web/Task 客户端的可见传输投影，不是持久化业务真相</td>
+</tr>
+<tr>
+<td><code>SessionMessage</code></td>
+<td>Session/Gateway 主路径</td>
+<td>会话历史和再次打开会话时的对话事实源</td>
+</tr>
+</tbody></table>
+<p>SSE 与 WebSocket 消费同一条 Runtime timeline，并使用同一套安全 projection。断开流连接不会取消请求，也不会改变 RequestRun 状态；历史页面不依赖完整保留 transport stream。</p>
+<p>终态只有在要求的消息、timeline、状态和关联事实通过 terminal commit 成功写入后才对外可见。长期记忆提取、aging 和其他后台学习任务不阻塞该提交边界。</p>
+<h3>3.3 人机协同</h3>
+<p>澄清、问题、确认、授权和人工接管统一进入 pending-input 生命周期。它们挂起并恢复同一个 RequestRun，而不是新建一套 Channel 私有状态机或把后续回答误建成新的 root request。</p>
+<h2>4. 核心模块与所有权</h2>
+<p>当前根 npm workspace 包含 26 个后端 package。它们按所有权分组如下。</p>
+<h3>4.1 契约与基础</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>当前职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>agent-common</code></td>
+<td>跨多个 contract subpath 共享的稳定标量词汇、ID、错误和最小 logging contract</td>
+</tr>
+<tr>
+<td><code>agent-contracts</code></td>
+<td>Runtime、Session、Context、Model、Capability、Gateway、Channel、Assembly、Observability 等跨包 public contract</td>
+</tr>
+<tr>
+<td><code>agent-local-file-roll</code></td>
+<td>Node-only 文件轮转技术基础，只服务获准的日志、指标历史和审计文件 owner</td>
+</tr>
+<tr>
+<td><code>agent-log</code></td>
+<td>本地 operational/runtime diagnostic writer</td>
+</tr>
+</tbody></table>
+<p><code>agent-common</code> 不承载 DO、DTO、Record、port 或业务服务；跨 package 只允许通过 public exports 和 <code>agent-contracts</code>/<code>agent-common</code> 协作，禁止 private path import。</p>
+<h3>4.2 请求与业务执行</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>当前职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>agent-runtime</code></td>
+<td>request admission、RequestRun 生命周期、same-session lane、cancellation、checkpoint、pending input 协调、recovery、terminal commit、canonical timeline</td>
+</tr>
+<tr>
+<td><code>agent-session</code></td>
+<td>Session/Message 领域服务、历史与 conversation read model、标题、推荐问题、收藏/标注/分享等会话侧服务</td>
+</tr>
+<tr>
+<td><code>agent-core</code></td>
+<td>Agent 内部路由、模型驱动 loop、tool loop、fallback、风险策略接入和 capability 结果投影</td>
+</tr>
+<tr>
+<td><code>agent-context-engine</code></td>
+<td>上下文候选选择、预算、窗口、压缩、大内容外置、Prompt Template 选择与最终模型输入渲染</td>
+</tr>
+<tr>
+<td><code>agent-model</code></td>
+<td>模型 Provider SDK 隔离、调用前置条件、stream/tool-use 归一化和 provider error 安全映射</td>
+</tr>
+</tbody></table>
+<p><code>agent-core</code> 当前内置：</p>
+<ul>
+<li><code>default-agent</code>：默认对外电信网络 Agent，绑定受治理的子 Agent 和长期记忆工具。</li>
+<li><code>network-explorer</code>：不可直接由用户调用的只读证据采集 Agent，禁止 Write、Bash、Python、Skill 和 AskUserQuestion。</li>
+</ul>
+<h3>4.3 能力、工作流与后台知识</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>当前职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>agent-capability</code></td>
+<td>Capability catalog、source discovery、冲突处理、输入校验和执行；统一承载 Tool、Skill 和 Agent</td>
+</tr>
+<tr>
+<td><code>agent-workflow</code></td>
+<td>Workflow recipe loader、执行引擎、路由以及 gateway、parallel、capability、interaction、knowledge、LLM 节点适配</td>
+</tr>
+<tr>
+<td><code>agent-attachment-runtime</code></td>
+<td>上传配额、媒体类型与内容校验、暂存、引用解析和 cleanup</td>
+</tr>
+<tr>
+<td><code>agent-memory</code></td>
+<td>长期记忆查询/写入、显式 memory tools、task trajectory、异步 extraction 和 aging</td>
+</tr>
+</tbody></table>
+<p>Capability “可发现”不代表“可调用”。Agent 必须通过 <code>agent.yaml.capabilityBindings</code> 显式绑定，Runtime/Core 还会结合当前 Agent Scope、request routing constraints 和风险策略决定本次请求是否可执行。</p>
+<p>动态 shell、Python、脚本或模型生成代码必须经过 Sandbox Gateway。Capability 实现不得直接借用 NextAgent 宿主进程权限绕过该边界。</p>
+<h3>4.4 Channel 与前端交付</h3>
+<table>
+<thead>
+<tr>
+<th>Package/目录</th>
+<th>当前职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>agent-channel-common</code></td>
+<td>Channel 间共享的 identity、stream projection 和 delivery 基础</td>
+</tr>
+<tr>
+<td><code>agent-channel-web</code></td>
+<td>Fastify Web API、runtime bootstrap、public DTO、SSE/WS 投影</td>
+</tr>
+<tr>
+<td><code>agent-channel-web-auth-local</code></td>
+<td>可选的 localhost configured-auth adapter；不进入 IAM/REMOTE 认证路径</td>
+</tr>
+<tr>
+<td><code>agent-channel-task</code></td>
+<td>面向后台系统的异步任务、callback 和 WebSocket 接入</td>
+</tr>
+<tr>
+<td><code>frontend/agent-web</code></td>
+<td>React 浏览器 UI、chat workspace、会话/进程/附件/记忆/定时任务等交互投影</td>
+</tr>
+<tr>
+<td><code>agent-app-frontend-hosting</code></td>
+<td>后端拥有的前端静态资源托管契约和 route fallback</td>
+</tr>
+<tr>
+<td><code>agent-dev-workbench</code></td>
+<td>本地开发工作台和前端开发辅助</td>
+</tr>
+</tbody></table>
+<p>浏览器 UI 支持 local、immersive、collaborative 三种产品宿主构建。Collaborative 模式通过 PIU 注入复用同一个 Chat Workspace；宿主差异仅处理容器、主题、语言、可信用户上下文和布局，不形成平行的请求生命周期、会话真相或权限模型。</p>
+<p>后端不得直接 import <code>frontend/agent-web</code> 源码。<code>with-frontend</code> 形态只消费构建后的 <code>@nextagent/agent-web</code> 包、<code>@nextagent/agent-web/hosting</code> public export 和静态产物。</p>
+<h3>4.5 Gateway、部署和 Composition</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>当前职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>agent-platform-gateway-local</code></td>
+<td>Kysely/SQLite 业务表、本地文件/blob、受限 Sandbox、RAG、Cron、后台任务与维护调度</td>
+</tr>
+<tr>
+<td><code>agent-platform-gateway-remote</code></td>
+<td>Remote Provider 和 model、RAG、Sandbox、SkillHub、workflow、问题推荐等参考 adapter</td>
+</tr>
+<tr>
+<td><code>agent-remote-deployment</code></td>
+<td>REMOTE 部署参考装配、远程 client binding 和启动/健康证据</td>
+</tr>
+<tr>
+<td><code>agent-app</code></td>
+<td>唯一 composition root：加载配置并装配 Agent、Model、Gateway、Capability、Workflow、Memory、Channel、Hook/Policy 和 Observability</td>
+</tr>
+<tr>
+<td><code>agent-plugin-sdk</code></td>
+<td>启动期可信本地 Plugin authoring、scaffold、developer hook trace 和 context monitor</td>
+</tr>
+<tr>
+<td><code>agent-test-kit</code></td>
+<td>Plugin/Capability 等扩展的公共测试支持</td>
+</tr>
+<tr>
+<td><code>agent-observability</code></td>
+<td>Observation redaction、structured logging、audit、metric、trace、health 和安全错误归一化</td>
+</tr>
+</tbody></table>
+<p><code>agent-platform-gateway-local</code> 使用 request run、session、message、attachment、active context、timeline、checkpoint、pending input、memory、trajectory、todo、annotation、share 和 cron 等专用事实表。领域数据不落入通用 <code>records(store,key,json)</code> 表。</p>
+<p>REMOTE 当前是可替换 Gateway 和参考部署装配边界。代码已提供若干 HTTP/reference adapter，但不应据此推断所有 PaaS 服务、多实例恢复或分布式 Workflow 能力已经完整交付；具体部署能力以对应 OpenSpec 和集成实现为准。</p>
+<h2>5. 数据、契约与安全边界</h2>
+<h3>5.1 双 Scope 隔离</h3>
+<p>主路径必须同时满足：</p>
+<ul>
+<li><strong>Owner Scope</strong>：由 Channel/Auth 的可信身份产生，以 <code>tenantId</code>、<code>subjectId</code> 隔离用户和租户运行数据。</li>
+<li><strong>Agent Scope</strong>：由可信 app composition、hosted-agent selection 或已持久化的 <code>Session.agentId</code> 产生，以 <code>agentId</code> 隔离 Agent 配置、模型授权、能力绑定和 Agent-owned 数据。</li>
+</ul>
+<p>请求体、查询参数、模型输出、Capability 参数和客户端 metadata 都不能覆盖这两个 Scope。已有 Session 的提交可以先按 Owner Scope 查到 <code>Session.agentId</code>，但随后必须与当前可信 Agent Scope 一致。</p>
+<h3>5.2 DO、DTO、Record、Row</h3>
+<pre><code class="language-text">Domain Object / internal read model
+        ↓ Channel projection
+Public Web / Task DTO
+
+Domain Object
+        ↓ explicit mapper
+Gateway *Record
+        ↓ gateway-local private mapper
+SQLite row / driver entity
+</code></pre>
+<ul>
+<li>领域服务暴露领域对象或内部 read model。</li>
+<li>Channel 只暴露 public DTO；<code>displayTitle</code>、<code>lastActivityAt</code>、<code>cursor</code>、<code>nextCursor</code> 等 Web alias 只出现在 projection 层。</li>
+<li>Gateway port 只接收或返回 <code>*Record</code>；Record 不得进入 Web response 或领域服务 public return。</li>
+<li>SQLite row 和 driver entity 只存在于 gateway-local 私有实现。</li>
+<li>写入控制信息如 <code>idempotencyKey</code>、<code>expectedVersion</code> 属于 write options/command metadata，不塞进事实 Record。</li>
+</ul>
+<h3>5.3 幂等与事务</h3>
+<p>简单写入采用 <code>Record + write options</code>。幂等写入以业务锚点事实表为默认模型，并在 Owner Scope、Agent Scope 和 session/request/run 坐标上建立 scoped uniqueness；重复 key 返回首次锚点结果且不重复副作用。</p>
+<p>跨多个主路径事实的原子提交由 Gateway 暴露单一 composite write，并在 gateway-local 的一个数据库事务内完成。Runtime/Application 组装业务语义 Record，Gateway 只负责 row mapping、CAS、sequence/ordinal、唯一约束、幂等和事务。</p>
+<h3>5.4 不可信边界与可观测安全</h3>
+<p>HTTP、stream、配置、环境变量、Gateway response、持久化 JSON、Capability 输入输出都先经过 runtime schema validation。慢边界使用 async contract，并在可取消时传播 <code>AbortSignal</code> 或等价 cancellation context。</p>
+<p>可观测主路径将已成立事实投影到 Log、Audit、Metric、Trace 和 Health。默认禁止输出 prompt、模型原始输出、stream delta、Tool 原始输入输出、附件内容、raw provider/gateway error、credential、token、本地路径和开放式高基数字段。可观测失败不能创建第二套业务状态机或改写 RequestRun 结果。</p>
+<h2>6. 装配、配置与扩展</h2>
+<p>系统在启动期完成配置校验和装配，运行中不热更新核心 snapshot。</p>
+<table>
+<thead>
+<tr>
+<th>扩展面</th>
+<th>适用场景</th>
+<th>关键约束</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>application.yaml</code></td>
+<td>部署、路径、Channel、Auth、Model Profile、Gateway、Sandbox、Plugin/Provider 选择</td>
+<td>启动期校验；秘密使用 env/file reference</td>
+</tr>
+<tr>
+<td>Agent package <code>agent.yaml</code></td>
+<td>Agent 身份、模型授权、能力绑定、runtime settings、资源和 Hook/Policy 激活</td>
+<td><code>agentId</code> 是 Scope，不来自请求体</td>
+</tr>
+<tr>
+<td>Prompt Template</td>
+<td>不同 purpose 的系统提示、总结、记忆提取等模型输入</td>
+<td>由 Context Engine 选择和渲染</td>
+</tr>
+<tr>
+<td>Tool / Skill / Agent / Recipe</td>
+<td>电信领域动作、操作规程、专家 Agent 和确定性流程</td>
+<td>进入统一 catalog、授权、校验、审计和 Sandbox 治理</td>
+</tr>
+<tr>
+<td>Startup Plugin</td>
+<td>本地可信 Tool Provider、Routing Policy、Lifecycle Hook 等代码扩展</td>
+<td>仅启动期加载，不支持 request-time 任意代码热插拔</td>
+</tr>
+<tr>
+<td>Gateway Provider</td>
+<td>替换本地或远程持久化、RAG、Sandbox、模型和平台服务</td>
+<td>通过 public contract 注入，由 <code>agent-app</code> 选择和装配</td>
+</tr>
+</tbody></table>
+<p>默认系统配置位于 <code>packages/agent-app/config/default-system.yaml</code>。默认对外 Agent 和只读子 Agent 分别位于：</p>
+<ul>
+<li><code>packages/agent-core/src/builtin-agents/default-agent/agent.yaml</code></li>
+<li><code>packages/agent-core/src/builtin-agents/network-explorer/agent.yaml</code></li>
+</ul>
+<h2>7. 运行与交付形态</h2>
+<p>当前代码提供以下后端产品入口：</p>
+<table>
+<thead>
+<tr>
+<th>入口</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>agent-app/entrypoints/backend-only</code></td>
+<td>仅后端服务</td>
+</tr>
+<tr>
+<td><code>agent-app/entrypoints/with-frontend</code></td>
+<td>后端加构建后的 agent-web 静态托管</td>
+</tr>
+<tr>
+<td><code>agent-app/entrypoints/local-configured-auth</code></td>
+<td>localhost-only 的可选配置认证形态</td>
+</tr>
+<tr>
+<td><code>agent-platform-gateway-local/entrypoints/local</code></td>
+<td>使用本地 Gateway、Sandbox、RAG、Cron 和维护调度的装配</td>
+</tr>
+<tr>
+<td><code>agent-remote-deployment</code></td>
+<td>使用远程参考 adapter 的部署装配</td>
+</tr>
+</tbody></table>
+<p>LOCAL 默认使用 SQLite 工作/长期记忆 store、本地文件与受限 Sandbox。REMOTE 可以按 gateway kind 注入远端实现；部署模式变化不能改变 Runtime lifecycle、public contract、Scope 校验或 Channel stream 语义。</p>
+<h2>8. 架构验证</h2>
+<p>仓库通过不同层级的门禁验证架构，而不是只依赖单元测试：</p>
+<pre><code class="language-bash">npm run build
+npm test
+npm run test:contract
+npm run lint:architecture
+openspec validate --all --strict
+</code></pre>
+<p>涉及前端时，还需在 <code>frontend/agent-web</code> 运行对应 build、测试和必要的多宿主/E2E gate。根 workspace、前端 package、OpenSpec 和发布包各有独立验证边界。</p>
+<p>架构测试重点防止：</p>
+<ul>
+<li>Channel、前端或 Gateway 获取 RequestRun lifecycle ownership。</li>
+<li>跨 package private import 和实现层反向依赖。</li>
+<li>Owner Scope/Agent Scope、Sandbox 或 schema validation 被绕过。</li>
+<li>DTO、Record、SQLite row 跨层泄漏。</li>
+<li>Runtime、Core、Workflow、Memory 形成互相竞争的状态机。</li>
+<li>测试 fixture、mock/no-op provider 进入产品路径。</li>
+</ul>
+<h2>9. 当前边界</h2>
+<ul>
+<li>Web 和 Task Channel 已实现；其他入口若要进入产品路径，必须先定义 OpenSpec contract，不能复制 Runtime lifecycle。</li>
+<li>Plugin 是 trusted、startup-only 扩展面；SkillHub 的运行时发现/获取不等同于远端任意代码加载。</li>
+<li>Workflow 已有 recipe、engine 和节点族，但不拥有 Runtime lifecycle、terminal commit 或 pending-input store；完整分布式调度、durable workflow history 和多实例恢复不应从当前实现中推断。</li>
+<li>长期记忆已包含显式工具、trajectory、extraction 和 aging，但不自动注入 Context，也不阻塞 terminal commit。</li>
+<li>本地恢复面向单实例进程恢复；共享状态、多实例 lease/接续能力以具体部署规格和实现证据为准。</li>
+<li>前端只拥有浏览器投影、交互和本地 view state；canonical history、trusted identity、Scope authority 和持久化都属于后端。</li>
+</ul>
+<h2>10. 延伸阅读</h2>
+<ul>
+<li><a href="../../README.md">项目总览</a></li>
+<li><a href="../developer/02-architecture.md">开发者架构导读</a></li>
+<li><a href="../frontend/README.md">前端文档入口</a></li>
+<li><a href="../../openspec/overview.md">OpenSpec 总览</a></li>
+<li><a href="../../openspec/designs/architecture/">稳定架构设计</a></li>
+<li><a href="../../openspec/designs/spec-to-design-map.md">规格到设计映射</a></li>
+<li><a href="../apis/agent-web-api-list.md">Web API 清单</a></li>
+<li><a href="../apis/task-channel-api.md">Task Channel API</a></li>
+</ul>
+
+    </main>
+  </div>
+  <script>
+    const slugCounts = new Map();
+    const headings = [...document.querySelectorAll('main h2, main h3')];
+    const toc = document.getElementById('toc');
+    for (const heading of headings) {
+      const base = heading.textContent.trim().toLowerCase()
+        .replace(/[^\p{Letter}\p{Number}]+/gu, '-')
+        .replace(/^-|-$/g, '') || 'section';
+      const count = slugCounts.get(base) ?? 0;
+      slugCounts.set(base, count + 1);
+      heading.id = count === 0 ? base : base + '-' + (count + 1);
+      const link = document.createElement('a');
+      link.href = '#' + heading.id;
+      link.dataset.level = heading.tagName.slice(1);
+      link.textContent = heading.textContent;
+      toc.appendChild(link);
+    }
+  </script>
+</body>
+</html>

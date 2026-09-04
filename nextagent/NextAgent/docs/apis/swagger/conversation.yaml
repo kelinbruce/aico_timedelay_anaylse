@@ -1,0 +1,321 @@
+swagger: '2.0'
+info:
+  title: Conversation API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/sessions/{sessionId}/conversation:
+    get:
+      operationId: getConversation
+      summary: Get conversation items with cursor pagination
+      tags:
+        - Conversation
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: cursor
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 64
+        - name: newerCursor
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 64
+        - name: anchorMessageId
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 64
+        - name: includeCapabilityResults
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 32
+        - name: limit
+          in: query
+          description: Positive integer; default 50, max 200.
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 3
+          pattern: ^[1-9]\d*$
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ConversationResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/conversation/preview:
+    get:
+      operationId: getConversationPreview
+      summary: Get conversation preview markers
+      tags:
+        - Conversation
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: offset
+          in: query
+          description: Optional; non-negative integer string, range 0 to 10000. Validation is enforced by the route parser.
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: Required; range 1 to 100. Validation is enforced by the route parser.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ConversationPreviewResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/runs/{runId}/events:
+    get:
+      operationId: getRunEventHistory
+      summary: Get event history for a specific run
+      tags:
+        - Conversation
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: runId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: afterSequence
+          in: query
+          required: false
+          type: integer
+          minimum: 0
+        - name: limit
+          in: query
+          required: false
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SessionEventHistoryResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  ConversationQuery:
+    type: object
+    properties:
+      cursor:
+        type: string
+        minLength: 1
+        maxLength: 64
+      newerCursor:
+        type: string
+        minLength: 1
+        maxLength: 64
+      anchorMessageId:
+        type: string
+        minLength: 1
+        maxLength: 64
+      includeCapabilityResults:
+        type: string
+        minLength: 1
+        maxLength: 32
+      limit:
+        type: string
+        minLength: 1
+        maxLength: 3
+        pattern: ^[1-9]\d*$
+    additionalProperties: false
+  ConversationPreviewQuery:
+    type: object
+    required:
+      - limit
+    properties:
+      offset:
+        type: string
+        minLength: 1
+        maxLength: 5
+        pattern: ^\d+$
+      limit:
+        type: string
+        minLength: 1
+        maxLength: 3
+        pattern: ^[1-9]\d*$
+    additionalProperties: false
+  ConversationResponse:
+    type: object
+    required:
+      - items
+    properties:
+      items:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+      nextCursor:
+        type: string
+        description: >-
+          Older-direction next-page cursor. Returned only when there are older messages beyond the current page (value
+          is the oldest messageId in the current page). Absent when no older messages remain, and absent for forward
+          paging (newerCursor request).
+        minLength: 1
+      newerCursor:
+        type: string
+        description: >-
+          Newer-direction next-page cursor. Returned only when there are newer messages beyond the current page (value
+          is the newest messageId in the current page). Absent when no newer messages remain, and absent for backward
+          paging (cursor request) and the first page.
+        minLength: 1
+      activeRun:
+        type: object
+        additionalProperties: true
+      forkNotice:
+        type: object
+        additionalProperties: true
+    additionalProperties: false
+  ConversationPreviewResponse:
+    type: object
+    required:
+      - sessionId
+      - totalMarkers
+      - offset
+      - limit
+      - markers
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      totalMarkers:
+        type: integer
+        minimum: 0
+      offset:
+        type: integer
+        minimum: 0
+      limit:
+        type: integer
+        minimum: 1
+      markers:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+    additionalProperties: false
+  SessionEventHistoryQuery:
+    type: object
+    properties:
+      afterSequence:
+        type: integer
+        minimum: 0
+      limit:
+        type: integer
+        minimum: 1
+        maximum: 1000
+    additionalProperties: false
+  SessionEventHistoryResponse:
+    type: object
+    properties:
+      availability:
+        type: string
+        enum:
+          - AVAILABLE
+          - LEGACY_FORK_PROCESS_HISTORY_UNAVAILABLE
+      events:
+        type: array
+        items:
+          $ref: '#/definitions/StreamEnvelope'
+      nextAfterSequence:
+        type: integer
+        minimum: 0
+    required:
+      - availability
+      - events
+    additionalProperties: false

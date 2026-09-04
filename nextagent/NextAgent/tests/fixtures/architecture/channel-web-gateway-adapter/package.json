@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@nextagent/agent-channel-web": "1.0.0",
+    "@nextagent/agent-platform-gateway-local": "1.0.0"
+  }
+}

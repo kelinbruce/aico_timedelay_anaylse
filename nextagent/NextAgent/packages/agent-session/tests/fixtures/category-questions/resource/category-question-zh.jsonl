@@ -1,0 +1,4 @@
+{"category":"查库存","questions":[{"question":"请查询【SKU001】商品的当前库存数量","fixed":true}],"records":[]}
+{"category":"查销量","questions":[],"records":[{"category":"查日销","questions":[{"question":"请查询【过去24小时】内【笔记本电脑】品类的【销售额】","fixed":false}]},{"category":"查月销","questions":[{"question":"请查询【上个月】各品类的【总销售额】","fixed":false}]}]}
+{"category":"查异常","questions":[{"question":"【过去1小时】【仓库B区】有哪些库存不足或过期商品？","fixed":false}],"records":[]}
+{"category":"查商品信息","questions":[],"records":[{"category":"查基础信息","questions":[{"question":"请查询【SKU001】商品的所在货架的剩余空间状态","fixed":false}]}]}

@@ -1,0 +1,27 @@
+{
+  "name": "@nextagent/agent-log",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
+    }
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-local-file-roll": "1.0.0",
+    "pino": "10.3.1"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  }
+}

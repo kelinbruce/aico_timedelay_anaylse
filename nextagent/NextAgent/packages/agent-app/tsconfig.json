@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist", "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-app.tsbuildinfo" },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../agent-runtime" },
+    { "path": "../agent-session" },
+    { "path": "../agent-attachment-runtime" },
+    { "path": "../agent-context-engine" },
+    { "path": "../agent-memory" },
+    { "path": "../agent-core" },
+    { "path": "../agent-model" },
+    { "path": "../agent-channel-common" },
+    { "path": "../agent-channel-web" },
+    { "path": "../agent-plugin-sdk" },
+    { "path": "../agent-channel-task" },
+    { "path": "../agent-channel-web-auth-local" },
+    { "path": "../agent-app-frontend-hosting" },
+    { "path": "../agent-capability" },
+    { "path": "../agent-observability" },
+    { "path": "../agent-workflow" }
+  ]
+}

@@ -1,0 +1,5 @@
+name: add-ts-bash-background-execution
+type: change
+status: draft
+created: 2026-07-02
+description: Bash tool background async execution with continuation-run completion notification

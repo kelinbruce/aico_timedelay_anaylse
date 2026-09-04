@@ -1,0 +1,418 @@
+swagger: '2.0'
+info:
+  title: Session API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/sessions:
+    get:
+      operationId: listSessions
+      summary: List sessions
+      tags:
+        - Session
+      produces:
+        - application/json
+      parameters:
+        - name: q
+          in: query
+          required: false
+          type: string
+          maxLength: 50
+        - name: createdFrom
+          in: query
+          description: Optional; epoch milliseconds integer string. Validation is enforced by the route parser.
+          required: false
+          type: string
+        - name: createdTo
+          in: query
+          description: Optional; epoch milliseconds integer string. Validation is enforced by the route parser.
+          required: false
+          type: string
+        - name: offset
+          in: query
+          description: Optional; non-negative integer string. Validation is enforced by the route parser.
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: >-
+            Positive integer; default 50, max 200 for normal list; default 20, max 50 for search. Validation is enforced
+            by the route parser.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SessionListResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+    post:
+      operationId: createSession
+      summary: Create a new session
+      tags:
+        - Session
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CreateSessionBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SessionSummaryResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/title:
+    put:
+      operationId: updateSessionTitle
+      summary: Update session display title
+      tags:
+        - Session
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateTitleBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SessionSummaryResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}:
+    delete:
+      operationId: deleteSession
+      summary: Delete a session
+      tags:
+        - Session
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/messages/{messageId}/fork:
+    post:
+      operationId: forkFromMessage
+      summary: Fork a new session from a message
+      tags:
+        - Session
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: messageId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ForkFromMessageBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SessionSummaryResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/requests/{requestId}/fork:
+    post:
+      operationId: forkFromRequest
+      summary: Fork a new session from a request
+      tags:
+        - Session
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: requestId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ForkFromMessageBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SessionSummaryResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  CreateSessionBody:
+    type: object
+    properties:
+      locale:
+        type: string
+        enum:
+          - zh-CN
+          - en-US
+    additionalProperties: false
+  SessionListQuery:
+    type: object
+    properties:
+      q:
+        type: string
+        maxLength: 50
+      createdFrom:
+        type: string
+        minLength: 1
+        maxLength: 13
+        pattern: ^-?\d+$
+      createdTo:
+        type: string
+        minLength: 1
+        maxLength: 13
+        pattern: ^-?\d+$
+      offset:
+        type: string
+        minLength: 1
+        maxLength: 7
+        pattern: ^\d+$
+      limit:
+        type: string
+        minLength: 1
+        maxLength: 3
+        pattern: ^[1-9]\d*$
+    additionalProperties: false
+  UpdateTitleBody:
+    type: object
+    required:
+      - title
+    properties:
+      title:
+        type: string
+        minLength: 1
+        maxLength: 100
+    additionalProperties: false
+  SessionSummaryResponse:
+    type: object
+    required:
+      - sessionId
+      - displayTitle
+      - lastActivityAt
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      displayTitle:
+        type: string
+      lastActivityAt:
+        type: number
+        minimum: 0
+    additionalProperties: false
+  SessionListResponse:
+    type: object
+    required:
+      - entries
+      - offset
+      - limit
+      - hasMore
+    properties:
+      entries:
+        type: array
+        items:
+          type: object
+          required:
+            - sessionId
+            - displayTitle
+            - lastActivityAt
+            - hasInFlightRequest
+          properties:
+            sessionId:
+              type: string
+              minLength: 1
+            displayTitle:
+              type: string
+            lastActivityAt:
+              type: number
+              minimum: 0
+            lastRunStatus:
+              type: string
+              minLength: 1
+            hasInFlightRequest:
+              type: boolean
+          additionalProperties: false
+      offset:
+        type: integer
+        minimum: 0
+      limit:
+        type: integer
+        minimum: 1
+      hasMore:
+        type: boolean
+    additionalProperties: false
+  ForkFromMessageBody:
+    type: object
+    required:
+      - idempotencyKey
+    properties:
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 128
+    additionalProperties: false

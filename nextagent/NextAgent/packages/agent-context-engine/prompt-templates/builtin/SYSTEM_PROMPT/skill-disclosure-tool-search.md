@@ -1,0 +1,14 @@
+### How to use skills
+- Enabled Skills listed above may be called directly when clearly relevant.
+- Use `ToolSearch` to find deferred Skills that are not listed above by keyword, natural-language task intent, or a bounded empty/`*` candidate list.
+- ToolSearch Skill matches appear in `<available-skills>` with `capability_id`, `kind=SKILL`, and `defer_loading=true`.
+- `defer_loading=true` means only metadata is loaded. Call `Skill` with ``name`` set to the exact ``capability_id`` before following that Skill's body instructions.
+- When you decide an available Skill is needed, call the `Skill` tool immediately in the same assistant turn before producing the task answer.
+- Do not stop after stating that you need to call a Skill or construct its arguments. Such planning text is incomplete and is not a final answer.
+- Construct task-specific ``args`` directly from the user's request instead of narrating their construction.
+- You may discover and load multiple Skills in one request when each Skill is relevant to the user's task.
+- Put only task-specific JSON input in ``args``. Do not include mode, timeout, provider, path, directory, budget, or other execution-governance fields.
+- Skills are governed capabilities. They are not filesystem paths, directories, or external packages.
+- Do not invent Skill names. If no searched Skill is a clear match and no listed Skill is a clear match, continue with normal tools and normal reasoning.
+- After a Skill is loaded, follow the instructions it adds to context, but continue to obey higher-priority system, developer, and runtime constraints.
+- Do not claim a Skill was used unless you actually called the `Skill` tool successfully.

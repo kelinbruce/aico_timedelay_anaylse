@@ -1,0 +1,264 @@
+swagger: '2.0'
+info:
+  title: Annotation API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/sessions/{sessionId}/runs/{runId}/annotations:
+    post:
+      operationId: upsertAnnotation
+      summary: Upsert annotation for a request run
+      tags:
+        - Annotation
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: runId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpsertAnnotationBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/AnnotationResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/annotations:
+    get:
+      operationId: listAnnotations
+      summary: List annotations for a session
+      tags:
+        - Annotation
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/AnnotationListResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/favorites:
+    get:
+      operationId: listFavorites
+      summary: List favorited annotation entries
+      tags:
+        - Annotation
+      produces:
+        - application/json
+      parameters:
+        - name: offset
+          in: query
+          description: Optional; non-negative integer string, range 0 to 10000. Validation is enforced by the route parser.
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: Optional; range 1 to 100, default 50. Validation is enforced by the route parser.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/FavoritePageResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  UpsertAnnotationBody:
+    type: object
+    properties:
+      sentiment:
+        type: string
+        enum:
+          - UP
+          - DOWN
+        x-nullable: true
+      isFavorited:
+        type: boolean
+      isQuestionFavorited:
+        type: boolean
+    additionalProperties: false
+  AnnotationResponse:
+    type: object
+    required:
+      - sentiment
+      - isFavorited
+      - isQuestionFavorited
+    properties:
+      annotationId:
+        type: string
+        minLength: 1
+      sessionId:
+        type: string
+        minLength: 1
+      requestRunId:
+        type: string
+        minLength: 1
+      sentiment:
+        type: string
+        enum:
+          - UP
+          - DOWN
+        x-nullable: true
+      isFavorited:
+        type: boolean
+      isQuestionFavorited:
+        type: boolean
+      createdAt:
+        type: number
+        minimum: 0
+    additionalProperties: false
+  AnnotationListResponse:
+    type: object
+    required:
+      - annotations
+    properties:
+      annotations:
+        type: array
+        items:
+          type: object
+          required:
+            - annotationId
+            - requestRunId
+            - sentiment
+            - isFavorited
+            - isQuestionFavorited
+            - createdAt
+          properties:
+            annotationId:
+              type: string
+              minLength: 1
+            requestRunId:
+              type: string
+              minLength: 1
+            sentiment:
+              type: string
+              enum:
+                - UP
+                - DOWN
+              x-nullable: true
+            isFavorited:
+              type: boolean
+            isQuestionFavorited:
+              type: boolean
+            createdAt:
+              type: number
+              minimum: 0
+          additionalProperties: false
+    additionalProperties: false
+  FavoritesListQuery:
+    type: object
+    properties:
+      offset:
+        type: string
+        description: Non-negative integer string, range 0 to 10000. Validation is enforced by the route parser.
+      limit:
+        type: string
+        description: Integer string, range 1 to 100, default 50. Validation is enforced by the route parser.
+    additionalProperties: false
+  FavoritePageResponse:
+    type: object
+    required:
+      - entries
+      - offset
+      - limit
+      - hasMore
+    properties:
+      entries:
+        type: array
+        items:
+          type: object
+          additionalProperties: true
+      offset:
+        type: integer
+        minimum: 0
+      limit:
+        type: integer
+        minimum: 1
+      hasMore:
+        type: boolean
+    additionalProperties: false

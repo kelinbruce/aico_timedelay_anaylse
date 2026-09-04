@@ -1,0 +1,7 @@
+- [x] 1. 更新 Bash Tool schema 与解析，接受结构化 `env.PYTHONPATH` 并把单个前导 `PYTHONPATH=...` 前缀规范化。
+- [x] 2. 通过 `SandboxExecutionInput` 和 `SandboxExecutionRequest` 传递过滤后的环境，不暴露通用 env 支持。
+- [x] 3. 对照已授权的逻辑文件系统 roots 校验 local sandbox `PYTHONPATH`，拒绝不安全值。
+- [x] 4. 为结构化 env、遗留前缀规范化和未授权路径拒绝新增回归测试。
+- [ ] 5. 在 CLI 可用时运行聚焦测试、受影响 package 的 TypeScript build、diff 检查和 OpenSpec 校验。
+  - 聚焦 Vitest、受影响 package 的 TypeScript build 和 `git diff --check` 已通过。
+  - OpenSpec 校验无法在本地运行，因为本机未安装 `openspec` 命令。

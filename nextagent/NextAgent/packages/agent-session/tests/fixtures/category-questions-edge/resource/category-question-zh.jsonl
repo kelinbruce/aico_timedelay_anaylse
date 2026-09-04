@@ -1,0 +1,22 @@
+{"category":"混合分类","questions":[{"question":"直接问题1","fixed":true}],"records":[{"category":"子分类A","questions":[{"question":"子问题1","fixed":false}]}]}
+{"category":"二级分类有records","questions":[],"records":[{"category":"子分类B","questions":[{"question":"有效子问题","fixed":true}],"records":[{"category":"无效三级","questions":[{"question":"不应出现","fixed":false}]}]}]}
+{"category":"仅直接问题","questions":[{"question":"问题A","fixed":false},{"question":"问题B","fixed":true}]}
+{"category":"仅二级分类","records":[{"category":"子分类C","questions":[{"question":"子问题2","fixed":false}]}]}
+{"category":"问题缺question字段","questions":[{"fixed":true}],"records":[]}
+{"category":"问题缺fixed字段","questions":[{"question":"没有fixed"}],"records":[]}
+{"category":"question非字符串","questions":[{"question":123,"fixed":true}],"records":[]}
+{"category":"fixed非布尔","questions":[{"question":"测试","fixed":"yes"}],"records":[]}
+{"category":"question空字符串","questions":[{"question":"","fixed":true}],"records":[]}
+{"category":"questions和records同时为空","questions":[],"records":[]}
+{"category":"questions和records均不存在"}
+{"category":"","questions":[{"question":"空分类名","fixed":true}]}
+{"category":"category非字符串","questions":[{"question":"测试","fixed":true}],"records":[]}
+{"category":"二级分类缺category","records":[{"questions":[{"question":"测试","fixed":true}]}]}
+{"category":"二级分类空questions","records":[{"category":"空子分类","questions":[]}]}
+{"category":"二级分类缺questions","records":[{"category":"无问题子分类"}]}
+{"category":"部分问题有效部分无效","questions":[{"question":"有效问题","fixed":true},{"fixed":false},{"question":"也有效","fixed":false}],"records":[]}
+{"category":"部分二级分类有效部分无效","records":[{"category":"有效子分类","questions":[{"question":"有效","fixed":true}]},{"questions":[{"question":"无效","fixed":true}]},{"category":"也有效","questions":[{"question":"也有效","fixed":false}]}]}
+{invalid json line}
+12345
+null
+[1,2,3]

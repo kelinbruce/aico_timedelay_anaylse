@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist", "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-platform-gateway-local.tsbuildinfo" },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "../agent-contracts" }, { "path": "../agent-local-file-roll" }, { "path": "../agent-app" }]
+}

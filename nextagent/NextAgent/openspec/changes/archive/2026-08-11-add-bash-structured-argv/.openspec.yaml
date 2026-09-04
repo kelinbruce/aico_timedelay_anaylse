@@ -1,0 +1,4 @@
+id: add-bash-structured-argv
+title: 为 Bash Tool 增加结构化 argv 输入
+status: draft
+owner: agent-capability

@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-app.model-gateway-only.tsbuildinfo"
+  },
+  "references": [
+    { "path": "../agent-runtime" },
+    { "path": "../agent-session" },
+    { "path": "../agent-attachment-runtime" },
+    { "path": "../agent-context-engine" },
+    { "path": "../agent-memory" },
+    { "path": "../agent-core" },
+    { "path": "../agent-model/tsconfig.model-gateway-only.json" },
+    { "path": "../agent-channel-common" },
+    { "path": "../agent-channel-web" },
+    { "path": "../agent-plugin-sdk" },
+    { "path": "../agent-channel-task" },
+    { "path": "../agent-channel-web-auth-local" },
+    { "path": "../agent-app-frontend-hosting" },
+    { "path": "../agent-capability" },
+    { "path": "../agent-observability" },
+    { "path": "../agent-workflow" }
+  ]
+}

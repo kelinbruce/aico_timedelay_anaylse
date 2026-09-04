@@ -1,0 +1,32 @@
+{
+  "name": "@nextagent/agent-platform-gateway-local",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./entrypoints/local": {
+      "types": "./dist/entrypoints/local.d.ts",
+      "import": "./dist/entrypoints/local.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
+    }
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-contracts": "1.0.0",
+    "@nextagent/agent-local-file-roll": "1.0.0",
+    "@nextagent/agent-app": "1.0.0"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  }
+}

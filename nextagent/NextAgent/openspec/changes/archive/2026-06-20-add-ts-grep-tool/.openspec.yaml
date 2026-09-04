@@ -1,0 +1,5 @@
+name: add-ts-grep-tool
+type: change
+status: draft
+created: 2026-06-17
+description: Grep tool - find files whose contents match a regex pattern

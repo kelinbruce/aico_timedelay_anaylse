@@ -1,0 +1,235 @@
+name: spec-driven
+version: 1
+description: NextAgent OpenSpec workflow - proposal -> specs -> design -> tasks
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: 变更动机与范围说明
+    template: proposal.md
+    instruction: |
+      创建 proposal.md。文档使用中文，从最终用户、Agent 开发者、运维人员、平台集成方或受影响外部系统的
+      黑盒视角说明问题和目标；必要的公共 API、contract 名称允许保留英文。
+
+      必须包含：
+      - **Why**：说明 actor 当前遇到的问题、可观察影响、触发原因和现在处理的必要性；标题必须保持为 `## Why`，供 OpenSpec CLI 识别。
+      - **目标与非目标**：说明 change 完成后 actor 可依赖或系统黑盒可验证的结果，以及系统或 Function 层明确排除、deferred 和重要不变边界。
+      - **What Changes**：只说明本 change 主动授权的新增、修改和移除的黑盒行为、公共契约或边界；标题必须保持为 `## What Changes`，供 OpenSpec CLI 识别；破坏性变更标记 **BREAKING**。
+      - **Function 影响（OpenSpec Capabilities）**：列出新增或修改的 Function，以及每个 Function 的 `FN-*`、canonical name、对应 spec、变化边界和系统质量属性。
+      - **影响范围**：优先说明对 actor、外部系统、公共 API、配置和运维的被动影响；必要时再列受影响代码和测试，不得建立新行为。
+
+      如果 change 新增或改变 canonical term，在首次约束性使用前定义该术语；否则不创建术语章节。
+      如果 release、profile、host、版本、默认值、scope、trust source 或权威基线会改变文本解释，
+      在 proposal 中用简短列表或表格冻结这些上下文；否则不创建上下文章节。
+      只有用户价值、黑盒边界、Function 组成或用户可依赖质量保证发生变化时，才增加 **Feature 影响**，按新增、修改、移除列出 `F-*`。
+      Proposal 聚焦 actor 问题、黑盒目标、范围和影响，不重复 spec 行为，不展开 package owner、port、DTO、
+      私有调用链、SDK API、文件路径或实现步骤。公共契约发生破坏性变化时，只说明调用方可观察的输入、
+      输出、失败或兼容边界；字段级 schema 由 specs 定义，实现机制由 design 定义。
+      OpenSpec capability 等同 Function；NextAgent runtime `Capability` 专指 Tool、Skill 和 Agent，两者不得混用。
+      新 Function 必须且只能对应一个 `specs/<kebab-case>/spec.md`。修改 legacy Function 时，列出与 Function
+      黑盒边界匹配度最高的 canonical spec，以及本 change 实际触及的 legacy specs；不得增加新的多对多关系。
+      Proposal 只说明 Function 与 spec 影响，不展开 Requirement 迁移步骤；迁移明细由 design 承载。
+      移除个别 Requirements 仍属于修改 Function。当前工作流不得退役整个 Function；如果归档后 Function 将不再
+      包含任何 Requirement，必须阻塞归档并先提交专门的 Function 退役 change。清空的 legacy stable spec
+      可在满足原子迁移、无并行引用和导航清理门禁时退役，该退役不等同于 Function 退役。
+      Proposal 不得列出归档前需要更新的长期文档；该清单由 design 的“长期基线刷新计划”唯一承载。
+      长期基线文档默认在归档阶段更新，不作为实施阶段默认任务。
+    requires: []
+
+  - id: specs
+    generates: specs/**/*.md
+    description: Function 行为契约 delta
+    template: spec.md
+    instruction: |
+      创建 spec 文件，用中文定义 Function 的系统黑盒契约。
+
+      按 proposal 的 Function 影响创建 spec 文件：
+      - New Function/OpenSpec capability：路径为 `specs/<kebab-case capability>/spec.md`，且只对应该 Function。
+      - Modified Function/OpenSpec capability：优先使用与 Function 的输入、目标行为、输出和失败语义匹配度
+        最高的现有 spec 作为 canonical spec，不按 package、owner 或文件名选择。
+      - legacy Requirement 的输入、目标行为、输出、失败语义、规范归属或完整目标态正文发生实质变化时视为
+        “触及”；格式、链接、错别字和不改变语义的翻译不视为触及。只迁移被触及 Requirement，不批量迁移其他内容。
+      - 每个主规格 delta 在 Requirements 之前声明 `所属 Function`、`Function 变更类型` 和 `spec 角色：主规格`。
+        `所属 Function` 是该 spec 全部 ADDED/MODIFIED Requirements 的唯一规范归属，Requirement block 不重复声明。
+        归档时必须把同一 `所属 Function` 元数据写入 stable spec，并放在 Requirements 之前。
+        遗留来源 spec 只承载原子迁移所需的 `REMOVED`，不创建无法唯一对应 Function 的元数据或汇总。
+
+      Delta operations：
+      - **ADDED Requirements**：新增 capability 或 requirement。
+      - **MODIFIED Requirements**：完整重述修改后的既有 requirement，标题与基线精确匹配。
+      - **REMOVED Requirements**：包含 **Reason** 和 **Migration**。
+      - **RENAMED Requirements**：仅改名，使用 FROM:/TO:。
+
+      每个 operation 必须对照同名 target stable spec，按 Requirement 标题精确、区分大小写选择：
+      - target stable spec 已存在时，ADDED 名称不得已存在；MODIFIED 和 REMOVED 名称必须恰好存在一次；
+        RENAMED 的 FROM 必须恰好存在一次，TO 不得与归档后保留的其他 Requirement 名称冲突。
+      - target stable spec 不存在时只允许 ADDED。
+      - 跨 spec 原子迁移时，来源 REMOVED 必须存在于来源 stable spec；目标名称不存在时使用 ADDED，
+        已存在时使用 MODIFIED。
+      - 当前 change 未触及的 stable 重复名称不要求顺带清理；被触及名称匹配多次时必须先消除歧义。
+
+      格式和语言要求：
+      - 每个 requirement 使用 `### Requirement: <name>`，每个 scenario 使用 `#### Scenario: <name>`。
+      - Requirement 正文、元数据说明、Scenario 标题和 WHEN/THEN/AND 语句默认使用中文；BCP 14 关键词以及
+        代码标识符、类型、字段、枚举值、API、package、artifact、命令和路径保留英文。
+      - 新建 Requirement 标题默认使用中文。MODIFIED Requirement 标题必须保留与 stable spec 精确一致的
+        canonical 名称；翻译或重命名既有标题必须使用显式 RENAMED delta 并同步跨 artifact 引用。
+      - 每个 ADDED Requirement 和完整重述的 MODIFIED Requirement 至少包含一个 Scenario；
+        REMOVED 和 RENAMED 不要求 Scenario。
+      - 每个 ADDED Requirement 和完整重述的 MODIFIED Requirement 在 Requirement block 内声明
+        `需求类别`；`需求类别` 只能是“功能性需求”或“系统质量属性”。
+      - 系统质量属性 Requirement 还声明 `质量属性` 和 `适用范围`。质量属性只能使用
+        “安全”“性能/容量”“可靠性/恢复”“可维护性”“可测试性”“审计/可追溯性”；
+        适用范围只能是该 Function、系统，或明确列出的 Functions。
+        spec 顶部的 `所属 Function` 是唯一规范归属；`适用范围` 不建立额外的 Function 与 spec 映射。
+        系统级或跨 Function Requirement 必须归属于 proposal 指定的唯一 Function，该 Function 的契约可见触发和可观察结果
+        必须被 Requirement 的 Scenarios 用于判定合规。
+      - 新增强制义务使用 `MUST`/`MUST NOT`；只有允许偏离的义务才能使用 `SHOULD`/`SHOULD NOT`，
+        只有允许选择的行为才能使用 `MAY`/`OPTIONAL`。完整重述既有 requirement 时允许保留原有
+        `SHALL`/`SHALL NOT`，不得仅为统一词形扩大 change。
+      - `SHOULD`/`SHOULD NOT` 定义允许偏离的客观条件和偏离结果。
+      - `MAY`/`OPTIONAL` 定义选择主体、选择条件、默认结果、选择和不选择时的合规行为及互操作边界。
+      - requirement 和 scenarios 共同明确责任主体、条件、输入、行为、结果、副作用、失败和可观察证据。
+      - Change 整体覆盖实际存在的 normal、boundary、failure/degradation path；不为不存在的路径生成占位 scenario。
+        Scenario 是 Requirement 的验收路径，允许对应用例路径，但不等同于完整用例。
+      - 公共 API、公共 contract、规范事件、授权查询投影、合规测试可观察的行为，以及契约可见状态和转换属于 specs。
+        package、owner、scheduler、数据库、事务、锁、CAS、私有调用路径和私有状态表示属于 design。
+      - 公共 contract schema 只定义受影响对象和字段的 type、required/optional、nullability、default、
+        allowed values/range、unit/encoding、字段间约束、未知字段处理行为和契约边界可观察的校验结果。
+      - 当契约行为由有限状态和转换决定，且 scenarios 无法闭合 initial/terminal state、trigger、guard、next state、非法转换、重复或并发语义时，
+        在 spec 中增加最小状态转换表或其他精确表示；不得为无状态行为发明状态。
+      - 主规格 delta 在全部 Requirement operations 之后增加“Function 变更汇总”。该汇总是 Requirements 对长期
+        Function 文档的非规范性投影，不得新增行为、阈值、失败语义或实现决策，也不得在归档时合并到 stable spec。
+        汇总按长期 Function 文档的实际字段组织，不按 Requirement 或“变更 1/变更 2”重复总结行为。只为发生
+        变化的字段创建 section，同一字段只出现一次，并把全部相关 ADDED/MODIFIED Requirements 合并为该字段
+        的目标态。可用字段为名称、描述、前置条件、输入、输出、处理过程、结果、规格、接口、覆盖特性、
+        主规格、遗留规格；不得创建“规格导航”“量化指标”等平行 Function 字段。除规格外，每个字段固定包含
+        “变更类型”“目标内容”和“依据 Requirements”，并且“处理过程”只概括契约可见行为。
+        规格 section 按规格项分别给出“规格项”“变更类型”“原规格值”“目标规格值”和“依据 Requirements”。
+        新增规格的原规格值写“不适用（新增）”。目标规格值必须是可直接进入 Function `## 规格` 表的简短、
+        确定黑盒事实，可以是数值、默认值、枚举、精确清单、支持范围或简短规则；精确集合不得只写数量。
+        数值规格必须同时给出单位、适用对象和必要的计数或测量边界。规格只提炼省略后会导致能力理解、兼容性
+        或黑盒验收产生实质歧义的关键事实，通常只保留 1–4 个相互独立的关键项，不要求把每个 Requirement
+        改写为规格行。
+        方法签名、字段级 schema、可修改字段清单、内部类型、owner、模块协作、调用路径、装配字段和诊断投影
+        不得作为规格项。每个规格项必须来自本 spec
+        的 ADDED/MODIFIED Requirement；明确标为不变的既有规格必须给出当前 Function 或 stable Requirement
+        依据。Function 变更汇总不得发明候选值，不得混入建议评审值、当前实现值、observability metric 或白盒设计。
+      - 每个改变长期 Function 内容的 ADDED/MODIFIED Requirement 必须至少被一个字段引用；每个字段必须反向
+        追溯至少一个 Requirement。Requirement 可以被多个受影响字段引用，但字段的目标内容必须表达合并后的
+        Function 目标态，不得按 Requirement 逐条改写。Function 名称仅在 proposal 声明重命名时更新；覆盖特性仅在 proposal 声明
+        Feature delta 时更新；当前状态由归档后的 stable/active 基线推导，不在汇总中声明。
+
+      MODIFIED workflow：定位基线 requirement，复制完整 block，在目标状态下修改并保持标题精确匹配。
+      如果只是新增独立关注点且不改变已有行为，优先使用 ADDED。
+      被触及 Requirement 不在 canonical spec 时，必须在同一 change 中使用来源 `REMOVED` 与目标
+      `ADDED/MODIFIED` 原子迁移，不得只复制。迁移既有 Requirement 时允许在目标保留来源 canonical 标题；
+      目标 Requirement 只描述目标态，来源、拆分和导航影响写入 design。
+      混合 Requirement 必须无损拆分：本 Function 黑盒行为迁往其 canonical spec，其他 Function 行为迁往
+      对应 canonical spec，白盒内容归 design；来源 Requirement 整体 `REMOVED`，不得把其剩余片段重新
+      `ADDED` 回来源。来源 spec 中完全未触及的其他 Requirements 原位保留。没有合适 spec 时允许为已有 Function
+      创建非空 canonical spec，并同步迁入本次触及内容。
+      普通 REMOVED 不移除 Function；如果移除后 Function 不再包含任何 Requirement，必须阻塞归档。
+      来源 stable spec 仅在归档后无 Requirement、全部行为已有承载、没有并行 active change 引用，且相关
+      Function、Feature、spec-to-design-map 和导航在同一 change 清理时允许退役。
+    requires:
+      - proposal
+
+  - id: design
+    generates: design.md
+    description: 技术设计文档
+    template: design.md
+    instruction: |
+      创建设计文档。使用中文；模块名、接口名、状态名和路径允许保留英文。
+
+      必须包含：
+      - **设计范围**：作为第一个正文 section，以紧凑表格或等价短列表让每个受影响 Function 只出现一次，
+        并说明目标变化、涉及的 delta specs 和 Function 设计章节；不得在该 section 前放置无标题元数据，
+        也不得在首章展开全部目标 Requirement 明细。
+      - **存量 Requirement 迁移方案**：仅在 change 触及 legacy Requirement 时，紧接“设计范围”之后增加。
+        逐项列出来源 spec/Requirement、目标 Function/canonical spec、来源与目标 delta operation、
+        其他行为与未触及 Requirements 的处理、白盒落点、stable spec 与导航退役影响；没有迁移时不创建该章节。
+      - **Function 设计章节**：每个受影响 Function 都有一个独立章节，并固定按“目标与规范依据 → 当前实现 →
+        GAP 分析 → 修改方案”组织。“目标与规范依据”先简述 proposal/spec 的黑盒目标，再增加
+        “本 Function 的目标 Requirements”：声明唯一 canonical spec，并按 `ADDED/MODIFIED` operation 列出最终
+        写入该 canonical spec 的全部目标 Requirements，但不复制正文。来源 specs、`REMOVED` Requirements 和
+        拆分过程只出现在“存量 Requirement 迁移方案”。当前实现只写事实；GAP 对应目标与当前事实；
+        修改方案给出唯一、最小且可实施的白盒闭合路径。只有该 Function 存在实际质量属性设计影响时，
+        才在“修改方案”内增加“质量属性影响”，只列适用属性、所属 Function 的系统质量属性 Requirement、
+        本 Function 内部机制和验证关注点；只有功能性 Requirement 依据时明确“无新增黑盒质量目标”。
+      - **跨 Function 协作与端到端流程**：仅当多个 Function 共享启动、调用、状态或失败流程时保留，
+        在全部 Function 章节之后描述一次共享集成关系，并反向引用各 Function 章节。
+      - **跨 Function 质量属性设计**：仅当至少两个 Functions 共享质量机制、端到端验证，或质量结果只能由
+        跨 Function 组合形成时保留。只列实际适用属性，引用各自唯一所属 Function/spec 的 Requirements，
+        说明共享机制和端到端验证；不得复制 Function 局部设计、创建第二套目标或机械覆盖全部质量属性。
+        单 Function change 或没有跨 Function 质量影响时不创建。
+      - **验证策略**：必须说明哪些 spec 行为、design 边界和 negative case 分别由何种验证层级覆盖。
+        行为验证必须断言契约、边界条件或系统黑盒可观察结果，不得断言私有实现细节。
+        精确来源、测试文件和命令由 tasks 承载。
+      - **长期基线刷新计划**：列出归档前需要同步的 stable spec、Function、Feature、overview、architecture、
+        modules、ADR 和 spec-to-design-map；不受影响的类别明确写“无”。
+      - **风险与取舍**：决策后仍存在的风险和缓解措施。
+      - **待确认问题**：影响行为、契约、owner、安全、持久化或验收的问题必须阻塞相关 tasks。
+
+      当本设计存在 proposal 未表达、但会改变实施路径或验收的设计约束时，在对应 Function 的“目标与规范依据”
+      中简短引用 proposal 目标并补充该设计约束；不得重述 proposal 正文。
+      只展开与 change 实际相关的精确定义：
+      - 白盒实现依赖私有状态和转换，且段落无法闭合私有状态表示、存储、调度、重复或并发控制语义时，
+        增加最小状态转换表或其他精确表示。契约可见状态和转换只引用 spec，不在 design 中重新定义。
+      - 条件组合、优先级、排序、计算、grammar 或映射无法由自然语言唯一表达时，增加最小 decision table、
+        pseudocode、公式、BNF/ABNF、mapping table 或 schema。
+      - 新增或修改内部数据结构时，定义受影响对象和字段的 type、required/optional、nullability、default、
+        allowed values/range、unit/encoding 和字段间约束，并定义该对象的 trusted source、owner、内部校验、
+        私有存储 shape、内部状态表示和跨层映射；公共 contract schema 只引用 spec，不在 design 中重新定义。
+      - 存在会影响实现或验收的实质备选方案时，在相关 Function 的修改方案之后增加 **备选方案**，说明适用条件、主要取舍和未选择理由；
+        简单取舍直接写入相关设计决策，无实质备选方案时不创建该章节。
+      - 涉及部署顺序、兼容窗口、数据迁移、回滚状态或发布风险时，在风险与取舍之后增加
+        **迁移与回滚**，明确迁移前提、顺序、兼容边界、回滚触发条件、回滚结果和验证；否则不创建该章节。
+
+      状态机、备选方案和迁移与回滚都不是固定章节。不得为无状态行为发明状态，不得创建空章节或 N/A 表格。
+      design 聚焦 Function 的白盒实现、架构边界和取舍，不写逐行实现任务，也不重复 specs 的系统黑盒契约。
+      同一状态语义、API schema、数据 owner、领域字段或接口语义只能有一个主承载位置。
+    requires:
+      - proposal
+      - specs
+
+  - id: tasks
+    generates: tasks.md
+    description: 可跟踪的实现任务清单
+    template: tasks.md
+    instruction: |
+      创建 tasks.md，用中文按依赖顺序拆解实现工作。
+
+      任务以受影响 Function 为主要分组，每个 Function 使用独立任务组；Function 组内按目标行为测试、实现和
+      Function 验证排序。Function 分组可按实施依赖排序。契约确认、跨 Function composition/迁移、整体验证和
+      归档前检查等真正共享的工作单独分组，并列出相关 Functions 或精确 design/proposal 来源；不得重复共享任务。
+      Requirement 跨 spec 迁移放入目标 Function 分组，把来源 `REMOVED`、目标 `ADDED/MODIFIED`、被触及
+      Requirement 的全部黑盒行为承载、未触及 Requirements 原位保留和引用更新作为一个不可拆分的验收结果。来源 spec 退役和跨 Function 导航清理可单列共享任务，
+      但必须在同一 change 内完成。
+
+      每个 task 必须：
+      - 使用 `- [ ] X.Y`，只对应一个可独立验收结果。
+      - 命名目标对象、精确 delta 和完成后的可观察结果。
+      - 按任务语义填写来源：功能行为任务引用 `Function + Requirement + Scenario`；系统质量属性任务引用
+        `Function + 系统质量属性 + Requirement + Scenario`；白盒 design 或 architecture 约束任务引用精确 design 章节；
+        其他非行为任务引用精确 design 章节或 proposal scope。
+      - 提供可重复的验证方式和预期结果。可观察行为任务必须包含相关可执行测试命令；其他任务允许使用
+        build、lint、schema validation、architecture check，或“无法自动化的原因 + 精确 code review 检查点”。
+
+      不使用 task type 分类，不引入新的引用编号体系。
+      Tasks 不得新增 specs/design 未定义的行为，也不得包含 deferred/non-goal 或未解决的方案选择。
+      新增或修改可观察行为时，必须先编写表达目标行为的测试。若变更前系统不满足目标行为，实施前必须运行测试并确认失败。
+      缺陷修复必须先复现失败；行为保持型重构或 characterization 必须先建立通过的基线，修改后必须继续通过，不得人为制造失败。
+      禁止行为、边界、权限、依赖规则和失败路径必须有实际触发并断言失败的验证任务。
+      复杂 change 允许保留“归档前更新基线检查（非实施任务）”，但不得把长期文档更新写成普通 checkbox。
+    requires:
+      - specs
+      - design
+
+apply:
+  requires:
+    - tasks
+  tracks: tasks.md
+  instruction: |
+    读取 change artifacts，按未完成任务推进实现并更新 checkbox。
+    勾选 task 前，执行该 task 定义的验证并记录实际命令和结果；验证未通过时不得勾选，不得只写“测试通过”。
+    遇到设计冲突、行为不明确、来源缺失或需要确认的问题时暂停并说明。

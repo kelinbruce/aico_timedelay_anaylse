@@ -1,0 +1,4 @@
+id: fix-skill-md-encoding-handling
+title: Unify SKILL.md encoding handling between discovery and invocation
+status: draft
+owner: agent-capability

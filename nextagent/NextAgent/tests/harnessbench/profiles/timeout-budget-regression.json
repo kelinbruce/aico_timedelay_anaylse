@@ -1,0 +1,15 @@
+{
+  "profileId": "timeout-budget-regression",
+  "nonScoring": true,
+  "taskIds": [
+    "021-batch-rename-transform",
+    "037-policy-clause-retrieval",
+    "040-test-coverage-fill",
+    "041-frontend-state-bug",
+    "042-api-schema-migration",
+    "078-local-api-cursor-retry-ledger",
+    "086-sql-migration-preflight-rollback",
+    "087-cli-parser-bug-tests",
+    "095-policy-version-conflict-resolution"
+  ]
+}

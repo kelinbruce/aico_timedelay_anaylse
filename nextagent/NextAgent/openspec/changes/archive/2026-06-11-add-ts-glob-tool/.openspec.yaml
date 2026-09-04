@@ -1,0 +1,5 @@
+name: add-ts-glob-tool
+type: change
+status: draft
+created: 2026-06-05
+description: Glob tool - find files by name pattern

@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-model.model-gateway-only.tsbuildinfo"
+  },
+  "exclude": ["src/providers/openai-compatible/openai-compatible-provider.ts", "src/providers/shared/tool-use-normalizer.ts"],
+  "references": [{ "path": "../agent-contracts" }]
+}

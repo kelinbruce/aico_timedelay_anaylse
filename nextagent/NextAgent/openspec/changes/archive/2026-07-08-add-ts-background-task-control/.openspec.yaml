@@ -1,0 +1,5 @@
+name: add-ts-background-task-control
+type: change
+status: draft
+created: 2026-07-07
+description: 后台进程可见可控——列表、查看 stdout/stderr 输出、关闭进程

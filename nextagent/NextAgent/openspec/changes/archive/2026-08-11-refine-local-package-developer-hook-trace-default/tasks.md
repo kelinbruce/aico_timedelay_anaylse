@@ -1,0 +1,10 @@
+- [x] 1. 更新本地 release 打包 spec delta，使具备 backend 能力的 `pack:release` 候选包默认声明并激活 `developer-hook-trace`。验证：`openspec validate refine-local-package-developer-hook-trace-default --strict` 通过。
+- [x] 2. 更新本地包暂存，使 `config/default-system.yaml` 只在打包的 release 样例中声明 `developer-hook-trace`。验证：`npx vitest run --config vitest.config.release.ts tests/fullstack-packaging-boundary.test.ts --maxWorkers=8` 通过，并断言 release 样例配置条目。
+- [x] 3. 更新本地包暂存，使打包的 `agents/default-agent/agent.yaml` 激活 `developer-hook-trace.loop-raw-boundary`，同时不改变仓库内置 Agent 源。验证：`npx vitest run --config vitest.config.release.ts tests/fullstack-packaging-boundary.test.ts --maxWorkers=8` 通过，并断言暂存的 hook 激活。
+- [x] 4. 运行定向验证。验证：`npx vitest run --config vitest.config.release.ts tests/fullstack-packaging-boundary.test.ts --maxWorkers=8` 通过；`openspec validate refine-local-package-developer-hook-trace-default --strict` 通过。
+- [x] 5. 在暂存 release 默认 Agent 的同时恢复仅包内的 `developer-hook-trace.loop-raw-boundary` 激活，不改变仓库源 Agent。
+  - 实际：打包 Agent 暂存现在会解析源定义，并写入仅包内、去重的 hook 激活。
+- [x] 6. 为暂存的 hook 激活新增打包边界回归断言。
+  - 实际：回归测试首先复现了 `hooks: undefined`；最终套件断言 hook 激活和源 Agent 不变，并通过 19 个测试。
+- [x] 7. 运行聚焦的打包和 strict OpenSpec 验证。
+  - 实际：19 个打包边界测试、构建和 242 个架构测试通过；strict OpenSpec 验证全部 259 项通过；`npm run pack:release -- skip` 完成，生成的 ZIP 包含已激活的打包默认 Agent。

@@ -1,0 +1,5 @@
+id: fix-conversation-preview-validation
+title: Align conversation preview validation errors with API documentation
+status: draft
+owner: agent-channel-web
+schema: spec-driven

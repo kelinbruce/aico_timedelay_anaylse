@@ -1,0 +1,1688 @@
+openapi: 3.0.0
+info:
+  version: v2
+  title: AgentMemory LongTermMemory V2
+  description: 长期记忆管理 V2 接口，包含 Store Gateway、Retriever Gateway 和 Sharing Gateway
+servers:
+  - url: /
+    description: 本地服务
+tags:
+  - name: LongTermMemoryStore
+    description: 长期记忆写入与管理接口
+  - name: LongTermMemoryRetriever
+    description: 长期记忆检索接口
+  - name: LongTermMemorySharing
+    description: 长期记忆共享接口
+
+paths:
+  /rest/naie/memory/v2/long-term-mem:
+    post:
+      tags:
+        - LongTermMemoryStore
+      operationId: saveLongTermMemory
+      summary: 创建或更新长期记忆
+      description: 创建长期记忆，或按 body 中的 memoryId 更新已有长期记忆
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveLongTermMemoryReq'
+      responses:
+        '200':
+          description: 成功返回长期记忆记录
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LongTermMemoryRecord'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+    get:
+      tags:
+        - LongTermMemoryStore
+      operationId: listLongTermMemory
+      summary: 分页查询长期记忆列表
+      description: 按 scope 和过滤条件分页读取 L1 summary
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          description: Owner Scope 租户
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: userId
+          in: query
+          required: true
+          description: Owner Scope 用户
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: agentId
+          in: query
+          required: true
+          description: Agent Scope
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+            pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        - name: memoryInstance
+          in: query
+          required: false
+          description: 逻辑记忆空间，默认 defaultInstance
+          schema:
+            type: string
+            default: defaultInstance
+            minLength: 1
+            maxLength: 64
+        - name: memoryType
+          in: query
+          required: false
+          description: 记忆类型过滤
+          schema:
+            $ref: '#/components/schemas/MemoryType'
+        - name: knowledgeSourceType
+          in: query
+          required: false
+          description: 来源类型过滤
+          schema:
+            $ref: '#/components/schemas/KnowledgeSourceType'
+        - name: state
+          in: query
+          required: false
+          description: 生命周期状态过滤
+          schema:
+            $ref: '#/components/schemas/MemoryState'
+        - name: isPinned
+          in: query
+          required: false
+          description: pin 状态过滤
+          schema:
+            type: boolean
+        - name: minConfidence
+          in: query
+          required: false
+          description: 置信度下界
+          schema:
+            type: number
+            format: double
+            minimum: 0
+            maximum: 1
+        - name: sinceTime
+          in: query
+          required: false
+          description: 创建时间下界，epoch millis
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: untilTime
+          in: query
+          required: false
+          description: 创建时间上界，epoch millis
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: maxLastAccessedAt
+          in: query
+          required: false
+          description: 最近访问时间上界，epoch millis
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: labels
+          in: query
+          required: false
+          description: 标签过滤
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+        - name: limit
+          in: query
+          required: false
+          description: 页大小，上限 100，默认 10
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          required: false
+          description: 偏移，默认 0
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: 成功返回分页长期记忆摘要
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LongTermMemorySummaryPage'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+  /rest/naie/memory/v2/long-term-mem/manual:
+    post:
+      tags:
+        - LongTermMemoryStore
+      operationId: manualSaveLongTermMemory
+      summary: 用户手动创建或修改长期记忆
+      description: 用户手动创建长期记忆，或按 body 中的 memoryId 更新已有长期记忆，confidence 默认 0.5，source 固定为 MANUAL
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualSaveLongTermMemoryReq'
+      responses:
+        '200':
+          description: 成功返回长期记忆记录
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LongTermMemoryRecord'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+  /rest/naie/memory/v2/long-term-mem/{memoryId}/record:
+    get:
+      tags:
+        - LongTermMemoryStore
+      operationId: getLongTermMemory
+      summary: 无副作用读取单条完整长期记忆
+      description: 无副作用读取单条完整 retained record，供学习融合、维护校验等非模型工具路径使用，不更新 access_count
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          description: 长期记忆 ID
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: tenantId
+          in: query
+          required: true
+          description: Owner Scope 租户
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: userId
+          in: query
+          required: true
+          description: Owner Scope 用户
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: agentId
+          in: query
+          required: true
+          description: Agent Scope
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+            pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        - name: memoryInstance
+          in: query
+          required: false
+          description: 逻辑记忆空间，默认 defaultInstance
+          schema:
+            type: string
+            default: defaultInstance
+            minLength: 1
+            maxLength: 64
+      responses:
+        '200':
+          description: 成功返回长期记忆完整记录
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LongTermMemoryRecord'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '404':
+          description: 长期记忆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+  /rest/naie/memory/v2/long-term-mem/{memoryId}:
+    get:
+      tags:
+        - LongTermMemoryRetriever
+      operationId: getLongTermMemoryDetail
+      summary: 读取长期记忆详情并更新访问统计
+      description: 读取完整 L2 内容，原子递增 access_count 并更新 last_accessed_at
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          description: 长期记忆 ID
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: tenantId
+          in: query
+          required: true
+          description: Owner Scope 租户
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: userId
+          in: query
+          required: true
+          description: Owner Scope 用户
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: agentId
+          in: query
+          required: true
+          description: Agent Scope
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+            pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        - name: memoryInstance
+          in: query
+          required: false
+          description: 逻辑记忆空间，默认 defaultInstance
+          schema:
+            type: string
+            default: defaultInstance
+            minLength: 1
+            maxLength: 64
+      responses:
+        '200':
+          description: 成功返回长期记忆完整记录
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LongTermMemoryRecord'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '404':
+          description: 长期记忆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+    delete:
+      tags:
+        - LongTermMemoryStore
+      operationId: deleteLongTermMemory
+      summary: 物理删除长期记忆
+      description: 物理删除长期记忆及关联检索投影
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          description: 长期记忆 ID
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: tenantId
+          in: query
+          required: true
+          description: Owner Scope 租户
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: userId
+          in: query
+          required: true
+          description: Owner Scope 用户
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: agentId
+          in: query
+          required: true
+          description: Agent Scope
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+            pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        - name: memoryInstance
+          in: query
+          required: false
+          description: 逻辑记忆空间，默认 defaultInstance
+          schema:
+            type: string
+            default: defaultInstance
+            minLength: 1
+            maxLength: 64
+        - name: reasonCode
+          in: query
+          required: false
+          description: 安全 reason code
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+      responses:
+        '200':
+          description: 成功删除
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DeleteLongTermMemoryResp'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '404':
+          description: 长期记忆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+    patch:
+      tags:
+        - LongTermMemoryStore
+      operationId: mutateLongTermMemory
+      summary: 长期记忆字段级变更
+      description: 承载长期记忆状态、置信度、访问时间和 pin 状态的字段级变更，单次请求只能包含一种字段组合
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          description: 长期记忆 ID
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchLongTermMemoryReq'
+      responses:
+        '200':
+          description: 成功返回版本化更新结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/VersionedUpdateResult'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '404':
+          description: 长期记忆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+  /rest/naie/memory/v2/long-term-mem/search:
+    post:
+      tags:
+        - LongTermMemoryRetriever
+      operationId: searchLongTermMemory
+      summary: 检索长期记忆
+      description: 按 scope 和 queryText 检索长期记忆，offset 固定为 0，非 0 返回 LTM_QUERY_INVALID
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchLongTermMemoryReq'
+      responses:
+        '200':
+          description: 成功返回检索结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SearchItemPage'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误或存储不可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+  /rest/naie/memory/v2/long-term-mem/{memoryId}/publish:
+    post:
+      tags:
+        - LongTermMemorySharing
+      operationId: publishLongTermMemory
+      summary: 发布长期记忆到共享池
+      description: 将 PRIVATE/FORK 记忆发布为 SHARED 记忆，同 scope 已存在时返回现有 SHARED 记忆
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          description: 来源长期记忆 ID
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SharingLongTermMemoryReq'
+      responses:
+        '200':
+          description: 成功返回发布结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PublishLongTermMemoryResp'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '404':
+          description: 来源记忆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+  /rest/naie/memory/v2/long-term-mem/{memoryId}/unpublish:
+    post:
+      tags:
+        - LongTermMemorySharing
+      operationId: unpublishLongTermMemory
+      summary: 撤销发布长期记忆
+      description: 物理删除 SHARED 记忆，已复制的 FORK 记忆不受影响
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      parameters:
+        - name: memoryId
+          in: path
+          required: true
+          description: SHARED 长期记忆 ID
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SharingLongTermMemoryReq'
+      responses:
+        '200':
+          description: 成功撤销发布
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UnpublishLongTermMemoryResp'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '404':
+          description: SHARED 记忆不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+  /rest/naie/memory/v2/long-term-mem/shared:
+    get:
+      tags:
+        - LongTermMemorySharing
+      operationId: listPublishedLongTermMemory
+      summary: 浏览共享池
+      description: 按 tenantId、agentId、memoryInstance 浏览 SHARED 记忆
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          description: 租户 Scope
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: agentId
+          in: query
+          required: true
+          description: Agent Scope
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+            pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        - name: memoryInstance
+          in: query
+          required: false
+          description: 逻辑记忆空间，默认 defaultInstance
+          schema:
+            type: string
+            default: defaultInstance
+            minLength: 1
+            maxLength: 64
+        - name: queryText
+          in: query
+          required: false
+          description: 检索文本
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 2048
+        - name: memoryType
+          in: query
+          required: false
+          description: 记忆类型过滤
+          schema:
+            $ref: '#/components/schemas/MemoryType'
+        - name: knowledgeSourceType
+          in: query
+          required: false
+          description: 来源类型过滤
+          schema:
+            $ref: '#/components/schemas/KnowledgeSourceType'
+        - name: labels
+          in: query
+          required: false
+          description: 标签过滤
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+        - name: limit
+          in: query
+          required: false
+          description: 页大小，上限 100，默认 10
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          required: false
+          description: 偏移，默认 0
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: 成功返回共享池分页结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SharedMemorySummaryPage'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误或存储不可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+  /rest/naie/memory/v2/long-term-mem/shared/copy:
+    post:
+      tags:
+        - LongTermMemorySharing
+      operationId: copyPublishedMemory
+      summary: 批量复制共享记忆
+      description: 将 SHARED 记忆批量复制为接收者 scope 下的 FORK 记忆，单次最多 100 条
+      x-api-interface-type: openapi
+      x-is-registered: 'N'
+      x-support-sdk: 'N'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopyLongTermMemoryReq'
+      responses:
+        '200':
+          description: 成功返回复制结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RestResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CopyPublishedMemoryResp'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+        '500':
+          description: 服务内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LtmError'
+
+components:
+  schemas:
+    RestResponse:
+      type: object
+      description: 统一响应包装
+      properties:
+        errorCode:
+          type: integer
+          description: 错误码，0表示成功
+        errorMsg:
+          type: string
+          description: 错误信息，成功时为"Operate successfully"
+        data:
+          type: object
+          description: 业务数据
+      required:
+        - errorCode
+        - errorMsg
+        - data
+    MemoryType:
+      type: string
+      description: 记忆类型
+      enum:
+        - FACTUAL
+        - CONCEPTUAL
+        - PROCEDURAL
+        - USER_CHARACTERISTICS
+
+    KnowledgeSourceType:
+      type: string
+      description: 记忆来源类型
+      enum:
+        - LEARNED
+        - CONFIGURED
+        - SYSTEM_DEFAULT
+
+    SharingState:
+      type: string
+      description: 共享状态
+      enum:
+        - PRIVATE
+        - SHARED
+        - FORK
+
+    MemoryState:
+      type: string
+      description: 生命周期状态
+      enum:
+        - ACTIVE
+        - ARCHIVED
+
+    LtmErrorCode:
+      type: string
+      description: 长期记忆错误码
+      enum:
+        - LTM_QUERY_INVALID
+        - LTM_WRITE_INVALID
+        - LTM_TRANSITION_INVALID
+        - LTM_CONFIDENCE_INVALID
+        - LTM_MEMORY_NOT_FOUND
+        - LTM_STORAGE_UNAVAILABLE
+
+    LongTermMemoryRecord:
+      type: object
+      description: 长期记忆完整记录
+      properties:
+        memoryId:
+          type: string
+          description: 长期记忆 ID
+        tenantId:
+          type: string
+          description: Owner Scope 租户
+        userId:
+          type: string
+          description: Owner Scope 用户
+        agentId:
+          type: string
+          description: Agent Scope
+        memoryInstance:
+          type: string
+          description: 逻辑记忆空间
+        memoryType:
+          $ref: '#/components/schemas/MemoryType'
+        knowledgeSourceType:
+          $ref: '#/components/schemas/KnowledgeSourceType'
+        sharingState:
+          type: string
+          description: 共享状态 PRIVATE/SHARED/FORK
+          enum:
+            - PRIVATE
+            - SHARED
+            - FORK
+        sourceMemoryId:
+          type: string
+          description: 共享来源 memory ID
+        state:
+          $ref: '#/components/schemas/MemoryState'
+        briefIndex:
+          type: string
+          description: L1 摘要
+        content:
+          type: string
+          description: L2 结构化正文，JSON 字符串
+        labels:
+          type: array
+          description: 标签
+          items:
+            type: string
+        confidence:
+          type: number
+          format: double
+          description: 置信度 [0.0, 1.0]
+          minimum: 0
+          maximum: 1
+        version:
+          type: integer
+          format: int64
+          description: CAS 版本
+        accessCount:
+          type: integer
+          format: int64
+          description: L2 detail 成功访问次数
+        recallCount:
+          type: integer
+          format: int64
+          description: search 成功命中次数
+        extractionCount:
+          type: integer
+          format: int64
+          description: extraction 跨会话佐证次数
+        isPinned:
+          type: boolean
+          description: 用户维护 pin 标记
+        lastAccessedAt:
+          type: integer
+          format: int64
+          description: 最近访问时间，epoch millis
+        archivedAt:
+          type: integer
+          format: int64
+          description: 归档时间，未归档为 0
+        archiveReason:
+          type: string
+          description: 归档 reason code，未归档为空字符串
+        source:
+          type: string
+          description: 安全来源信息 JSON 字符串
+        createTime:
+          type: integer
+          format: int64
+          description: 创建时间，epoch millis
+        updateTime:
+          type: integer
+          format: int64
+          description: 更新时间，epoch millis
+      required:
+        - memoryId
+        - tenantId
+        - userId
+        - agentId
+        - memoryInstance
+        - memoryType
+        - knowledgeSourceType
+        - sharingState
+        - state
+        - briefIndex
+        - content
+        - labels
+        - confidence
+        - version
+        - accessCount
+        - recallCount
+        - extractionCount
+        - isPinned
+        - archivedAt
+        - archiveReason
+        - source
+        - createTime
+        - updateTime
+
+    LongTermMemorySummary:
+      type: object
+      description: 长期记忆 L1 摘要
+      properties:
+        memoryId:
+          type: string
+          description: 长期记忆 ID
+        memoryType:
+          $ref: '#/components/schemas/MemoryType'
+        knowledgeSourceType:
+          $ref: '#/components/schemas/KnowledgeSourceType'
+        state:
+          $ref: '#/components/schemas/MemoryState'
+        briefIndex:
+          type: string
+          description: L1 摘要
+        content:
+          type: string
+          description: 记忆正文内容
+        labels:
+          type: array
+          description: 标签
+          items:
+            type: string
+        confidence:
+          type: number
+          format: double
+          description: 置信度
+        isPinned:
+          type: boolean
+          description: 用户维护 pin 标记
+        createTime:
+          type: integer
+          format: int64
+          description: 创建时间
+        updateTime:
+          type: integer
+          format: int64
+          description: 更新时间
+        version:
+          type: integer
+          format: int64
+          description: CAS 版本
+      required:
+        - memoryId
+        - memoryType
+        - knowledgeSourceType
+        - state
+        - briefIndex
+        - content
+        - labels
+        - confidence
+        - isPinned
+        - createTime
+        - updateTime
+        - version
+
+    SearchItem:
+      type: object
+      description: 检索结果条目
+      properties:
+        summary:
+          $ref: '#/components/schemas/LongTermMemorySummary'
+        score:
+          type: number
+          format: double
+          description: 混合排序分值
+        relevanceScore:
+          type: number
+          format: double
+          description: 向量相关性分值
+      required:
+        - summary
+        - score
+        - relevanceScore
+
+    SharedMemorySummary:
+      type: object
+      description: 共享记忆摘要
+      allOf:
+        - $ref: '#/components/schemas/LongTermMemorySummary'
+        - type: object
+          properties:
+            sourceMemoryId:
+              type: string
+              description: 发布来源 memory ID
+            ownerUserId:
+              type: string
+              description: 发布者用户 ID
+          required:
+            - sourceMemoryId
+            - ownerUserId
+
+    LongTermMemorySummaryPage:
+      type: object
+      description: 长期记忆摘要分页输出
+      properties:
+        items:
+          type: array
+          description: 当前页条目
+          items:
+            $ref: '#/components/schemas/LongTermMemorySummary'
+        total:
+          type: integer
+          format: int64
+          description: 匹配总数
+        offset:
+          type: integer
+          format: int32
+          description: 当前偏移
+        limit:
+          type: integer
+          format: int32
+          description: 当前页大小
+      required:
+        - items
+        - total
+        - offset
+        - limit
+
+    SearchItemPage:
+      type: object
+      description: 检索结果分页输出
+      properties:
+        items:
+          type: array
+          description: L1 搜索结果
+          items:
+            $ref: '#/components/schemas/SearchItem'
+        total:
+          type: integer
+          format: int64
+          description: 匹配总数
+        offset:
+          type: integer
+          format: int32
+          description: 固定返回 0
+        limit:
+          type: integer
+          format: int32
+          description: 当前页大小
+      required:
+        - items
+        - total
+        - offset
+        - limit
+
+    SharedMemorySummaryPage:
+      type: object
+      description: 共享记忆摘要分页输出
+      properties:
+        items:
+          type: array
+          description: 当前页条目
+          items:
+            $ref: '#/components/schemas/SharedMemorySummary'
+        total:
+          type: integer
+          format: int64
+          description: 匹配总数
+        offset:
+          type: integer
+          format: int32
+          description: 当前偏移
+        limit:
+          type: integer
+          format: int32
+          description: 当前页大小
+      required:
+        - items
+        - total
+        - offset
+        - limit
+
+    VersionedUpdateResult:
+      type: object
+      description: 版本化更新结果
+      properties:
+        status:
+          type: string
+          description: 版本化更新状态
+          enum:
+            - UPDATED
+            - VERSION_CONFLICT
+            - NOT_FOUND
+        memoryId:
+          type: string
+          description: 更新的长期记忆 ID
+        currentVersion:
+          type: integer
+          format: int64
+          description: 更新后版本号
+        record:
+          $ref: '#/components/schemas/LongTermMemoryRecord'
+      required:
+        - status
+
+    SaveLongTermMemoryReq:
+      type: object
+      description: 创建或更新长期记忆请求
+      properties:
+        memoryId:
+          type: string
+          description: 已存在时更新该 memory；省略或同 scope 不存在时创建新 memory
+          minLength: 1
+          maxLength: 64
+        tenantId:
+          type: string
+          description: Owner Scope 租户
+          minLength: 1
+          maxLength: 64
+        userId:
+          type: string
+          description: Owner Scope 用户
+          minLength: 1
+          maxLength: 64
+        agentId:
+          type: string
+          description: Agent Scope
+          minLength: 1
+          maxLength: 64
+          pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        memoryInstance:
+          type: string
+          description: 逻辑记忆空间，默认 defaultInstance
+          default: defaultInstance
+          minLength: 1
+          maxLength: 64
+        memoryType:
+          $ref: '#/components/schemas/MemoryType'
+        knowledgeSourceType:
+          $ref: '#/components/schemas/KnowledgeSourceType'
+        briefIndex:
+          type: string
+          description: L1 摘要
+          minLength: 1
+          maxLength: 2048
+        content:
+          type: string
+          description: L2 结构化正文，JSON 字符串
+          maxLength: 4000
+        labels:
+          type: array
+          description: 标签
+          maxItems: 10
+          items:
+            type: string
+            minLength: 1
+            maxLength: 256
+        confidence:
+          type: number
+          format: double
+          description: 置信度 [0.0, 1.0]
+          minimum: 0
+          maximum: 1
+        source:
+          type: string
+          description: 安全来源信息 JSON 字符串
+          minLength: 1
+          maxLength: 4096
+        idempotencyKey:
+          type: string
+          description: POST create 去重键
+          minLength: 1
+          maxLength: 128
+        expectedVersion:
+          type: integer
+          format: int64
+          description: 已存在 memory 更新时使用的 CAS 版本
+          minimum: 1
+      required:
+        - tenantId
+        - userId
+        - agentId
+        - knowledgeSourceType
+        - memoryType
+        - briefIndex
+        - content
+        - confidence
+        - source
+
+    PatchLongTermMemoryReq:
+      type: object
+      description: 长期记忆字段级变更请求，单次请求只能包含一种字段组合
+      properties:
+        tenantId:
+          type: string
+          description: Owner Scope 租户
+          minLength: 1
+          maxLength: 64
+        userId:
+          type: string
+          description: Owner Scope 用户
+          minLength: 1
+          maxLength: 64
+        agentId:
+          type: string
+          description: Agent Scope
+          minLength: 1
+          maxLength: 64
+          pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        memoryInstance:
+          type: string
+          description: 逻辑记忆空间
+          minLength: 1
+          maxLength: 64
+        expectedVersion:
+          type: integer
+          format: int64
+          description: CAS 版本
+          minimum: 1
+        targetState:
+          $ref: '#/components/schemas/MemoryState'
+        archiveReason:
+          type: string
+          description: 状态变更时填写，恢复时为空字符串
+          minLength: 0
+          maxLength: 128
+        delta:
+          type: number
+          format: double
+          description: 置信度增量
+          minimum: -1
+          maximum: 1
+        lastAccessTime:
+          type: integer
+          format: int64
+          description: 访问时间，epoch millis
+          minimum: 0
+        isPinned:
+          type: boolean
+          description: pin/unpin 时填写
+      required:
+        - tenantId
+        - userId
+        - agentId
+
+    SearchLongTermMemoryReq:
+      type: object
+      description: 检索长期记忆请求
+      properties:
+        tenantId:
+          type: string
+          description: Owner Scope 租户
+          minLength: 1
+          maxLength: 64
+        userId:
+          type: string
+          description: Owner Scope 用户
+          minLength: 1
+          maxLength: 64
+        agentId:
+          type: string
+          description: Agent Scope
+          minLength: 1
+          maxLength: 64
+          pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        memoryInstance:
+          type: string
+          description: 逻辑记忆空间
+          minLength: 1
+          maxLength: 64
+        queryText:
+          type: string
+          description: 检索文本
+          minLength: 1
+          maxLength: 2048
+        memoryType:
+          $ref: '#/components/schemas/MemoryType'
+        knowledgeSourceType:
+          $ref: '#/components/schemas/KnowledgeSourceType'
+        minConfidence:
+          type: number
+          format: double
+          description: 置信度下界
+          minimum: 0
+          maximum: 1
+        sinceTime:
+          type: integer
+          format: int64
+          description: 创建时间下界，epoch millis
+          minimum: 0
+        untilTime:
+          type: integer
+          format: int64
+          description: 创建时间上界，epoch millis
+          minimum: 0
+        labels:
+          type: array
+          description: 标签过滤
+          maxItems: 10
+          items:
+            type: string
+            minLength: 1
+            maxLength: 256
+        limit:
+          type: integer
+          format: int32
+          description: 页大小，上限 100
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          format: int32
+          description: 固定为 0；非 0 返回 LTM_QUERY_INVALID
+          minimum: 0
+      required:
+        - tenantId
+        - userId
+        - agentId
+        - queryText
+        - minConfidence
+        - limit
+        - offset
+
+    CopyLongTermMemoryReq:
+      type: object
+      description: 批量复制共享记忆请求
+      properties:
+        memoryIds:
+          type: array
+          description: 待复制的 SHARED memory ID 数组，单次最多 100 条
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+          minItems: 1
+          maxItems: 100
+        tenantId:
+          type: string
+          description: 接收者租户
+          minLength: 1
+          maxLength: 64
+        userId:
+          type: string
+          description: 接收者用户
+          minLength: 1
+          maxLength: 64
+        agentId:
+          type: string
+          description: 接收者 Agent Scope
+          minLength: 1
+          maxLength: 64
+          pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        memoryInstance:
+          type: string
+          description: 接收者逻辑记忆空间
+          minLength: 1
+          maxLength: 64
+        reasonCode:
+          type: string
+          description: 安全 reason code
+          minLength: 1
+          maxLength: 128
+      required:
+        - memoryIds
+        - tenantId
+        - userId
+        - agentId
+
+    CopyPublishedMemoryResult:
+      type: object
+      description: 单条复制结果
+      properties:
+        memoryId:
+          type: string
+          description: FORK memory ID
+        record:
+          $ref: '#/components/schemas/LongTermMemoryRecord'
+        sourceMemoryId:
+          type: string
+          description: 被复制的 SHARED memory ID
+      required:
+        - memoryId
+        - record
+        - sourceMemoryId
+
+    CopyPublishedMemoryResp:
+      type: object
+      description: 批量复制共享记忆响应
+      properties:
+        results:
+          type: array
+          description: 逐条复制结果，顺序与 memoryIds 一致
+          items:
+            $ref: '#/components/schemas/CopyPublishedMemoryResult'
+      required:
+        - results
+
+    DeleteLongTermMemoryResp:
+      type: object
+      description: 删除长期记忆响应
+      properties:
+        memoryId:
+          type: string
+          description: 已删除 memory ID
+      required:
+        - memoryId
+
+    PublishLongTermMemoryResp:
+      type: object
+      description: 发布长期记忆响应
+      properties:
+        publishedMemory:
+          $ref: '#/components/schemas/LongTermMemoryRecord'
+        sourceMemoryId:
+          type: string
+          description: 发布来源 memory ID
+        ownerUserId:
+          type: string
+          description: 发布者用户
+      required:
+        - publishedMemory
+        - sourceMemoryId
+        - ownerUserId
+
+    UnpublishLongTermMemoryResp:
+      type: object
+      description: 撤销发布长期记忆响应
+      properties:
+        memoryId:
+          type: string
+          description: 已删除 SHARED memory ID
+      required:
+        - memoryId
+
+    SharingLongTermMemoryReq:
+      type: object
+      description: 共享操作请求（发布/取消发布共用）
+      properties:
+        tenantId:
+          type: string
+          description: Owner Scope 租户
+          minLength: 1
+          maxLength: 64
+        userId:
+          type: string
+          description: 发布者用户
+          minLength: 1
+          maxLength: 64
+        agentId:
+          type: string
+          description: Agent Scope
+          minLength: 1
+          maxLength: 64
+          pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        memoryInstance:
+          type: string
+          description: 逻辑记忆空间，默认 defaultInstance
+          default: defaultInstance
+          minLength: 1
+          maxLength: 64
+        reasonCode:
+          type: string
+          description: 安全 reason code
+          minLength: 1
+          maxLength: 128
+      required:
+        - tenantId
+        - userId
+        - agentId
+
+    LtmError:
+      type: object
+      description: 长期记忆错误响应
+      properties:
+        code:
+          $ref: '#/components/schemas/LtmErrorCode'
+        message:
+          type: string
+          description: 脱敏错误摘要
+          minLength: 2
+          maxLength: 512
+        retryable:
+          type: boolean
+          description: 调用方重试标记
+      required:
+        - code
+        - message
+        - retryable
+
+    ManualSaveLongTermMemoryReq:
+      type: object
+      description: 用户手动创建或修改长期记忆请求
+      properties:
+        memoryId:
+          type: string
+          description: 已存在时更新该 memory；省略时创建新 memory
+          minLength: 1
+          maxLength: 64
+        tenantId:
+          type: string
+          description: Owner Scope 租户
+          minLength: 1
+          maxLength: 64
+        userId:
+          type: string
+          description: Owner Scope 用户
+          minLength: 1
+          maxLength: 64
+        agentId:
+          type: string
+          description: Agent Scope
+          minLength: 1
+          maxLength: 64
+          pattern: '^[a-zA-Z0-9\-_]{1,64}$'
+        memoryInstance:
+          type: string
+          description: 逻辑记忆空间，默认 defaultInstance
+          default: defaultInstance
+          minLength: 1
+          maxLength: 64
+        memoryType:
+          $ref: '#/components/schemas/MemoryType'
+        knowledgeSourceType:
+          $ref: '#/components/schemas/KnowledgeSourceType'
+        briefIndex:
+          type: string
+          description: L1 摘要
+          minLength: 1
+          maxLength: 2048
+        content:
+          type: string
+          description: 记忆正文内容
+          minLength: 1
+          maxLength: 4000
+        labels:
+          type: array
+          description: 标签
+          maxItems: 10
+          items:
+            type: string
+            minLength: 1
+            maxLength: 256
+      required:
+        - tenantId
+        - userId
+        - agentId
+        - knowledgeSourceType
+        - memoryType
+        - briefIndex
+        - content

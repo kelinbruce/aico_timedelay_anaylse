@@ -1,0 +1,4 @@
+id: fix-skill-projection-diagnostics
+title: Add safe diagnostics for Skill projection failures
+status: draft
+owner: agent-capability

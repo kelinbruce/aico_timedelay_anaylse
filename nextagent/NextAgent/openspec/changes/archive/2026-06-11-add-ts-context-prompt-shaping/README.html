@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Shaping 设计讲解</title>
+<style>
+  :root {
+    --blue: #3182ce; --purple: #805ad5; --green: #38a169;
+    --orange: #d69e2e; --red: #e53e3e; --gray: #718096;
+    --bg: #fff; --text: #2d3748; --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.85; color: var(--text); background: var(--bg);
+    max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem;
+  }
+  h1 { font-size: 1.9rem; margin-bottom: 0.3rem; }
+  .subtitle { color: var(--gray); font-size: 0.95rem; margin-bottom: 2rem; }
+  h2 {
+    font-size: 1.3rem; color: var(--blue); margin-top: 3rem; margin-bottom: 1rem;
+    padding-bottom: 0.4rem; border-bottom: 2px solid var(--blue);
+  }
+  h3 { font-size: 1.05rem; color: #4a5568; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+  p { margin-bottom: 0.8rem; font-size: 0.95rem; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; font-size: 0.95rem; }
+  li { margin-bottom: 0.3rem; }
+  code { background: #edf2f7; padding: 0.1em 0.4em; border-radius: 3px; font-size: 0.88em; }
+  strong { color: #1a202c; }
+
+  .card {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.2rem 1.4rem; margin: 1.2rem 0;
+  }
+  .card-analogy { background: #fffff0; border-color: #ecc94b; }
+  .card-analogy .card-label { color: #975a16; }
+  .card-note { background: #ebf8ff; border-color: #90cdf4; }
+  .card-note .card-label { color: #2b6cb0; }
+  .card-warn { background: #fffbeb; border-color: #ecc94b; }
+  .card-warn .card-label { color: #c05621; }
+  .card-label { font-weight: 700; font-size: 0.88rem; margin-bottom: 0.4rem; }
+
+  /* SVG diagrams */
+  .diagram-wrap { margin: 1.5rem 0; text-align: center; }
+  .diagram-wrap svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 0.82rem; color: var(--gray); margin-top: 0.5rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  /* JSON block */
+  .json-block {
+    background: #1a202c; color: #e2e8f0; border-radius: 8px;
+    padding: 1.2rem 1.5rem; margin: 1.2rem 0; overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 0.82rem; line-height: 1.7; white-space: pre;
+  }
+  .json-block .comment { color: #718096; }
+  .json-block .key { color: #90cdf4; }
+  .json-block .str { color: #9ae6b4; }
+  .json-block .num { color: #fbd38d; }
+  .json-block .bool { color: #fc8181; }
+  .json-block .bracket { color: #cbd5e0; }
+  .json-block .highlight-line { background: rgba(49,130,206,0.15); display: block; margin: 0 -1.5rem; padding: 0 1.5rem; }
+
+  /* Table */
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.88rem; }
+  th { background: #f7fafc; text-align: left; font-weight: 600; }
+  th, td { padding: 0.5rem 0.7rem; border: 1px solid var(--border); }
+
+  .footer {
+    margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border);
+    text-align: center; color: #a0aec0; font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Prompt Shaping 设计讲解</h1>
+<p class="subtitle">add-ts-context-prompt-shaping &middot; 面向不熟悉该模块的开发者</p>
+
+<!-- ============================================================ -->
+<h2>一、它解决什么问题？</h2>
+
+<p>用户说了一句话——"查一下 BTS-001 的告警"。从这句话到真正发给大模型，中间要经过好几步处理：选历史消息、算 token 预算、压缩太长对话、处理大附件。这些步骤各自负责自己的事，但它们输出的都是<strong>"决策结果"</strong>——比如"选中了消息 A、B、C"、"用这个模板"。</p>
+
+<p>但大模型需要的不是决策结果，而是一个<strong>格式严格的请求</strong>：一个消息数组（每条有角色标记）加一个工具定义列表。<strong>把决策结果变成这个格式严格的请求</strong>，就是 Prompt Shaping 要做的事。</p>
+
+<div class="card card-analogy">
+  <div class="card-label">打个比方</div>
+  前面的步骤像厨师备菜——洗菜、切菜、配料。Prompt Shaping 像<strong>摆盘</strong>：把备好的菜按正确的顺序和格式摆到盘子上，端给顾客（大模型）。菜品选得再好，摆盘乱了，顾客也看不懂。
+</div>
+
+<!-- ============================================================ -->
+<h2>二、它在系统中的位置</h2>
+
+<p>整个系统由多个模块组成，Prompt Shaping 住在 <code>agent-context-engine</code>（上下文引擎）里面，是上下文引擎流水线的最后一站：</p>
+
+<div class="diagram-wrap">
+  <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+    <!-- agent-core -->
+    <rect x="20" y="20" width="720" height="50" rx="8" fill="#ebf8ff" stroke="#3182ce" stroke-width="2"/>
+    <text x="380" y="50" text-anchor="middle" font-size="14" font-weight="700" fill="#2a4365">agent-core &mdash; 请求调度与编排中心</text>
+
+    <!-- arrows from core down -->
+    <line x1="200" y1="70" x2="200" y2="100" stroke="#3182ce" stroke-width="2" marker-end="url(#arrowBlue)"/>
+    <line x1="560" y1="100" x2="560" y2="70" stroke="#38a169" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+    <!-- context-engine -->
+    <rect x="20" y="100" width="360" height="55" rx="8" fill="#faf5ff" stroke="#805ad5" stroke-width="2"/>
+    <text x="200" y="123" text-anchor="middle" font-size="13" font-weight="700" fill="#553c9a">agent-context-engine</text>
+    <text x="200" y="142" text-anchor="middle" font-size="11" fill="#805ad5">历史选择 &rarr; 预算压缩 &rarr; Prompt Shaping</text>
+
+    <!-- capability -->
+    <rect x="400" y="100" width="160" height="55" rx="8" fill="#fffff0" stroke="#d69e2e" stroke-width="2"/>
+    <text x="480" y="123" text-anchor="middle" font-size="12" font-weight="600" fill="#975a16">agent-capability</text>
+    <text x="480" y="140" text-anchor="middle" font-size="10" fill="#975a16">工具 / 技能 / 子智能体</text>
+
+    <!-- model -->
+    <rect x="580" y="100" width="160" height="55" rx="8" fill="#f0fff4" stroke="#38a169" stroke-width="2"/>
+    <text x="660" y="123" text-anchor="middle" font-size="12" font-weight="600" fill="#276749">agent-model</text>
+    <text x="660" y="140" text-anchor="middle" font-size="10" fill="#38a169">调用大模型</text>
+
+    <!-- contracts -->
+    <rect x="20" y="180" width="720" height="30" rx="6" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+    <text x="380" y="200" text-anchor="middle" font-size="11" fill="#718096">agent-contracts &mdash; 跨模块共享类型与接口</text>
+
+    <!-- flow labels -->
+    <text x="165" y="90" font-size="10" fill="#718096" text-anchor="middle">"准备模型输入"</text>
+    <text x="595" y="90" font-size="10" fill="#718096" text-anchor="middle">"调用模型"</text>
+
+    <defs>
+      <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#3182ce"/>
+      </marker>
+      <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#38a169"/>
+      </marker>
+    </defs>
+  </svg>
+  <div class="diagram-caption">模块关系与数据流向</div>
+</div>
+
+<p><strong>数据怎么流的：</strong></p>
+<ol>
+  <li><code>agent-core</code> 说："用户说了 X，帮我准备好模型输入"</li>
+  <li><code>agent-context-engine</code> 选历史、算预算、<strong>做 Prompt Shaping</strong>，输出完整的模型输入</li>
+  <li><code>agent-core</code> 拿到结果，转成调用请求，交给 <code>agent-model</code></li>
+  <li><code>agent-model</code> 调大模型，返回结果</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2>三、两个阶段，两份产出</h2>
+
+<p>Prompt Shaping 的工作拆成两步。第一步决定"用什么"，第二步决定"怎么排"：</p>
+
+<div class="diagram-wrap">
+  <svg viewBox="0 0 760 180" xmlns="http://www.w3.org/2000/svg">
+    <!-- Phase 1 -->
+    <rect x="20" y="20" width="320" height="140" rx="10" fill="#ebf8ff" stroke="#3182ce" stroke-width="2"/>
+    <text x="180" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#2a4365">阶段一：装配 (assemble)</text>
+    <text x="40" y="72" font-size="12" fill="#4a5568">决定"用什么"</text>
+    <text x="40" y="95" font-size="11" fill="#718096">&bull; 选哪个提示模板？</text>
+    <text x="40" y="113" font-size="11" fill="#718096">&bull; 用哪个模型？</text>
+    <text x="40" y="131" font-size="11" fill="#718096">&bull; 系统提示拼哪些段落？</text>
+    <text x="40" y="149" font-size="11" fill="#718096">&bull; 有哪些可见能力？</text>
+
+    <!-- Arrow -->
+    <line x1="350" y1="90" x2="400" y2="90" stroke="#805ad5" stroke-width="3" marker-end="url(#arrowPurple)"/>
+    <text x="375" y="80" text-anchor="middle" font-size="10" fill="#805ad5" font-weight="600">传递</text>
+
+    <!-- Phase 2 -->
+    <rect x="410" y="20" width="330" height="140" rx="10" fill="#faf5ff" stroke="#805ad5" stroke-width="2"/>
+    <text x="575" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#553c9a">阶段二：渲染 (render)</text>
+    <text x="430" y="72" font-size="12" fill="#4a5568">决定"怎么排"</text>
+    <text x="430" y="95" font-size="11" fill="#718096">&bull; 把引用变成真实消息内容</text>
+    <text x="430" y="113" font-size="11" fill="#718096">&bull; 做角色映射（内部角色 &rarr; 模型角色）</text>
+    <text x="430" y="131" font-size="11" fill="#718096">&bull; 生成工具定义列表</text>
+    <text x="430" y="149" font-size="11" fill="#718096">&bull; 按正确顺序排列所有消息</text>
+
+    <defs>
+      <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#805ad5"/>
+      </marker>
+    </defs>
+  </svg>
+  <div class="diagram-caption">两阶段流程 &mdash; 从决策到成品</div>
+</div>
+
+<p>第一阶段的产出叫 <code>ContextAssembly</code>（一份"订单"，写满了选了什么、用了什么）。第二阶段的产出叫 <code>RenderedModelInput</code>（一份"成品"，模型可以直接吃）。</p>
+
+<div class="card card-analogy">
+  <div class="card-label">打个比方</div>
+  餐厅点菜：装配 = 服务员记下客人点了什么菜、忌口、偏好（一张订单）；渲染 = 厨房根据订单做出实物菜品、摆好盘、配上餐具（一桌成品）。订单写的是"宫保鸡丁 &times; 1"，但顾客需要的是真正的菜。
+</div>
+
+<p><strong>为什么要拆成两步？</strong>因为"订单"可以被审计和追溯（"为什么选了这些消息？用了哪个模板？"），而"成品"是干净的——不包含任何决策元数据。模型不需要知道你是怎么选的，它只需要看到最终的对话内容。</p>
+
+<!-- ============================================================ -->
+<h2>四、系统提示怎么拼？</h2>
+
+<p>系统提示（System Prompt）是大模型最先看到的内容，告诉它"你是谁、你该怎么做"。我们把它拆成多个段落（section），按固定顺序拼接：</p>
+
+<div class="diagram-wrap">
+  <svg viewBox="0 0 560 310" xmlns="http://www.w3.org/2000/svg">
+    <!-- Title -->
+    <text x="280" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#718096" letter-spacing="0.05em">系统提示的分层结构</text>
+
+    <!-- Stable sections -->
+    <rect x="40" y="30" width="480" height="40" rx="6" fill="#ebf8ff" stroke="#3182ce" stroke-width="1.5"/>
+    <text x="60" y="55" font-size="12" font-weight="600" fill="#2a4365">1. 身份指令</text>
+    <text x="500" y="55" text-anchor="end" font-size="10" fill="#718096">来自提示模板</text>
+
+    <rect x="40" y="75" width="480" height="40" rx="6" fill="#ebf8ff" stroke="#3182ce" stroke-width="1.5"/>
+    <text x="60" y="100" font-size="12" font-weight="600" fill="#2a4365">2. 语言与格式</text>
+    <text x="500" y="100" text-anchor="end" font-size="10" fill="#718096">来自请求的语言设置 (zh-CN)</text>
+
+    <rect x="40" y="120" width="480" height="40" rx="6" fill="#ebf8ff" stroke="#3182ce" stroke-width="1.5"/>
+    <text x="60" y="145" font-size="12" font-weight="600" fill="#2a4365">3. 领域知识</text>
+    <text x="500" y="145" text-anchor="end" font-size="10" fill="#718096">电信术语等（条件触发）</text>
+
+    <!-- Cache boundary -->
+    <rect x="40" y="170" width="480" height="28" rx="4" fill="#2d3748"/>
+    <text x="280" y="189" text-anchor="middle" font-size="11" fill="#fff" font-weight="600">--- 缓存分界线 ---</text>
+
+    <!-- Dynamic sections -->
+    <rect x="40" y="208" width="480" height="40" rx="6" fill="#faf5ff" stroke="#805ad5" stroke-width="1.5"/>
+    <text x="60" y="233" font-size="12" font-weight="600" fill="#553c9a">4. 能力清单</text>
+    <text x="500" y="233" text-anchor="end" font-size="10" fill="#718096">当前可用的技能和子智能体</text>
+
+    <!-- Labels -->
+    <text x="22" y="100" font-size="10" fill="#3182ce" font-weight="700" transform="rotate(-90, 22, 100)" text-anchor="middle">稳定层</text>
+    <text x="22" y="225" font-size="10" fill="#805ad5" font-weight="700" transform="rotate(-90, 22, 225)" text-anchor="middle">动态层</text>
+
+    <!-- Explanation -->
+    <text x="40" y="275" font-size="11" fill="#718096">稳定层：内容几乎不变，可以被模型服务商缓存，省钱又快</text>
+    <text x="40" y="295" font-size="11" fill="#718096">动态层：内容可能每次请求都变，每次都重新生成</text>
+  </svg>
+  <div class="diagram-caption">系统提示段落排列</div>
+</div>
+
+<p><strong>为什么要分"稳定层"和"动态层"？</strong>大模型服务商通常会缓存提示的前缀部分——如果前缀不变，下次调用可以复用缓存，省钱又快。所以我们把不怎么变的内容（身份、语言、领域知识）放前面，经常变的内容（能力清单）放后面，中间用一条分界线隔开。</p>
+
+<h3>模板从哪来？</h3>
+<p>系统提示的核心内容来自提示模板，按优先级加载：</p>
+<ol>
+  <li><strong>运行时指定</strong>：当前配置明确说了用哪个模板 &rarr; 用那个</li>
+  <li><strong>Agent 配置</strong>：这个智能体注册了模板列表 &rarr; 用第一个</li>
+  <li><strong>系统内置</strong>：都没有 &rarr; 用系统自带的兜底模板</li>
+</ol>
+
+<h3>加载后要过三道安全检查</h3>
+<ol>
+  <li><strong>长度检查</strong>：模板不能太长（不超过模型可用输入的 30%），否则留给对话的空间就没了</li>
+  <li><strong>注入检测</strong>：检查模板里有没有类似"忽略之前的指令"这样的注入攻击语句</li>
+  <li><strong>语言匹配</strong>：如果用户选了中文交互，但模板只支持英文，就拒绝使用</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2>五、能力怎么展示给模型？</h2>
+
+<p>我们的智能体有各种"能力"：工具（Tool）、技能（Skill）、子智能体（SubAgent）。它们告诉模型的方式不同：</p>
+
+<table>
+  <thead><tr><th>能力类型</th><th>展示方式</th><th>通俗理解</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Tool（工具）</strong></td>
+      <td>变成工具定义，放在消息数组旁边的 <code>tools</code> 列表里</td>
+      <td>给模型一个"工具箱"，告诉它每个工具叫什么、能干什么、要传什么参数</td>
+    </tr>
+    <tr>
+      <td><strong>Skill（技能）</strong></td>
+      <td>写一段简短描述，放进系统提示的能力清单段落</td>
+      <td>告诉模型"你会这个技能"，详细说明书等真正要用时再加载</td>
+    </tr>
+    <tr>
+      <td><strong>SubAgent（子智能体）</strong></td>
+      <td>写一段简短描述，放进系统提示的能力清单段落</td>
+      <td>告诉模型"你可以把某类任务委派给这个助手"</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="card card-note">
+  <div class="card-label">为什么工具和技能/子智能体的展示方式不同？</div>
+  工具是模型可以直接调用的（像函数调用），所以需要精确的参数定义；技能和子智能体更像是"知识"，模型知道有它们就行，需要时再深入了解。这也节省了提示的空间。
+</div>
+
+<!-- ============================================================ -->
+<h2>六、消息怎么排？角色怎么映射？</h2>
+
+<p>渲染阶段把装配结果变成模型能直接吃的消息数组。排列顺序固定如下：</p>
+
+<div class="diagram-wrap">
+  <svg viewBox="0 0 660 310" xmlns="http://www.w3.org/2000/svg">
+    <text x="330" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#718096" letter-spacing="0.05em">发给大模型的消息序列</text>
+
+    <!-- Message rows -->
+    <rect x="30" y="30" width="600" height="36" rx="5" fill="#bee3f8" stroke="#90cdf4" stroke-width="1"/>
+    <text x="50" y="53" font-size="12" font-weight="700" fill="#2a4365">[0] SYSTEM</text>
+    <text x="170" y="53" font-size="11" fill="#2a4365">系统提示（身份 + 语言 + 领域 + 能力清单，拼成一整条）</text>
+
+    <rect x="30" y="72" width="600" height="36" rx="5" fill="#fed7d7" stroke="#feb2b2" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="50" y="95" font-size="12" font-weight="700" fill="#822727">[1] 摘要</text>
+    <text x="170" y="95" font-size="11" fill="#822727">历史摘要（如果之前对话太长被压缩了）  -- 仅当压缩发生时出现</text>
+
+    <rect x="30" y="114" width="600" height="36" rx="5" fill="#c6f6d5" stroke="#9ae6b4" stroke-width="1"/>
+    <text x="50" y="137" font-size="12" font-weight="700" fill="#22543d">[2] USER</text>
+    <text x="170" y="137" font-size="11" fill="#22543d">历史消息 - 用户说 ...</text>
+
+    <rect x="30" y="156" width="600" height="36" rx="5" fill="#e9d8fd" stroke="#d6bcfa" stroke-width="1"/>
+    <text x="50" y="179" font-size="12" font-weight="700" fill="#44337a">[3] ASSISTANT</text>
+    <text x="170" y="179" font-size="11" fill="#44337a">历史消息 - 助手回复 ... （可能含工具调用）</text>
+
+    <rect x="30" y="198" width="600" height="36" rx="5" fill="#fefcbf" stroke="#faf089" stroke-width="1"/>
+    <text x="50" y="221" font-size="12" font-weight="700" fill="#744210">[4] TOOL</text>
+    <text x="170" y="221" font-size="11" fill="#744210">历史消息 - 工具返回结果（必须和上面的工具调用成对）</text>
+
+    <!-- Ellipsis -->
+    <text x="330" y="252" text-anchor="middle" font-size="14" fill="#a0aec0">... 更多历史消息按时间顺序排列 ...</text>
+
+    <!-- Current input -->
+    <rect x="30" y="262" width="600" height="36" rx="5" fill="#c6f6d5" stroke="#38a169" stroke-width="2.5"/>
+    <text x="50" y="285" font-size="12" font-weight="700" fill="#22543d">[N+1] USER</text>
+    <text x="170" y="285" font-size="11" font-weight="700" fill="#22543d">当前用户输入（永远放在最后）</text>
+  </svg>
+  <div class="diagram-caption">消息排列顺序</div>
+</div>
+
+<h3>角色映射</h3>
+<p>系统内部存储消息时用的角色名和发给模型时用的不完全一样：</p>
+<table>
+  <thead><tr><th>系统内部角色</th><th>发给模型的角色</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>USER</td><td>user</td><td>直接传递</td></tr>
+    <tr><td>ASSISTANT（纯文本）</td><td>assistant</td><td>直接传递</td></tr>
+    <tr><td>ASSISTANT（调用了工具）</td><td>assistant + 工具调用列表</td><td>附带"调了哪个工具、传了什么参数"</td></tr>
+    <tr><td>CAPABILITY_RESULT</td><td>tool</td><td>工具执行结果，通过 ID 关联到对应调用</td></tr>
+    <tr><td>SUMMARY</td><td>system（默认）</td><td>对话摘要，放在历史消息前面</td></tr>
+  </tbody>
+</table>
+
+<div class="card card-warn">
+  <div class="card-label">工具调用必须成对出现</div>
+  如果助手的消息说"我调用了查告警工具"，那后面必须紧跟一条工具结果消息。就像你说"我打了个电话"，对方一定会问"然后呢？对方说了什么？"——大模型也需要看到完整的"调用 &rarr; 结果"配对，否则会困惑。渲染阶段会检查这一点，发现不配对就直接报错，不会把不完整的输入发给模型。
+</div>
+
+<!-- ============================================================ -->
+<h2>七、完整时序图</h2>
+
+<p>一次完整的用户请求从进入到发给模型的全过程：</p>
+
+<div class="diagram-wrap">
+  <svg viewBox="0 0 780 520" xmlns="http://www.w3.org/2000/svg">
+    <!-- Lifelines -->
+    <text x="70" y="20" text-anchor="middle" font-size="11" font-weight="700" fill="#2a4365">用户</text>
+    <line x1="70" y1="30" x2="70" y2="510" stroke="#cbd5e0" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <text x="230" y="20" text-anchor="middle" font-size="11" font-weight="700" fill="#2a4365">agent-core</text>
+    <line x1="230" y1="30" x2="230" y2="510" stroke="#cbd5e0" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <text x="440" y="20" text-anchor="middle" font-size="11" font-weight="700" fill="#553c9a">context-engine</text>
+    <line x1="440" y1="30" x2="440" y2="510" stroke="#cbd5e0" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <text x="620" y="20" text-anchor="middle" font-size="11" font-weight="700" fill="#276749">agent-model</text>
+    <line x1="620" y1="30" x2="620" y2="510" stroke="#cbd5e0" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <text x="740" y="20" text-anchor="middle" font-size="11" font-weight="700" fill="#718096">大模型</text>
+    <line x1="740" y1="30" x2="740" y2="510" stroke="#cbd5e0" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <!-- Step 1 -->
+    <line x1="70" y1="55" x2="225" y2="55" stroke="#3182ce" stroke-width="2" marker-end="url(#seqArrow)"/>
+    <text x="148" y="48" text-anchor="middle" font-size="10" fill="#3182ce">1. "查 BTS-001 告警"</text>
+
+    <!-- Step 2 -->
+    <line x1="235" y1="85" x2="435" y2="85" stroke="#3182ce" stroke-width="2" marker-end="url(#seqArrow)"/>
+    <text x="335" y="78" text-anchor="middle" font-size="10" fill="#3182ce">2. 发起上下文装配请求</text>
+
+    <!-- Step 3 (internal) -->
+    <rect x="380" y="100" width="120" height="25" rx="4" fill="#faf5ff" stroke="#d6bcfa" stroke-width="1"/>
+    <text x="440" y="117" text-anchor="middle" font-size="10" fill="#553c9a">3. 选历史消息</text>
+
+    <!-- Step 4 (internal) -->
+    <rect x="380" y="135" width="120" height="25" rx="4" fill="#faf5ff" stroke="#d6bcfa" stroke-width="1"/>
+    <text x="440" y="152" text-anchor="middle" font-size="10" fill="#553c9a">4. 算预算 / 压缩</text>
+
+    <!-- Step 5 (internal) -->
+    <rect x="370" y="175" width="140" height="55" rx="4" fill="#ebf8ff" stroke="#90cdf4" stroke-width="1.5"/>
+    <text x="440" y="193" text-anchor="middle" font-size="10" font-weight="600" fill="#2a4365">Prompt Shaping</text>
+    <text x="440" y="208" text-anchor="middle" font-size="9" fill="#4a5568">5. 加载模板 + 安全检查</text>
+    <text x="440" y="221" text-anchor="middle" font-size="9" fill="#4a5568">6. 拼接系统提示段落</text>
+
+    <!-- Step 7 return -->
+    <line x1="435" y1="250" x2="235" y2="250" stroke="#805ad5" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#seqArrowP)"/>
+    <text x="335" y="243" text-anchor="middle" font-size="10" fill="#805ad5">7. 返回 ContextAssembly（决策结果）</text>
+
+    <!-- Step 8 (internal) -->
+    <rect x="370" y="270" width="140" height="40" rx="4" fill="#faf5ff" stroke="#d6bcfa" stroke-width="1.5"/>
+    <text x="440" y="288" text-anchor="middle" font-size="10" font-weight="600" fill="#553c9a">Prompt Shaping</text>
+    <text x="440" y="302" text-anchor="middle" font-size="9" fill="#4a5568">8. 渲染消息 + 角色映射</text>
+
+    <!-- Step 9 return -->
+    <line x1="435" y1="330" x2="235" y2="330" stroke="#805ad5" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#seqArrowP)"/>
+    <text x="335" y="323" text-anchor="middle" font-size="10" fill="#805ad5">9. 返回 RenderedModelInput（成品）</text>
+
+    <!-- Step 10 -->
+    <line x1="235" y1="360" x2="615" y2="360" stroke="#38a169" stroke-width="2" marker-end="url(#seqArrowG)"/>
+    <text x="425" y="353" text-anchor="middle" font-size="10" fill="#38a169">10. 转为 ModelInvocationRequest</text>
+
+    <!-- Step 11 -->
+    <line x1="625" y1="390" x2="735" y2="390" stroke="#38a169" stroke-width="2" marker-end="url(#seqArrowG)"/>
+    <text x="680" y="383" text-anchor="middle" font-size="10" fill="#38a169">11. 调用大模型</text>
+
+    <!-- Step 12 return -->
+    <line x1="735" y1="430" x2="625" y2="430" stroke="#38a169" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#seqArrowG)"/>
+    <text x="680" y="423" text-anchor="middle" font-size="10" fill="#38a169">12. 模型返回结果</text>
+
+    <!-- Step 13 return to user -->
+    <line x1="615" y1="460" x2="235" y2="460" stroke="#38a169" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#seqArrowG)"/>
+    <line x1="225" y1="490" x2="75" y2="490" stroke="#38a169" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#seqArrowG)"/>
+    <text x="150" y="483" text-anchor="middle" font-size="10" fill="#38a169">13. 流式推送给用户</text>
+
+    <defs>
+      <marker id="seqArrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#3182ce"/>
+      </marker>
+      <marker id="seqArrowP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#805ad5"/>
+      </marker>
+      <marker id="seqArrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#38a169"/>
+      </marker>
+    </defs>
+  </svg>
+  <div class="diagram-caption">请求处理完整时序</div>
+</div>
+
+<!-- ============================================================ -->
+<h2>八、端到端示例：最终发给模型的请求长什么样？</h2>
+
+<p>用一个具体场景把上面所有概念串起来。</p>
+
+<div class="card card-analogy">
+  <div class="card-label">场景</div>
+  用户在一个电信运维智能体里，用中文问："BTS-001 基站最近有什么告警？"。之前用户已经查过一次 BTS-002 的告警。
+</div>
+
+<p><strong>装配阶段做了什么：</strong></p>
+<ol>
+  <li>从数据库里找到这个会话过去的对话，选了最近几轮（history selection）</li>
+  <li>检查总 token 数没超预算，不需要压缩（budget check）</li>
+  <li>加载智能体的提示模板 <code>alarm-analyst-v2</code>，安全检查通过</li>
+  <li>拼出系统提示：身份（"你是电信运维分析师..."）+ 语言（zh-CN）+ 领域知识 + 能力清单</li>
+</ol>
+
+<p><strong>渲染阶段做了什么：</strong></p>
+<ol>
+  <li>把系统提示拼成一条 SYSTEM 消息</li>
+  <li>读取历史对话，映射成 USER / ASSISTANT / TOOL 消息</li>
+  <li>确认工具调用和结果配对完整</li>
+  <li>把当前问题作为最后一条 USER 消息</li>
+  <li>把 GetAlarms 工具的完整参数定义放进 tools 列表</li>
+</ol>
+
+<p><strong>最终发给模型的完整请求：</strong></p>
+
+<div class="json-block"><span class="bracket">{</span>
+  <span class="key">"model"</span>: <span class="str">"qwen-max"</span>,
+  <span class="key">"temperature"</span>: <span class="num">0.7</span>,
+  <span class="key">"max_tokens"</span>: <span class="num">4096</span>,
+
+  <span class="key">"messages"</span>: <span class="bracket">[</span>
+    <span class="comment">// ── [0] 系统提示：稳定层 + 缓存分界线 + 动态层 ──</span>
+<span class="highlight-line">    <span class="bracket">{</span></span>
+<span class="highlight-line">      <span class="key">"role"</span>: <span class="str">"system"</span>,</span>
+<span class="highlight-line">      <span class="key">"content"</span>: <span class="str">"</span></span>
+<span class="highlight-line"><span class="str">## 身份与工作规则</span></span>
+<span class="highlight-line"><span class="str">你是电信运维分析师，负责分析基站告警、定位网络故障...</span></span>
+<span class="highlight-line"><span class="str">你必须基于工具返回的真实数据回答问题，不得编造。</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="str">## 语言与格式</span></span>
+<span class="highlight-line"><span class="str">交互语言: zh-CN。日期格式: YYYY-MM-DD。保留电信术语原始英文。</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="str">## 领域知识</span></span>
+<span class="highlight-line"><span class="str">告警级别: CRITICAL > MAJOR > MINOR > WARNING</span></span>
+<span class="highlight-line"><span class="str">网元类型: BTS(基站), BSC(基站控制器), MSC(移动交换中心)...</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="str">&lt;!-- cache_boundary --&gt;</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="str">## 可用能力</span></span>
+<span class="highlight-line"><span class="str">### 技能</span></span>
+<span class="highlight-line"><span class="str">- alarm-analysis: 告警根因分析，支持多告警关联和根因定位</span></span>
+<span class="highlight-line"></span>
+<span class="highlight-line"><span class="str">### 可委派智能体</span></span>
+<span class="highlight-line"><span class="str">- field-ops-agent: 现场运维操作，支持远程重启和配置下发"</span></span>
+<span class="highlight-line">    <span class="bracket">}</span>,</span>
+
+    <span class="comment">// ── [1..N] 历史消息（按时间顺序）──</span>
+    <span class="bracket">{</span>
+      <span class="key">"role"</span>: <span class="str">"user"</span>,
+      <span class="key">"content"</span>: <span class="str">"帮我看看 BTS-002 的状态"</span>
+    <span class="bracket">}</span>,
+    <span class="bracket">{</span>
+      <span class="key">"role"</span>: <span class="str">"assistant"</span>,
+      <span class="key">"content"</span>: <span class="str">"好的，我来查一下 BTS-002 的告警信息。"</span>,
+      <span class="key">"tool_calls"</span>: <span class="bracket">[</span>
+        <span class="bracket">{</span>
+          <span class="key">"id"</span>: <span class="str">"call_abc123"</span>,
+          <span class="key">"type"</span>: <span class="str">"function"</span>,
+          <span class="key">"function"</span>: <span class="bracket">{</span>
+            <span class="key">"name"</span>: <span class="str">"GetAlarms"</span>,
+            <span class="key">"arguments"</span>: <span class="str">'{"neId": "BTS-002"}'</span>
+          <span class="bracket">}</span>
+        <span class="bracket">}</span>
+      <span class="bracket">]</span>
+    <span class="bracket">}</span>,
+    <span class="bracket">{</span>
+      <span class="key">"role"</span>: <span class="str">"tool"</span>,
+      <span class="key">"tool_call_id"</span>: <span class="str">"call_abc123"</span>,
+      <span class="key">"content"</span>: <span class="str">'{"alarms": [{"level": "WARNING", "type": "高温告警", "time": "2026-05-29 14:30"}]}'</span>
+    <span class="bracket">}</span>,
+    <span class="bracket">{</span>
+      <span class="key">"role"</span>: <span class="str">"assistant"</span>,
+      <span class="key">"content"</span>: <span class="str">"BTS-002 目前有一条 WARNING 级别的高温告警，发生在昨天下午 14:30。建议关注散热系统状态。"</span>
+    <span class="bracket">}</span>,
+
+    <span class="comment">// ── [N+1] 当前用户输入（永远在最后）──</span>
+<span class="highlight-line">    <span class="bracket">{</span></span>
+<span class="highlight-line">      <span class="key">"role"</span>: <span class="str">"user"</span>,</span>
+<span class="highlight-line">      <span class="key">"content"</span>: <span class="str">"BTS-001 基站最近有什么告警？"</span></span>
+<span class="highlight-line">    <span class="bracket">}</span></span>
+  <span class="bracket">]</span>,
+
+  <span class="comment">// ── 工具定义列表（Tool 类型能力渲染在这里）──</span>
+  <span class="key">"tools"</span>: <span class="bracket">[</span>
+    <span class="bracket">{</span>
+      <span class="key">"type"</span>: <span class="str">"function"</span>,
+      <span class="key">"function"</span>: <span class="bracket">{</span>
+        <span class="key">"name"</span>: <span class="str">"GetAlarms"</span>,
+        <span class="key">"description"</span>: <span class="str">"查询网元告警信息"</span>,
+        <span class="key">"parameters"</span>: <span class="bracket">{</span>
+          <span class="key">"type"</span>: <span class="str">"object"</span>,
+          <span class="key">"properties"</span>: <span class="bracket">{</span>
+            <span class="key">"neId"</span>: <span class="bracket">{</span>
+              <span class="key">"type"</span>: <span class="str">"string"</span>,
+              <span class="key">"description"</span>: <span class="str">"网元 ID，例如 BTS-001"</span>
+            <span class="bracket">}</span>,
+            <span class="key">"level"</span>: <span class="bracket">{</span>
+              <span class="key">"type"</span>: <span class="str">"string"</span>,
+              <span class="key">"enum"</span>: <span class="bracket">[</span><span class="str">"CRITICAL"</span>, <span class="str">"MAJOR"</span>, <span class="str">"MINOR"</span>, <span class="str">"WARNING"</span><span class="bracket">]</span>,
+              <span class="key">"description"</span>: <span class="str">"告警级别过滤"</span>
+            <span class="bracket">}</span>
+          <span class="bracket">}</span>,
+          <span class="key">"required"</span>: <span class="bracket">[</span><span class="str">"neId"</span><span class="bracket">]</span>
+        <span class="bracket">}</span>
+      <span class="bracket">}</span>
+    <span class="bracket">}</span>
+  <span class="bracket">]</span>
+<span class="bracket">}</span></div>
+
+<p>模型看到这个请求后，会理解：</p>
+<ul>
+  <li>自己是一个电信运维分析师（身份）</li>
+  <li>要用中文回答（语言）</li>
+  <li>之前用户查过 BTS-002，助手调了 GetAlarms 工具并得到了结果（历史上下文）</li>
+  <li>现在用户要查 BTS-001（当前问题）</li>
+  <li>可以调用 GetAlarms 工具来查询（工具箱）</li>
+</ul>
+<p>于是模型会输出：调用 <code>GetAlarms(neId="BTS-001")</code>，由系统执行后把结果返回给模型，模型再基于结果生成自然语言回答。</p>
+
+<!-- ============================================================ -->
+<h2>九、几个关键设计决策</h2>
+
+<div class="card" style="border-left: 4px solid #3182ce;">
+  <p><strong>Q: 为什么 Prompt Shaping 内部拆成三个组件？</strong></p>
+  <p>因为模板加载、系统提示拼接、消息渲染这三件事的输入、输出和变化频率都不同。模板加载逻辑可能因为新增配置源而改变，但不影响消息排列规则。拆开之后改一个不会牵连另外两个。</p>
+</div>
+
+<div class="card" style="border-left: 4px solid #805ad5;">
+  <p><strong>Q: 为什么模板内容不写死在代码里？</strong></p>
+  <p>不同的智能体需要不同的提示风格（告警分析智能体 vs 网络规划智能体，身份指令完全不同）。外置之后，改提示词不需要改代码、不需要重新部署。</p>
+</div>
+
+<div class="card" style="border-left: 4px solid #38a169;">
+  <p><strong>Q: 为什么诊断信息不进入模型输入？</strong></p>
+  <p>模板选择结果、token 估算等诊断信息是"内部工作记录"。就像餐厅出菜单上有桌号、服务员编号——这些信息是给餐厅管理用的，不应该出现在顾客面前的菜品上。模型看到这些东西会困惑，还浪费 token 预算。</p>
+</div>
+
+<div class="card" style="border-left: 4px solid #d69e2e;">
+  <p><strong>Q: 为什么 ContextAssembly 和 RenderedModelInput 是两份不同的数据？</strong></p>
+  <p>ContextAssembly 是"决策结果"，可以被审计和追溯（"为什么选了这些消息？"）。RenderedModelInput 是"最终成品"，是干净的。模型不需要知道你是怎么选的，只需要看到最终的对话内容。</p>
+</div>
+
+<div class="footer">
+  <p>add-ts-context-prompt-shaping &middot; NextAgent TS Backend &middot; Context Assembly Group</p>
+</div>
+
+</body>
+</html>

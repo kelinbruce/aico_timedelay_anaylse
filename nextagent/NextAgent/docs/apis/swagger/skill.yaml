@@ -1,0 +1,132 @@
+swagger: '2.0'
+info:
+  title: Skill API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/skills:
+    get:
+      operationId: listSkillCatalog
+      summary: List available skills
+      tags:
+        - Skill
+      produces:
+        - application/json
+      parameters:
+        - name: pageNum
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 3
+          pattern: ^[1-9]\d*$
+        - name: pageSize
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 3
+          pattern: ^[1-9]\d*$
+        - name: keyword
+          in: query
+          required: false
+          type: string
+          maxLength: 512
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SkillCatalogResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  SkillCatalogQuery:
+    type: object
+    properties:
+      pageNum:
+        type: string
+        minLength: 1
+        maxLength: 3
+        pattern: ^[1-9]\d*$
+      pageSize:
+        type: string
+        minLength: 1
+        maxLength: 3
+        pattern: ^[1-9]\d*$
+      keyword:
+        type: string
+        maxLength: 512
+    additionalProperties: false
+  SkillCatalogResponse:
+    type: object
+    required:
+      - total
+      - pageNum
+      - pageSize
+      - skills
+    properties:
+      total:
+        type: integer
+        minimum: 0
+      pageNum:
+        type: integer
+        minimum: 1
+      pageSize:
+        type: integer
+        minimum: 1
+        maximum: 100
+      skills:
+        type: array
+        items:
+          type: object
+          required:
+            - capabilityId
+            - displayName
+            - description
+            - providerKind
+          properties:
+            description:
+              type: string
+            capabilityId:
+              type: string
+              minLength: 1
+            displayName:
+              type: string
+              minLength: 1
+            providerKind:
+              type: string
+              enum:
+                - BUNDLED
+                - LOCAL_DIRECTORY
+                - SKILL_HUB
+            version:
+              type: string
+            sourceMetadata:
+              type: object
+              additionalProperties: true
+          additionalProperties: false
+    additionalProperties: false

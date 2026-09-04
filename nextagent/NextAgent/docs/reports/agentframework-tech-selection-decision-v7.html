@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AgentFramework 技术选型决策 V7</title>
+    <style>
+      :root {
+        --bg: #f5f7fa;
+        --paper: #ffffff;
+        --paper-soft: #fbfcfd;
+        --ink: #101828;
+        --muted: #667085;
+        --line: #e4e7ec;
+        --brand: #cf0a2c;
+        --brand-dark: #9f1231;
+        --brand-soft: rgba(207, 10, 44, 0.08);
+        --brand-mid: rgba(207, 10, 44, 0.15);
+        --mint: #5ec6aa;
+        --mint-dark: #0f766e;
+        --mint-soft: rgba(94, 198, 170, 0.14);
+        --amber: #f0b45b;
+        --shadow: 0 18px 42px rgba(16, 24, 40, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #dfe5eb;
+        color: var(--ink);
+        font-family:
+          "HarmonyOS Sans SC",
+          "SF Pro Display",
+          "PingFang SC",
+          "Microsoft YaHei",
+          "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        padding: 0;
+      }
+
+      .slide {
+        width: min(100vw, 1600px);
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        padding: 26px 38px 20px;
+        background:
+          linear-gradient(90deg, rgba(207, 10, 44, 0.08), transparent 34%),
+          linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+        border: 1px solid rgba(255, 255, 255, 0.86);
+        box-shadow: 0 30px 72px rgba(16, 24, 40, 0.18);
+        display: grid;
+        grid-template-rows: auto 254px 1fr auto;
+        gap: 12px;
+      }
+
+      .eyebrow {
+        color: var(--brand);
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 43px;
+        line-height: 1.12;
+        letter-spacing: 0;
+      }
+
+      .top-band {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1.06fr) minmax(0, 1.34fr);
+        gap: 14px;
+      }
+
+      .decision-hero,
+      .gate-panel,
+      .project-card,
+      .footer-card {
+        min-width: 0;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: var(--shadow);
+      }
+
+      .decision-hero {
+        padding: 18px;
+        background:
+          linear-gradient(135deg, rgba(207, 10, 44, 0.13), transparent 52%),
+          rgba(255, 255, 255, 0.96);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 12px;
+      }
+
+      .hero-label {
+        width: fit-content;
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        border-radius: 999px;
+        padding: 4px 11px;
+        background: var(--brand);
+        color: #ffffff;
+        font-size: 12.5px;
+        font-weight: 950;
+      }
+
+      .decision-hero h2 {
+        margin: 0;
+        font-size: 30px;
+        line-height: 1.18;
+      }
+
+      .decision-hero p {
+        margin: 0;
+        color: #344054;
+        font-size: 15px;
+        line-height: 1.34;
+        font-weight: 800;
+      }
+
+      .hero-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .hero-strip span {
+        min-height: 38px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.82);
+        color: var(--brand-dark);
+        display: grid;
+        place-items: center;
+        text-align: center;
+        font-size: 12.5px;
+        line-height: 1.12;
+        font-weight: 930;
+        padding: 6px;
+      }
+
+      .gate-panel {
+        padding: 15px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 12px;
+      }
+
+      .mark {
+        width: 8px;
+        height: 25px;
+        border-radius: 999px;
+        background: var(--brand);
+      }
+
+      .section-title h2 {
+        margin: 0;
+        font-size: 19px;
+        line-height: 1.12;
+      }
+
+      .gate-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .gate-card {
+        min-width: 0;
+        min-height: 180px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: #ffffff;
+        padding: 11px 10px;
+        display: grid;
+        grid-template-rows: auto auto 1fr;
+        gap: 7px;
+      }
+
+      .gate-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--brand), #e95c72);
+        color: #ffffff;
+        display: grid;
+        place-items: center;
+      }
+
+      .gate-card:nth-child(2) .gate-icon,
+      .gate-card:nth-child(3) .gate-icon,
+      .gate-card:nth-child(6) .gate-icon {
+        background: linear-gradient(135deg, var(--mint-dark), var(--mint));
+      }
+
+      .gate-icon svg {
+        width: 19px;
+        height: 19px;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .gate-card h3 {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.12;
+      }
+
+      .gate-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 11.2px;
+        line-height: 1.26;
+        font-weight: 730;
+      }
+
+      .project-grid {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .project-card {
+        min-height: 0;
+        padding: 15px;
+        display: grid;
+        grid-template-rows: auto auto auto auto auto;
+        gap: 9px;
+      }
+
+      .project-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .project-head h2 {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.12;
+      }
+
+      .source-chip {
+        min-height: 24px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 9px;
+        background: var(--brand-soft);
+        color: var(--brand-dark);
+        font-size: 11px;
+        font-weight: 920;
+        white-space: nowrap;
+      }
+
+      .fact-line {
+        min-height: 44px;
+        border-radius: 16px;
+        background: #f7f8fa;
+        border: 1px solid #edf0f4;
+        padding: 8px 10px;
+        color: #344054;
+        font-size: 11.5px;
+        line-height: 1.24;
+        font-weight: 760;
+      }
+
+      .analysis-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+      }
+
+      .analysis-box {
+        border-radius: 17px;
+        border: 1px solid var(--line);
+        background: #ffffff;
+        padding: 9px 10px;
+        min-height: 112px;
+      }
+
+      .analysis-box strong {
+        display: block;
+        font-size: 13px;
+        line-height: 1.12;
+        margin-bottom: 7px;
+      }
+
+      .analysis-box span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.26;
+        font-weight: 720;
+      }
+
+      .risk-box {
+        border-color: rgba(207, 10, 44, 0.14);
+        background: linear-gradient(180deg, #fff6f7, #ffffff);
+      }
+
+      .risk-box strong {
+        color: var(--brand-dark);
+      }
+
+      .mismatch {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-content: start;
+      }
+
+      .mismatch span {
+        min-height: 24px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        background: #f1f3f6;
+        color: #475467;
+        font-size: 10.8px;
+        line-height: 1.1;
+        font-weight: 880;
+      }
+
+      .mismatch span.hot {
+        background: var(--brand-soft);
+        color: var(--brand-dark);
+      }
+
+      .mismatch span.good {
+        background: var(--mint-soft);
+        color: var(--mint-dark);
+      }
+
+      .adoption-lane {
+        border-radius: 18px;
+        border: 1px solid #edf0f4;
+        background:
+          linear-gradient(90deg, var(--mint-soft), rgba(255, 255, 255, 0.92) 44%),
+          #ffffff;
+        padding: 9px 10px;
+        display: grid;
+        gap: 7px;
+      }
+
+      .lane-title {
+        color: #344054;
+        font-size: 11.5px;
+        font-weight: 950;
+      }
+
+      .lane-flow {
+        display: grid;
+        grid-template-columns: 1fr 18px 1fr 18px 1fr;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .lane-flow span {
+        min-height: 30px;
+        border-radius: 12px;
+        background: #f6f7f9;
+        border: 1px solid #edf0f4;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 4px 6px;
+        color: #344054;
+        font-size: 10.8px;
+        line-height: 1.12;
+        font-weight: 860;
+      }
+
+      .lane-flow i {
+        height: 2px;
+        display: block;
+        position: relative;
+        background: rgba(94, 198, 170, 0.55);
+      }
+
+      .lane-flow i::after {
+        content: "";
+        position: absolute;
+        right: -1px;
+        top: -4px;
+        width: 0;
+        height: 0;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 7px solid rgba(15, 118, 110, 0.55);
+      }
+
+      .project-verdict {
+        min-height: 42px;
+        border-radius: 16px;
+        border: 1px solid rgba(207, 10, 44, 0.14);
+        background: linear-gradient(90deg, var(--brand-soft), #ffffff);
+        padding: 8px 10px;
+        color: var(--brand-dark);
+        font-size: 12px;
+        line-height: 1.22;
+        font-weight: 920;
+      }
+
+      footer {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: end;
+      }
+
+      .summary {
+        color: #1d2939;
+        font-size: 16px;
+        line-height: 1.28;
+        font-weight: 950;
+        white-space: nowrap;
+      }
+
+      .source-note {
+        width: 330px;
+        color: #667085;
+        font-size: 10.4px;
+        line-height: 1.26;
+        text-align: right;
+        font-weight: 720;
+      }
+
+      .source-note a {
+        color: var(--brand-dark);
+        text-decoration: none;
+      }
+
+      @media (max-width: 1100px) {
+        body {
+          padding: 0;
+        }
+
+        .slide {
+          width: 100vw;
+          min-height: 100vh;
+          aspect-ratio: auto;
+          overflow: visible;
+          grid-template-rows: auto auto auto auto;
+          padding: 24px;
+        }
+
+        .top-band,
+        .project-grid,
+        footer {
+          grid-template-columns: 1fr;
+        }
+
+        .gate-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .source-note {
+          width: auto;
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="slide" aria-label="AgentFramework 技术选型决策 V7">
+      <header>
+        <div class="eyebrow">AGENTFRAMEWORK TECHNOLOGY SELECTION</div>
+        <h1>AgentFramework 技术选型与设计思路</h1>
+      </header>
+
+      <section class="top-band">
+        <article class="decision-hero">
+          <div class="hero-label">选型结论</div>
+          <h2>不直接采用或二开同类项目，生产控制面自研</h2>
+          <p>同类项目已具备部分通用 Agent 能力，但网络智能体需要交付电信级高可靠、可审计、可解释、可运维，支持多租多用户，并具备网络运维专家思维能力的领域智能体；在既有项目上二开会改到核心执行链路、上下文管理、系统网关和数据存储，成本接近重构。</p>
+          <div class="hero-strip">
+            <span>机制可借鉴</span>
+            <span>底座不复用</span>
+            <span>能力持续吸收</span>
+          </div>
+        </article>
+
+        <section class="gate-panel">
+          <div class="section-title"><span class="mark"></span><h2>面向网络运维的差异化黑盒能力</h2></div>
+          <div class="gate-grid">
+            <article class="gate-card">
+              <div class="gate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18" /><path d="M5 21V8l7-4 7 4v13" /><path d="M9 21v-6h6v6" /><path d="M9 10h.01" /><path d="M15 10h.01" /></svg>
+              </div>
+              <h3>多租多用户</h3>
+              <p>多客户、多组织、多账号同时使用，历史、附件、记忆和审计相互隔离。</p>
+            </article>
+            <article class="gate-card">
+              <div class="gate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 6a4 4 0 0 0-4-4 4 4 0 0 0-4 4c0 2.4 1.8 4.2 4 4.9V22" /><path d="M12 6a4 4 0 0 1 4-4 4 4 0 0 1 4 4c0 2.4-1.8 4.2-4 4.9V22" /><path d="M8 14h8" /><path d="M8 18h8" /></svg>
+              </div>
+              <h3>网络运维经验</h3>
+              <p>记住告警处置、KPI 阈值、网元区域、厂家版本和班组经验，可遗忘可审计。</p>
+            </article>
+            <article class="gate-card">
+              <div class="gate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 8v5l3 2" /><path d="M4 4l3 3" /><path d="M20 4l-3 3" /></svg>
+              </div>
+              <h3>长时诊断不断线</h3>
+              <p>跨多轮、跨系统、跨小时排障，断连、重启后能续接原任务。</p>
+            </article>
+            <article class="gate-card">
+              <div class="gate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" /><path d="M4 22a8 8 0 0 1 16 0" /><path d="M17 11l2 2 4-4" /></svg>
+              </div>
+              <h3>人机协同可控</h3>
+              <p>高风险操作先澄清、确认、审核；专家可接管，任务上下文不丢失。</p>
+            </article>
+            <article class="gate-card">
+              <div class="gate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" /><path d="M8 8h8" /><path d="M8 12h5" /><path d="M8 16h3" /><path d="M15 16l2 2 3-4" /></svg>
+              </div>
+              <h3>过程结论可追溯</h3>
+              <p>能回看判断依据、工具调用、处置过程和最终结论，便于复盘与问责。</p>
+            </article>
+            <article class="gate-card">
+              <div class="gate-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M7 8a4 4 0 1 0 0 8" /><path d="M17 8a4 4 0 1 1 0 8" /><path d="M8 12h8" /><path d="M12 4v4" /><path d="M12 16v4" /></svg>
+              </div>
+              <h3>能力统一接入</h3>
+              <p>API、思维链、Skill、存量 Agent、周边服务和 OSS 能力统一纳管。</p>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <section class="project-grid">
+        <article class="project-card">
+          <div class="project-head">
+            <h2>OpenClaw</h2>
+            <span class="source-chip">开源 / 自托管 / 多渠道</span>
+          </div>
+          <div class="fact-line">公开资料显示：OpenClaw 强调开源、自托管、多渠道、技能生态和用户偏好，适合参考通用 Agent 平台的入口和能力组织方式。</div>
+          <div class="analysis-grid">
+            <div class="analysis-box">
+              <strong>可借鉴点</strong>
+              <span>多入口、统一网关、扩展钩子、用户偏好和技能生态，适合参考平台入口、能力编排和偏好管理。</span>
+            </div>
+            <div class="analysis-box risk-box">
+              <strong>无法直接用</strong>
+              <span>面向个人通用智能体，Token 消耗、安全控制和记忆系统都较粗；客户/账号隔离、告警/KPI 经验和运维审计需要重建。</span>
+            </div>
+          </div>
+          <div class="adoption-lane">
+            <div class="lane-title">引入方式</div>
+            <div class="lane-flow"><span>多渠道入口</span><i></i><span>Gateway 适配</span><i></i><span>自研控制面</span></div>
+          </div>
+          <div class="mismatch">
+            <span class="hot">Token 消耗大</span>
+            <span class="hot">安全性不足</span>
+            <span>记忆系统粗糙</span>
+            <span>过程结论留痕</span>
+            <span class="good">网络系统网关</span>
+          </div>
+          <div class="project-verdict">判断：可参考“平台骨架”，不宜作为网络运维生产底座。</div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-head">
+            <h2>Claude Code</h2>
+            <span class="source-chip">商用产品 / 代码开发场景</span>
+          </div>
+          <div class="fact-line">官方定位是 agentic coding system，强项是读代码、改文件、跑测试和工具调用，适合参考编码 Agent 的执行体验。</div>
+          <div class="analysis-grid">
+            <div class="analysis-box">
+              <strong>可借鉴点</strong>
+              <span>执行循环、上下文管理、缓存优先、权限控制、技能/子任务调用和断点恢复体验。</span>
+            </div>
+            <div class="analysis-box risk-box">
+              <strong>无法直接用</strong>
+              <span>面向开发者的 Coding Agent，不是平台底座；缺少面向多租多用户、多会话并发、审计解释和运维责任闭环的设计。</span>
+            </div>
+          </div>
+          <div class="adoption-lane">
+            <div class="lane-title">引入方式</div>
+            <div class="lane-flow"><span>执行循环</span><i></i><span>上下文策略</span><i></i><span>运行时自研</span></div>
+          </div>
+          <div class="mismatch">
+            <span class="hot">缺少多租多用户</span>
+            <span class="hot">多会话并发不足</span>
+            <span>审计解释不足</span>
+            <span class="good">客户系统集成</span>
+          </div>
+          <div class="project-verdict">判断：可参考“Agent 执行技法”，不能作为可二开的电信平台底座。</div>
+        </article>
+
+        <article class="project-card">
+          <div class="project-head">
+            <h2>Hermes Agent</h2>
+            <span class="source-chip">开源 / 学习沉淀 / 多入口</span>
+          </div>
+          <div class="fact-line">公开文档显示：Hermes 强调自学习闭环、持久记忆、Skills、MCP、多入口和 Skill 自改进，适合参考经验沉淀机制。</div>
+          <div class="analysis-grid">
+            <div class="analysis-box">
+              <strong>可借鉴点</strong>
+              <span>主动学习、记忆沉淀、Skill 总结、跨会话召回和能力自优化，适合参考“经验闭环”。</span>
+            </div>
+            <div class="analysis-box risk-box">
+              <strong>无法直接用</strong>
+              <span>能学能记，但记忆对象偏个人/通用；网络运维经验需要结构化沉淀，并支持授权、遗忘、审计和隔离。</span>
+            </div>
+          </div>
+          <div class="adoption-lane">
+            <div class="lane-title">引入方式</div>
+            <div class="lane-flow"><span>经验沉淀</span><i></i><span>记忆治理</span><i></i><span>离线/在线学习</span></div>
+          </div>
+          <div class="mismatch">
+            <span class="hot">网络经验治理</span>
+            <span class="hot">可遗忘可审计</span>
+            <span>租户隔离</span>
+            <span class="good">NMS/OSS/BSS 接入</span>
+          </div>
+          <div class="project-verdict">判断：可参考“学习沉淀机制”，不能替代电信级运行底座。</div>
+        </article>
+      </section>
+
+      <footer>
+        <div class="summary">一句话：自研不是重复造 Agent，而是把通用机制升级为电信网络运维生产底座：可隔离、可恢复、可审计，并可持续吸收新能力。</div>
+        <div class="source-note">
+          公开资料：
+          <a href="https://openclawdoc.com/">OpenClaw</a> /
+          <a href="https://www.anthropic.com/product/claude-code?hsLang=en">Claude Code</a> /
+          <a href="https://hermes-agent.nousresearch.com/docs/">Hermes</a>
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>

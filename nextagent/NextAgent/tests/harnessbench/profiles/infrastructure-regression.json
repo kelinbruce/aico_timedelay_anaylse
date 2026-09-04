@@ -1,0 +1,5 @@
+{
+  "profileId": "infrastructure-regression",
+  "nonScoring": true,
+  "taskIds": ["078-local-api-cursor-retry-ledger", "081-local-html-dom-form-extract", "088-api-contract-mock-client-compat"]
+}

@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist", "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-app-frontend-hosting.tsbuildinfo" },
+  "include": ["src/**/*.ts"]
+}

@@ -1,0 +1,25 @@
+paths:
+  workspaceRoot: state/degradation/workspaces
+  logDirectory: state/degradation/logs
+  agentRoot: config/agents
+channel:
+  port: 3111
+hostedAgent:
+  activeAgentId: system-event-degradation-agent
+modelProfiles:
+  - providerId: openai-compatible
+    baseUrl: env:OPENAI_BASE_URL
+    credentialRef: env:OPENAI_API_KEY
+    models:
+      - modelId: env:OPENAI_MODEL_NAME
+        displayName: MiniMax system-event verification
+        contextWindowTokens: 128000
+        fallbackEligible: false
+        maxOutputTokens: 512
+        timeoutMs: 120000
+nextAgent:
+  system:
+    plugins:
+      - pluginId: system-event-failure
+        path: plugins/system-event-failure
+        required: true

@@ -1,0 +1,4 @@
+{"category":"invalid","questions":[],"records":[]}
+{"category":123,"questions":[{"question":"test","fixed":true}]}
+{"category":"badjson
+{"category":"valid","questions":[{"question":"ok","fixed":false}]}

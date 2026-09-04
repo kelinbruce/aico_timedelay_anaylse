@@ -1,0 +1,6 @@
+id: improve-model-correctable-tool-errors
+title: Improve model-correctable Tool errors
+status: active
+created: 2026-07-21
+spec:
+  - builtin-tool-framework

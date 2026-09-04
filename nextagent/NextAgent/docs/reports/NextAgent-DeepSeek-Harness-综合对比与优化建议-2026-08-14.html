@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="NextAgent 与 DeepSeek Harness 在架构、上下文压缩、上下文拼接、Tool 调度、异常保护和并行执行方面的综合对比及优化建议。">
+  <title>NextAgent 与 DeepSeek Harness 综合对比及优化建议</title>
+  <style>
+    :root {
+      --ink: #15233b;
+      --muted: #5d6a7f;
+      --faint: #8792a5;
+      --paper: #f3f6fb;
+      --surface: #ffffff;
+      --surface-2: #f7f9fc;
+      --line: #d9e1ec;
+      --blue: #155eef;
+      --blue-dark: #163c77;
+      --blue-soft: #eaf1ff;
+      --green: #16794f;
+      --green-soft: #e8f6ef;
+      --amber: #a15c07;
+      --amber-soft: #fff2dc;
+      --red: #ad3434;
+      --red-soft: #fdeaea;
+      --violet: #6840b5;
+      --violet-soft: #f0eaff;
+      --shadow: 0 18px 50px rgba(25, 46, 82, 0.09);
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: Inter, "Segoe UI", "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); line-height: 1.72; }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    code { padding: 0.08em 0.38em; border: 1px solid #d8e2f0; border-radius: 5px; background: #f1f5fb; color: #5b2f9e; font-family: var(--mono); font-size: 0.88em; overflow-wrap: anywhere; }
+    h1, h2, h3, h4 { margin: 0; line-height: 1.3; letter-spacing: -0.02em; }
+    p { margin: 0; }
+    .progress { position: fixed; inset: 0 0 auto; z-index: 50; height: 4px; background: linear-gradient(90deg, var(--blue), #44a3ff); transform: scaleX(0); transform-origin: left; }
+    .layout { display: grid; grid-template-columns: 286px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { position: sticky; top: 0; align-self: start; height: 100vh; padding: 30px 22px; overflow-y: auto; border-right: 1px solid var(--line); background: rgba(248, 250, 253, 0.96); backdrop-filter: blur(12px); }
+    .brand { display: flex; gap: 11px; align-items: center; margin-bottom: 24px; }
+    .brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; background: linear-gradient(145deg, var(--blue-dark), var(--blue)); font-weight: 800; }
+    .brand-name { font-size: 0.94rem; font-weight: 780; }
+    .brand-sub { color: var(--faint); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    .toc-label { margin: 20px 8px 8px; color: var(--faint); font-size: 0.69rem; font-weight: 760; letter-spacing: 0.1em; text-transform: uppercase; }
+    .toc { display: grid; gap: 3px; }
+    .toc a { display: grid; grid-template-columns: 26px 1fr; gap: 5px; padding: 7px 8px; border-radius: 8px; color: #4f5d73; font-size: 0.8rem; line-height: 1.35; text-decoration: none; }
+    .toc a:hover, .toc a.active { color: var(--blue); background: var(--blue-soft); }
+    .toc-num { color: #9aa6b7; font-family: var(--mono); font-size: 0.72rem; }
+    .side-meta { margin-top: 24px; padding: 13px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--muted); font-size: 0.72rem; }
+    .side-meta strong { display: block; color: var(--ink); margin-bottom: 3px; }
+    main { min-width: 0; }
+    .hero { position: relative; min-height: 640px; padding: 84px clamp(30px, 6vw, 94px) 68px; overflow: hidden; color: #fff; background: radial-gradient(circle at 82% 16%, rgba(84, 164, 255, 0.28), transparent 28%), radial-gradient(circle at 72% 80%, rgba(79, 208, 166, 0.2), transparent 30%), linear-gradient(135deg, #112746 0%, #173f75 52%, #155b67 100%); }
+    .hero::after { content: ""; position: absolute; inset: 0; opacity: 0.09; background-image: linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px); background-size: 44px 44px; mask-image: linear-gradient(90deg, transparent 35%, #000); }
+    .hero-inner { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+    .chip { padding: 5px 10px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; background: rgba(255,255,255,.08); color: #dfedff; font-size: 0.72rem; font-weight: 700; }
+    .hero h1 { max-width: 980px; font-size: clamp(2.5rem, 5vw, 5rem); letter-spacing: -0.055em; }
+    .hero-lead { max-width: 900px; margin-top: 24px; color: #dce8f6; font-size: clamp(1.04rem, 1.6vw, 1.28rem); }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 22px 36px; margin-top: 38px; color: #b7cae0; font-size: 0.8rem; }
+    .hero-meta strong { display: block; color: #fff; font-size: 0.88rem; }
+    .verdict { display: grid; grid-template-columns: auto 1fr; gap: 14px; max-width: 920px; margin-top: 40px; padding: 18px 20px; border: 1px solid rgba(139, 214, 190, 0.34); border-radius: 14px; background: rgba(5, 29, 48, 0.45); }
+    .verdict-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #8fd8bc; color: #0c4637; font-weight: 900; }
+    .verdict b { display: block; color: #9fe1ca; font-size: 0.83rem; }
+    .verdict span { color: #eef8f5; font-size: 0.94rem; }
+    .content { max-width: 1240px; margin: 0 auto; padding: 30px 28px 80px; }
+    section { margin-bottom: 22px; padding: 30px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); scroll-margin-top: 20px; }
+    section h2 { margin-bottom: 10px; font-size: clamp(1.5rem, 2.2vw, 2rem); }
+    section > .lead { max-width: 980px; margin-bottom: 22px; color: var(--muted); }
+    h3 { margin: 26px 0 10px; font-size: 1.15rem; }
+    h4 { margin: 18px 0 8px; font-size: 0.98rem; }
+    ul, ol { margin: 10px 0 16px; padding-left: 23px; }
+    li + li { margin-top: 5px; }
+    .grid-2, .grid-3, .grid-4 { display: grid; gap: 14px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card { padding: 17px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-2); }
+    .card h3, .card h4 { margin-top: 0; }
+    .card p, .card li { color: var(--muted); font-size: 0.9rem; }
+    .metric { padding: 17px; border: 1px solid #cddaf0; border-radius: 11px; background: linear-gradient(145deg, #fff, #f3f7fd); }
+    .metric strong { display: block; margin-bottom: 4px; color: var(--blue-dark); font-size: 1.3rem; }
+    .metric span { color: var(--muted); font-size: 0.82rem; }
+    .callout { margin: 18px 0; padding: 15px 17px; border-left: 4px solid var(--blue); border-radius: 0 10px 10px 0; background: var(--blue-soft); color: #28466f; }
+    .callout.green { border-color: var(--green); background: var(--green-soft); color: #245a44; }
+    .callout.amber { border-color: var(--amber); background: var(--amber-soft); color: #70480d; }
+    .callout.red { border-color: var(--red); background: var(--red-soft); color: #7f3131; }
+    .flow { margin: 18px 0; padding: 19px; overflow-x: auto; border: 1px solid #263a58; border-radius: 11px; background: #102038; color: #e9f1fb; font: 0.84rem/1.65 var(--mono); white-space: pre; }
+    table { width: 100%; margin: 16px 0 24px; border-collapse: collapse; font-size: 0.86rem; }
+    th, td { padding: 11px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: #eef3fa; color: #2a405f; font-weight: 760; }
+    tbody tr:nth-child(even) { background: #fafbfd; }
+    .status { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 0.7rem; font-weight: 750; white-space: nowrap; }
+    .status.blue { color: #174caa; background: #e3edff; }
+    .status.green { color: #176542; background: #dcf3e8; }
+    .status.amber { color: #80510a; background: #fff0d1; }
+    .status.violet { color: #5d329c; background: var(--violet-soft); }
+    .roadmap { position: relative; display: grid; gap: 14px; margin-top: 20px; }
+    .roadmap::before { content: ""; position: absolute; left: 22px; top: 24px; bottom: 24px; width: 2px; background: #cdd9eb; }
+    .phase { position: relative; display: grid; grid-template-columns: 46px 1fr; gap: 14px; }
+    .phase-num { z-index: 1; display: grid; place-items: center; width: 46px; height: 46px; border: 4px solid #eef3fa; border-radius: 50%; color: #fff; background: var(--blue); font-weight: 800; }
+    .phase-body { padding: 15px 17px; border: 1px solid var(--line); border-radius: 11px; background: #fff; }
+    .phase-body h3 { margin: 0 0 5px; }
+    .phase-body p { color: var(--muted); font-size: 0.9rem; }
+    .evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; margin-top: 14px; color: var(--muted); font: 0.76rem/1.5 var(--mono); }
+    footer { padding: 26px; color: var(--muted); text-align: center; font-size: 0.78rem; }
+    @media (max-width: 1020px) { .layout { display: block; } .sidebar { position: static; width: 100%; height: auto; border-right: 0; border-bottom: 1px solid var(--line); } .toc { grid-template-columns: repeat(3, minmax(0, 1fr)); } .hero { min-height: 0; } }
+    @media (max-width: 760px) { .hero { padding: 62px 24px 48px; } .content { padding: 18px 12px 50px; } section { padding: 21px 17px; border-radius: 12px; } .grid-2, .grid-3, .grid-4, .evidence { grid-template-columns: 1fr; } .toc { grid-template-columns: 1fr 1fr; } table { display: block; overflow-x: auto; } }
+    @media print { .progress, .sidebar { display: none; } .layout { display: block; } .hero { min-height: 0; padding: 30px; color: #111; background: #fff; border-bottom: 2px solid #111; } .hero::after { display: none; } .hero-lead, .hero-meta, .verdict span { color: #333; } .chip, .verdict { border-color: #aaa; background: #fff; color: #111; } .content { max-width: none; padding: 20px 0; } section { break-inside: auto; box-shadow: none; border-radius: 0; border-width: 0 0 1px; } .card, table, .flow, .phase { break-inside: avoid; } a { color: inherit; text-decoration: none; } }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">NA</div><div><div class="brand-name">NextAgent 技术报告</div><div class="brand-sub">Comparative Analysis</div></div></div>
+      <div class="toc-label">目录</div>
+      <nav class="toc" id="toc">
+        <a href="#summary"><span class="toc-num">01</span><span>执行摘要</span></a>
+        <a href="#overview"><span class="toc-num">02</span><span>总体对比</span></a>
+        <a href="#architecture"><span class="toc-num">03</span><span>架构边界</span></a>
+        <a href="#compaction"><span class="toc-num">04</span><span>动态压缩</span></a>
+        <a href="#assembly"><span class="toc-num">05</span><span>上下文拼接</span></a>
+        <a href="#tools"><span class="toc-num">06</span><span>Tool 调度</span></a>
+        <a href="#failure"><span class="toc-num">07</span><span>异常保护</span></a>
+        <a href="#parallel"><span class="toc-num">08</span><span>并行执行</span></a>
+        <a href="#governance"><span class="toc-num">09</span><span>工程治理</span></a>
+        <a href="#roadmap"><span class="toc-num">10</span><span>实施路线</span></a>
+        <a href="#acceptance"><span class="toc-num">11</span><span>验收指标</span></a>
+        <a href="#conclusion"><span class="toc-num">12</span><span>最终结论</span></a>
+      </nav>
+      <div class="side-meta"><strong>版本基线</strong>NextAgent<br><code>ef45e9a</code><br><br>DeepSeek Harness<br><code>47f9438</code><br><br>2026-08-14</div>
+    </aside>
+    <main>
+      <header class="hero">
+        <div class="hero-inner">
+          <div class="chips"><span class="chip">架构</span><span class="chip">上下文压缩</span><span class="chip">Tool 调度</span><span class="chip">异常保护</span><span class="chip">并行执行</span></div>
+          <h1>NextAgent 与 DeepSeek Harness 综合对比及优化建议</h1>
+          <p class="hero-lead">基于两侧真实代码和规格边界，识别可借鉴机制、不可照搬设计，并收敛为一条适合 NextAgent 电信级运行目标的实施路线。</p>
+          <div class="hero-meta"><div><strong>NextAgent</strong>ef45e9a34fed</div><div><strong>DeepSeek Harness</strong>47f943859bef</div><div><strong>分析方式</strong>代码 / OpenSpec 静态审查</div><div><strong>报告日期</strong>2026-08-14</div></div>
+          <div class="verdict"><div class="verdict-mark">✓</div><div><b>核心判断</b><span>保留 NextAgent 的稳定可信内核，重点吸收 Provider overflow 自恢复、细粒度 Tool 调度、最终模型请求证据和资源收敛机制。</span></div></div>
+        </div>
+      </header>
+      <div class="content">
+        <section id="summary">
+          <h2>1. 执行摘要</h2>
+          <p class="lead">两套系统的目标不同：DeepSeek Harness 优先运行时组合和模型执行效率，NextAgent 优先可信作用域、生命周期一致性和电信级治理。</p>
+          <div class="grid-4">
+            <div class="metric"><strong>4 项</strong><span>最值得借鉴的核心机制</span></div>
+            <div class="metric"><strong>5 阶段</strong><span>建议的唯一实施路线</span></div>
+            <div class="metric"><strong>26 packages</strong><span>NextAgent 当前受治理模块规模</span></div>
+            <div class="metric"><strong>200+ packages</strong><span>DeepSeek Harness 高颗粒 workspace 规模</span></div>
+          </div>
+          <div class="grid-2" style="margin-top:14px">
+            <div class="card"><h3>DeepSeek Harness 更突出</h3><ul><li>Provider overflow 后压缩自恢复</li><li>逐 Tool 调用并发安全分类</li><li>有界 rolling pool 和 exclusive barrier</li><li>最终模型请求可从 durable log 验证</li></ul></div>
+            <div class="card"><h3>NextAgent 更突出</h3><ul><li>Agent Scope + Owner Scope</li><li>same-session lane 和 terminal commit</li><li>压缩 CAS、幂等和 composite transaction</li><li>OpenSpec、contract 和架构治理</li></ul></div>
+          </div>
+          <div class="callout green"><strong>推荐目标态：</strong>稳定可信内核 + 有界且冲突感知的 Tool 并行 + Provider overflow 压缩恢复 + 最终模型请求证据 + 确定性 Workflow 归并。</div>
+        </section>
+
+        <section id="overview">
+          <h2>2. 总体能力对比</h2>
+          <p class="lead">NextAgent 不是整体落后。真正差距集中在模型窗口异常恢复、Tool 调度粒度和最终请求证明。</p>
+          <table><thead><tr><th>维度</th><th>DeepSeek Harness</th><th>NextAgent</th><th>判断</th></tr></thead><tbody>
+            <tr><td>核心架构</td><td>一切皆插件</td><td>稳定分层内核</td><td><span class="status violet">目标不同</span></td></tr>
+            <tr><td>可信作用域</td><td>Agent scope、Session identity</td><td>Agent + Owner 双作用域</td><td><span class="status green">NextAgent</span></td></tr>
+            <tr><td>主动压缩</td><td>pressure + pruning + summary</td><td>micro-compact + summary</td><td><span class="status blue">接近</span></td></tr>
+            <tr><td>Overflow 恢复</td><td>强制压缩后有证据重试</td><td>缺少同等级闭环</td><td><span class="status amber">DeepSeek</span></td></tr>
+            <tr><td>压缩事务</td><td>durable bracket</td><td>CAS + composite write</td><td><span class="status green">NextAgent</span></td></tr>
+            <tr><td>最终模型请求</td><td>运行时 invariant</td><td>部分不可重建</td><td><span class="status amber">DeepSeek</span></td></tr>
+            <tr><td>Tool 并行</td><td>per-call rolling pool</td><td>batch parallel + ordered finalizer</td><td><span class="status amber">DeepSeek 粒度更细</span></td></tr>
+            <tr><td>跨请求调度</td><td>Live Agent/Session</td><td>lane + priority + terminal pending</td><td><span class="status green">NextAgent</span></td></tr>
+            <tr><td>异常终态</td><td>turn/step/replay/drain</td><td>SafeError + terminal commit + recovery</td><td><span class="status green">NextAgent</span></td></tr>
+          </tbody></table>
+        </section>
+
+        <section id="architecture">
+          <h2>3. 架构与职责边界</h2>
+          <div class="grid-2">
+            <div class="card"><h3>DeepSeek Harness</h3><div class="flow">Profile / Bundle / Patch
+          ↓
+    Cordis Plugin Tree
+          ↓
+Session → Agent Loop → LLM / Tools
+          ↓
+ Projection / Capability seams</div><p>插件、服务、事件和可逆 effect 构成扩展主轴。动态性强，但需要更严格地治理顺序、短路和卸载。</p></div>
+            <div class="card"><h3>NextAgent</h3><div class="flow">Channel / Trusted Identity
+          ↓
+Request Runtime / Session Lane
+          ↓
+Agent Core / Context / Model
+          ↓
+Capability / Gateway / Terminal</div><p>每个关键事实具有唯一 owner，适合多租户、恢复、幂等和安全审计。</p></div>
+          </div>
+          <div class="callout amber"><strong>不可照搬：</strong>Runtime、identity、terminal commit、Gateway transaction、Capability authorization 和 sandbox boundary 不应插件化。</div>
+        </section>
+
+        <section id="compaction">
+          <h2>4. 上下文动态压缩</h2>
+          <p class="lead">NextAgent 已有成熟压缩；真正需要补的是 Provider 确认窗口溢出后的恢复闭环。</p>
+          <div class="grid-2">
+            <div class="card"><h3>NextAgent 当前路径</h3><div class="flow">History selection
+ → Micro-compact
+ → Large-content guard
+ → Budget evaluation
+ → Summary generation
+ → CAS composite commit</div><ul><li>原始 Message 保留</li><li>Owner/Agent scope 完整</li><li>summary 与 ActiveContext 原子替换</li><li>同一 run 防级联压缩</li></ul></div>
+            <div class="card"><h3>DeepSeek 增量价值</h3><div class="flow">Provider overflow
+ → Force pruning / compaction
+ → Verify durable surface progress
+ → Retry original model route once</div><ul><li>不依赖估算完全准确</li><li>Tool call/result 边界保护</li><li>无进展不重试</li><li>取消始终优先</li></ul></div>
+          </div>
+          <h3>推荐 change：<code>harden-context-overflow-compaction-recovery</code></h3>
+          <div class="flow">Normalized CONTEXT_WINDOW_EXCEEDED
+  → Context Engine force compact
+  → sourceVersion / targetVersion / reductionEvidence
+  → targetVersion &gt; sourceVersion ? retry once : preserve original failure</div>
+          <div class="callout red">禁止按 provider 原始错误文本猜测 overflow；禁止重新选择默认 Agent、默认模型或新 assembly。</div>
+        </section>
+
+        <section id="assembly">
+          <h2>5. 上下文拼接与最终模型请求</h2>
+          <div class="grid-2">
+            <div class="card"><h3>DeepSeek 的优势</h3><ul><li>sections、contexts、tools、variables 显式有序</li><li>scoped contribution 可覆盖 global</li><li>动态上下文进入 durable surface</li><li>模型调用前校验 messages/system/tools/options</li></ul></div>
+            <div class="card"><h3>NextAgent 的优势</h3><ul><li>ActiveContext 是历史选择权威</li><li>Capability 来自 run-bound assembly</li><li>Prompt、Memory、Attachment 各有明确 owner</li><li>身份和 provider secret 不进入 prompt authoring</li></ul></div>
+          </div>
+          <h3>推荐 change：<code>add-final-model-request-evidence</code></h3>
+          <p>不直接持久化完整原始请求，而是保存 message refs、ActiveContext version、Prompt ref、Tool schema digest、Attachment disclosure digest、Hook result digest 和最终 request digests。</p>
+          <div class="callout green">目标是获得 DeepSeek 的“请求可证明性”，同时保留 NextAgent 的数据分层、脱敏规则和可信作用域。</div>
+        </section>
+
+        <section id="tools">
+          <h2>6. Tool 调度逻辑</h2>
+          <p class="lead">NextAgent 已有并行和 ordered finalizer；需要补的是调度分类、独立容量上限和排他 barrier。</p>
+          <table><thead><tr><th>机制</th><th>DeepSeek</th><th>NextAgent</th></tr></thead><tbody>
+            <tr><td>并发判定</td><td>逐调用、结合实际参数</td><td>普通 batch 默认并行</td></tr>
+            <tr><td>容量</td><td>独立 `maxParallelToolCalls`</td><td>一次启动整个 admitted batch</td></tr>
+            <tr><td>排他调用</td><td>前后 barrier</td><td>AskUserQuestion、特定 ToolSearch→Skill 串行</td></tr>
+            <tr><td>结果顺序</td><td>模型顺序提交</td><td>ordered finalizer，模型顺序提交</td></tr>
+            <tr><td>取消</td><td>停止补充、drain started、闭合 unstarted</td><td>统一取消基础完整，batch 闭合可加强</td></tr>
+          </tbody></table>
+          <h3>推荐 change：<code>harden-tool-call-concurrency-scheduling</code></h3>
+          <div class="flow">Prepare calls in model order
+  → Resolve internal execution disposition
+  → Fill bounded rolling pool
+  → Exclusive call forms a barrier
+  → Dispatch may settle out of order
+  → Finalize and persist in model order</div>
+          <table><thead><tr><th>Capability</th><th>第一版默认策略</th></tr></thead><tbody>
+            <tr><td>Read / Glob / Grep / RAG / 只读 Search</td><td><span class="status green">PARALLEL_SAFE</span></td></tr>
+            <tr><td>Write / Edit / Bash / Python / Skill</td><td><span class="status amber">EXCLUSIVE</span></td></tr>
+            <tr><td>AskUserQuestion</td><td><span class="status amber">强 barrier</span></td></tr>
+            <tr><td>未知 / custom Capability</td><td><span class="status amber">默认排他</span></td></tr>
+          </tbody></table>
+        </section>
+
+        <section id="failure">
+          <h2>7. 异常、取消和恢复</h2>
+          <div class="grid-2">
+            <div class="card"><h3>DeepSeek 更细</h3><ul><li>durable compaction bracket</li><li>scheduler failure 与业务失败分离</li><li>started work drain</li><li>caller cancel 与本地 timeout 分离</li><li>unstarted Tool synthetic result</li></ul></div>
+            <div class="card"><h3>NextAgent 更完整</h3><ul><li>SafeError code/category/retryable</li><li>Capability 统一 timeout/retry</li><li>terminal commit 与 checkpoint</li><li>幂等与恢复</li><li>terminal pending 阻塞 Session lane</li></ul></div>
+          </div>
+          <h3>建议的异常优先级</h3>
+          <div class="flow">Caller cancellation
+  &gt; Runtime cancel / supersede
+  &gt; Local timeout
+  &gt; Policy / hook interruption
+  &gt; Capability safe business failure
+  &gt; Scheduler / internal failure</div>
+          <div class="callout amber">合并 signal 后不能只检查最终 signal；应优先识别上层原始取消来源，避免把用户取消误判为内部 timeout。</div>
+        </section>
+
+        <section id="parallel">
+          <h2>8. 并行执行</h2>
+          <div class="grid-3">
+            <div class="card"><h3>跨请求</h3><p>NextAgent 的 same-session lane、priority、全局并发和 terminal pending 已明显适合生产系统，应保持不变。</p></div>
+            <div class="card"><h3>单轮 Tool</h3><p>保留 ordered finalizer，增加 per-call disposition、rolling pool、barrier 和 unstarted 闭合。</p></div>
+            <div class="card"><h3>Workflow</h3><p>已有 fork/join；建议让每个 branch 使用私有 nodeResults，再按声明顺序归并。</p></div>
+          </div>
+          <h3>Workflow 推荐路径</h3>
+          <div class="flow">Branch-local variables + nodeResults
+  → allSettled under maxParallelBranches
+  → merge by branchNodeIds declaration order
+  → apply explicit duplicate-key policy
+  → commit one join result</div>
+        </section>
+
+        <section id="governance">
+          <h2>9. 工程治理与开发者体验</h2>
+          <div class="grid-2">
+            <div class="card"><h3>可以借鉴</h3><ul><li>effective config / assembly explain</li><li>Capability 三角色闭环目录</li><li>真实组装应用 transcript snapshot</li><li>生成式 Tool/Event/Config/Persistence catalog</li><li>disposer 和 HMR safety 测试</li></ul></div>
+            <div class="card"><h3>必须保留</h3><ul><li>OpenSpec-first</li><li>frozen core contracts</li><li>architecture/contract/E2E gate</li><li>Agent/Owner Scope negative tests</li><li>composite transaction 和幂等锚点</li></ul></div>
+          </div>
+          <div class="callout red"><strong>不建议：</strong>复制两百余 workspace package 粒度、用 JSONL 取代专用表、热更新 accepted run assembly、持久化所有 raw stream chunk、任意 waterfall 修改模型请求。</div>
+        </section>
+
+        <section id="roadmap">
+          <h2>10. 唯一实施路线</h2>
+          <p class="lead">顺序体现依赖关系：先稳定 Tool 调度基础，再补窗口恢复和请求证据，最后收敛 Workflow 与开发者诊断。</p>
+          <div class="roadmap">
+            <div class="phase"><div class="phase-num">1</div><div class="phase-body"><h3>Tool 调度收敛</h3><p><code>harden-tool-call-concurrency-scheduling</code>：execution disposition、maxParallelToolCalls、rolling pool、barrier、ordered finalization、取消闭合。</p></div></div>
+            <div class="phase"><div class="phase-num">2</div><div class="phase-body"><h3>上下文溢出恢复</h3><p><code>harden-context-overflow-compaction-recovery</code>：provider overflow、强制压缩、版本进展证据、原路由最多一次重试。</p></div></div>
+            <div class="phase"><div class="phase-num">3</div><div class="phase-body"><h3>最终模型请求证据</h3><p><code>add-final-model-request-evidence</code>：request digest、Hook evidence、Tool schema digest、调用前 invariant。</p></div></div>
+            <div class="phase"><div class="phase-num">4</div><div class="phase-body"><h3>Workflow 并行确定性</h3><p><code>harden-workflow-fork-join-determinism</code>：branch-local results、声明顺序归并、分支并发上限。</p></div></div>
+            <div class="phase"><div class="phase-num">5</div><div class="phase-body"><h3>配置解释能力</h3><p><code>add-effective-agent-assembly-explain</code>：本地只读解释配置来源、模型、Capability、Prompt 和 sandbox 决策。</p></div></div>
+          </div>
+        </section>
+
+        <section id="acceptance">
+          <h2>11. 建议验收指标</h2>
+          <table><thead><tr><th>目标</th><th>验收结果</th></tr></thead><tbody>
+            <tr><td>Tool 调度安全</td><td>排他调用与兄弟调用不重叠；未知 Capability 默认排他</td></tr>
+            <tr><td>Tool 调度容量</td><td>实际同时执行数量不超过 `maxParallelToolCalls`</td></tr>
+            <tr><td>Tool 顺序</td><td>任意完成顺序下，持久结果和模型上下文仍按模型调用顺序</td></tr>
+            <tr><td>取消闭合</td><td>started 调用 drain；unstarted 调用产生 canonical skipped/canceled result</td></tr>
+            <tr><td>Overflow 恢复</td><td>仅 provider-confirmed overflow 且 ActiveContext version 前进时重试</td></tr>
+            <tr><td>Overflow 有界</td><td>每次实际 model invocation 最多恢复一次</td></tr>
+            <tr><td>Scope 安全</td><td>全程保持原 Owner/Agent Scope、assemblyRef 和 model route</td></tr>
+            <tr><td>请求可证明</td><td>实际 provider request digest 与 evidence 一致</td></tr>
+            <tr><td>Workflow 确定性</td><td>分支完成顺序不改变最终 node result 顺序和变量归并</td></tr>
+          </tbody></table>
+        </section>
+
+        <section id="conclusion">
+          <h2>12. 最终结论</h2>
+          <p class="lead">NextAgent 已具备更适合电信生产系统的可信边界、请求生命周期、持久化事务和恢复能力。下一步应提高现有内核的执行效率和可证明性，而不是扩大动态插件范围。</p>
+          <div class="flow">Stable Trusted Kernel
+  + Bounded Conflict-aware Tool Parallelism
+  + Provider Overflow Compaction Recovery
+  + Final Model Request Evidence
+  + Deterministic Workflow Merge
+  + Explainable Agent Assembly</div>
+          <div class="callout green"><strong>若只做一个 change：</strong>优先 <code>harden-tool-call-concurrency-scheduling</code>。<br><strong>若连续推进两个：</strong>Tool 调度收敛 → Provider overflow 压缩恢复。</div>
+          <h3>主要证据位置</h3>
+          <div class="evidence"><span>DeepSeek: docs/architecture.md</span><span>NextAgent: docs/developer/02-architecture.md</span><span>DeepSeek: core/agent-loop/tool-calls.ts</span><span>NextAgent: agent-core/tools/tool-loop.ts</span><span>DeepSeek: compaction-basic/index.ts</span><span>NextAgent: context-engine/assemble-context.ts</span><span>DeepSeek: agent-loop/invariant.ts</span><span>NextAgent: runtime/lifecycle/submit.ts</span></div>
+          <div class="callout amber" style="margin-top:24px"><strong>报告边界：</strong>结论对应报告顶部的两个 commit；未运行真实性能基准。“机制更细”不等同于已证明吞吐或延迟领先。</div>
+        </section>
+      </div>
+      <footer>NextAgent × DeepSeek Harness 综合对比报告 · 2026-08-14 · 离线独立 HTML</footer>
+    </main>
+  </div>
+  <script>
+    const progress = document.getElementById('progress');
+    const links = [...document.querySelectorAll('.toc a')];
+    const sections = links.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+    const update = () => {
+      const height = document.documentElement.scrollHeight - innerHeight;
+      progress.style.transform = `scaleX(${height <= 0 ? 1 : scrollY / height})`;
+      let active = sections[0];
+      for (const section of sections) if (section.getBoundingClientRect().top <= 120) active = section;
+      links.forEach((link) => link.classList.toggle('active', link.getAttribute('href') === `#${active?.id}`));
+    };
+    addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update);
+    update();
+  </script>
+</body>
+</html>

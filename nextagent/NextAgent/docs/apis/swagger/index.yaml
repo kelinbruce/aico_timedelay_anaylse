@@ -1,0 +1,383 @@
+swagger: '2.0'
+info:
+  title: NextAgent Web Channel API
+  version: 1.0.0
+  description: >-
+    Public REST API surface for the NextAgent Web Channel. All endpoints are served under the `/api/v1` prefix unless
+    noted otherwise (health endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback
+    deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+tags:
+  - name: Runtime
+    description: Runtime bootstrap and health endpoints
+  - name: Auth
+    description: Local authentication endpoints
+  - name: Session
+    description: Session lifecycle management
+  - name: RequestCommand
+    description: Request submission, cancel, retry, edit and pending-input
+  - name: Stream
+    description: Server-sent events stream
+  - name: Conversation
+    description: Conversation query, preview and event history
+  - name: Annotation
+    description: Run annotations and favorites
+  - name: BackgroundTask
+    description: Background task lifecycle
+  - name: Share
+    description: Session share creation and retrieval
+  - name: Attachment
+    description: File upload and temporary file management
+  - name: Skill
+    description: Skill catalog query
+  - name: Question
+    description: Category, frequent, association and pinned questions
+  - name: Memory
+    description: Long-term memory CRUD, search, publish and copy
+  - name: CronTask
+    description: Scheduled task lifecycle management and execution
+  - name: SessionActivity
+    description: Cross-session activity awareness stream and consumption
+  - name: TaskChannel
+    description: Task Channel stream, async, cancel, query and pending-input
+paths:
+  /api/v1/runtime/bootstrap:
+    $ref: ./runtime.yaml#/paths/~1api~1v1~1runtime~1bootstrap
+  /health:
+    $ref: ./runtime.yaml#/paths/~1health
+  /health/deep:
+    $ref: ./runtime.yaml#/paths/~1health~1deep
+  /api/v1/auth/local/login:
+    $ref: ./auth.yaml#/paths/~1api~1v1~1auth~1local~1login
+  /api/v1/auth/local/logout:
+    $ref: ./auth.yaml#/paths/~1api~1v1~1auth~1local~1logout
+  /api/v1/sessions:
+    $ref: ./session.yaml#/paths/~1api~1v1~1sessions
+  /api/v1/sessions/{sessionId}/title:
+    $ref: ./session.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1title
+  /api/v1/sessions/{sessionId}:
+    $ref: ./session.yaml#/paths/~1api~1v1~1sessions~1{sessionId}
+  /api/v1/sessions/{sessionId}/messages/{messageId}/fork:
+    $ref: ./session.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1messages~1{messageId}~1fork
+  /api/v1/sessions/{sessionId}/requests/{requestId}/fork:
+    $ref: ./session.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1requests~1{requestId}~1fork
+  /api/v1/sessions/{sessionId}/requests:
+    $ref: ./request-command.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1requests
+  /api/v1/requests:
+    $ref: ./request-command.yaml#/paths/~1api~1v1~1requests
+  /api/v1/sessions/{sessionId}/cancel:
+    $ref: ./request-command.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1cancel
+  /api/v1/sessions/{sessionId}/retry:
+    $ref: ./request-command.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1retry
+  /api/v1/sessions/{sessionId}/requests/latest/edit:
+    $ref: ./request-command.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1requests~1latest~1edit
+  /api/v1/sessions/{sessionId}/pending-inputs/{pendingInputId}/answer:
+    $ref: ./request-command.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1pending-inputs~1{pendingInputId}~1answer
+  /api/v1/sessions/{sessionId}/requests/{requestId}/suggested-questions:
+    $ref: ./request-command.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1requests~1{requestId}~1suggested-questions
+  /api/v1/sessions/{sessionId}/stream:
+    $ref: ./stream.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1stream
+  /api/v1/sessions/{sessionId}/conversation:
+    $ref: ./conversation.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1conversation
+  /api/v1/sessions/{sessionId}/conversation/preview:
+    $ref: ./conversation.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1conversation~1preview
+  /api/v1/sessions/{sessionId}/runs/{runId}/events:
+    $ref: ./conversation.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1runs~1{runId}~1events
+  /api/v1/sessions/{sessionId}/runs/{runId}/annotations:
+    $ref: ./annotation.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1runs~1{runId}~1annotations
+  /api/v1/sessions/{sessionId}/annotations:
+    $ref: ./annotation.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1annotations
+  /api/v1/favorites:
+    $ref: ./annotation.yaml#/paths/~1api~1v1~1favorites
+  /api/v1/sessions/{sessionId}/background-tasks:
+    $ref: ./background-task.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1background-tasks
+  /api/v1/sessions/{sessionId}/background-tasks/{taskId}/output:
+    $ref: ./background-task.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1background-tasks~1{taskId}~1output
+  /api/v1/sessions/{sessionId}/background-tasks/{taskId}/kill:
+    $ref: ./background-task.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1background-tasks~1{taskId}~1kill
+  /api/v1/sessions/{sessionId}/shares:
+    $ref: ./share.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1shares
+  /api/v1/shares/{shareId}/conversation:
+    $ref: ./share.yaml#/paths/~1api~1v1~1shares~1{shareId}~1conversation
+  /api/v1/sessions/{sessionId}/files/upload:
+    $ref: ./attachment.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1files~1upload
+  /api/v1/sessions/{sessionId}/files/tmp/{tempRunId}:
+    $ref: ./attachment.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1files~1tmp~1{tempRunId}
+  /api/v1/sessions/{sessionId}/files/download:
+    $ref: ./attachment.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1files~1download
+  /api/v1/skills:
+    $ref: ./skill.yaml#/paths/~1api~1v1~1skills
+  /api/v1/category-questions:
+    $ref: ./question.yaml#/paths/~1api~1v1~1category-questions
+  /api/v1/frequent-questions:
+    $ref: ./question.yaml#/paths/~1api~1v1~1frequent-questions
+  /api/v1/question-association:
+    $ref: ./question.yaml#/paths/~1api~1v1~1question-association
+  /api/v1/user-questions/pin:
+    $ref: ./question.yaml#/paths/~1api~1v1~1user-questions~1pin
+  /api/v1/cron-tasks:
+    $ref: ./cron-task.yaml#/paths/~1api~1v1~1cron-tasks
+  /api/v1/cron-tasks/{taskId}:
+    $ref: ./cron-task.yaml#/paths/~1api~1v1~1cron-tasks~1{taskId}
+  /api/v1/cron-tasks/{taskId}/runs:
+    $ref: ./cron-task.yaml#/paths/~1api~1v1~1cron-tasks~1{taskId}~1runs
+  /api/v1/session-activities/stream:
+    $ref: ./session-activity.yaml#/paths/~1api~1v1~1session-activities~1stream
+  /api/v1/sessions/{sessionId}/activity/consume:
+    $ref: ./session-activity.yaml#/paths/~1api~1v1~1sessions~1{sessionId}~1activity~1consume
+  /api/v1/memory/long-term-mem:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem
+  /api/v1/memory/long-term-mem/batch:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1batch
+  /api/v1/memory/long-term-mem/manual:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1manual
+  /api/v1/memory/long-term-mem/search:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1search
+  /api/v1/memory/long-term-mem/shared:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1shared
+  /api/v1/memory/long-term-mem/shared/copy:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1shared~1copy
+  /api/v1/memory/long-term-mem/{memoryId}/record:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1{memoryId}~1record
+  /api/v1/memory/long-term-mem/{memoryId}:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1{memoryId}
+  /api/v1/memory/long-term-mem/{memoryId}/publish:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1{memoryId}~1publish
+  /api/v1/memory/long-term-mem/{memoryId}/unpublish:
+    $ref: ./memory.yaml#/paths/~1api~1v1~1memory~1long-term-mem~1{memoryId}~1unpublish
+  /api/v1/stream-task:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1stream-task
+  /api/v1/stream-task/{taskId}/edit:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1stream-task~1{taskId}~1edit
+  /api/v1/stream-task/{taskId}/retry:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1stream-task~1{taskId}~1retry
+  /api/v1/async-tasks:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1async-tasks
+  /api/v1/async-tasks/edit:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1async-tasks~1edit
+  /api/v1/async-tasks/retry:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1async-tasks~1retry
+  /api/v1/tasks/cancel:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1tasks~1cancel
+  /api/v1/tasks/query:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1tasks~1query
+  /api/v1/tasks/pending-inputs/answer:
+    $ref: ./task-channel.yaml#/paths/~1api~1v1~1tasks~1pending-inputs~1answer
+definitions:
+  RuntimeBootstrapResponse:
+    $ref: ./runtime.yaml#/definitions/RuntimeBootstrapResponse
+  HealthResponse:
+    $ref: ./runtime.yaml#/definitions/HealthResponse
+  LoginBody:
+    $ref: ./auth.yaml#/definitions/LoginBody
+  LoginResponse:
+    $ref: ./auth.yaml#/definitions/LoginResponse
+  LogoutResponse:
+    $ref: ./auth.yaml#/definitions/LogoutResponse
+  CreateSessionBody:
+    $ref: ./session.yaml#/definitions/CreateSessionBody
+  SessionListQuery:
+    $ref: ./session.yaml#/definitions/SessionListQuery
+  UpdateTitleBody:
+    $ref: ./session.yaml#/definitions/UpdateTitleBody
+  SessionSummaryResponse:
+    $ref: ./session.yaml#/definitions/SessionSummaryResponse
+  SessionListResponse:
+    $ref: ./session.yaml#/definitions/SessionListResponse
+  ForkFromMessageBody:
+    $ref: ./session.yaml#/definitions/ForkFromMessageBody
+  TempFileRef:
+    $ref: ./request-command.yaml#/definitions/TempFileRef
+  SubmitBody:
+    $ref: ./request-command.yaml#/definitions/SubmitBody
+  ConvenienceSubmitBody:
+    $ref: ./request-command.yaml#/definitions/ConvenienceSubmitBody
+  CancelBody:
+    $ref: ./request-command.yaml#/definitions/CancelBody
+  RetryBody:
+    $ref: ./request-command.yaml#/definitions/RetryBody
+  EditLatestBody:
+    $ref: ./request-command.yaml#/definitions/EditLatestBody
+  PendingInputAnswerBody:
+    $ref: ./request-command.yaml#/definitions/PendingInputAnswerBody
+  RequestAcceptedResponse:
+    $ref: ./request-command.yaml#/definitions/RequestAcceptedResponse
+  CancelResponse:
+    $ref: ./request-command.yaml#/definitions/CancelResponse
+  PendingInputAnswerResponse:
+    $ref: ./request-command.yaml#/definitions/PendingInputAnswerResponse
+  SuggestedQuestionsResponse:
+    $ref: ./question.yaml#/definitions/SuggestedQuestionsResponse
+  StreamQuery:
+    $ref: ./stream.yaml#/definitions/StreamQuery
+  StreamEnvelope:
+    $ref: ./stream.yaml#/definitions/StreamEnvelope
+  ConversationQuery:
+    $ref: ./conversation.yaml#/definitions/ConversationQuery
+  ConversationPreviewQuery:
+    $ref: ./conversation.yaml#/definitions/ConversationPreviewQuery
+  ConversationResponse:
+    $ref: ./conversation.yaml#/definitions/ConversationResponse
+  ConversationPreviewResponse:
+    $ref: ./conversation.yaml#/definitions/ConversationPreviewResponse
+  SessionEventHistoryQuery:
+    $ref: ./conversation.yaml#/definitions/SessionEventHistoryQuery
+  SessionEventHistoryResponse:
+    $ref: ./conversation.yaml#/definitions/SessionEventHistoryResponse
+  UpsertAnnotationBody:
+    $ref: ./annotation.yaml#/definitions/UpsertAnnotationBody
+  AnnotationResponse:
+    $ref: ./annotation.yaml#/definitions/AnnotationResponse
+  AnnotationListResponse:
+    $ref: ./annotation.yaml#/definitions/AnnotationListResponse
+  FavoritesListQuery:
+    $ref: ./annotation.yaml#/definitions/FavoritesListQuery
+  FavoritePageResponse:
+    $ref: ./annotation.yaml#/definitions/FavoritePageResponse
+  BackgroundTaskListResponse:
+    $ref: ./background-task.yaml#/definitions/BackgroundTaskListResponse
+  BackgroundTaskOutputQuery:
+    $ref: ./background-task.yaml#/definitions/BackgroundTaskOutputQuery
+  BackgroundTaskOutputResponse:
+    $ref: ./background-task.yaml#/definitions/BackgroundTaskOutputResponse
+  BackgroundTaskKillResponse:
+    $ref: ./background-task.yaml#/definitions/BackgroundTaskKillResponse
+  CreateShareBody:
+    $ref: ./share.yaml#/definitions/CreateShareBody
+  ShareCreateResponse:
+    $ref: ./share.yaml#/definitions/ShareCreateResponse
+  SharedConversationResponse:
+    $ref: ./share.yaml#/definitions/SharedConversationResponse
+  TempFileDeleteQuery:
+    $ref: ./attachment.yaml#/definitions/TempFileDeleteQuery
+  SkillCatalogQuery:
+    $ref: ./skill.yaml#/definitions/SkillCatalogQuery
+  SkillCatalogResponse:
+    $ref: ./skill.yaml#/definitions/SkillCatalogResponse
+  CategoryQuestionQuery:
+    $ref: ./question.yaml#/definitions/CategoryQuestionQuery
+  CategoryQuestionResponse:
+    $ref: ./question.yaml#/definitions/CategoryQuestionResponse
+  FrequentQuestionQuery:
+    $ref: ./question.yaml#/definitions/FrequentQuestionQuery
+  FrequentQuestionResponse:
+    $ref: ./question.yaml#/definitions/FrequentQuestionResponse
+  QuestionAssociationQuery:
+    $ref: ./question.yaml#/definitions/QuestionAssociationQuery
+  QuestionAssociationResponse:
+    $ref: ./question.yaml#/definitions/QuestionAssociationResponse
+  UserQuestionPinBody:
+    $ref: ./question.yaml#/definitions/UserQuestionPinBody
+  CronTaskTarget:
+    $ref: ./cron-task.yaml#/definitions/CronTaskTarget
+  CronTaskManagementCreateBody:
+    $ref: ./cron-task.yaml#/definitions/CronTaskManagementCreateBody
+  CronTaskManagementUpdateBody:
+    $ref: ./cron-task.yaml#/definitions/CronTaskManagementUpdateBody
+  CronTaskManagementResponse:
+    $ref: ./cron-task.yaml#/definitions/CronTaskManagementResponse
+  CronTaskManagementListResponse:
+    $ref: ./cron-task.yaml#/definitions/CronTaskManagementListResponse
+  CronTaskExecutionResponse:
+    $ref: ./cron-task.yaml#/definitions/CronTaskExecutionResponse
+  CronTaskExecutionListResponse:
+    $ref: ./cron-task.yaml#/definitions/CronTaskExecutionListResponse
+  SessionActivityConsumeBody:
+    $ref: ./session-activity.yaml#/definitions/SessionActivityConsumeBody
+  MemoryType:
+    $ref: ./memory.yaml#/definitions/MemoryType
+  KnowledgeSourceType:
+    $ref: ./memory.yaml#/definitions/KnowledgeSourceType
+  MemoryState:
+    $ref: ./memory.yaml#/definitions/MemoryState
+  LongTermMemoryRecord:
+    $ref: ./memory.yaml#/definitions/LongTermMemoryRecord
+  ListLongTermMemoryQuery:
+    $ref: ./memory.yaml#/definitions/ListLongTermMemoryQuery
+  SaveLongTermMemoryBody:
+    $ref: ./memory.yaml#/definitions/SaveLongTermMemoryBody
+  BatchCreateLongTermMemoryBody:
+    $ref: ./memory.yaml#/definitions/BatchCreateLongTermMemoryBody
+  ManualSaveLongTermMemoryBody:
+    $ref: ./memory.yaml#/definitions/ManualSaveLongTermMemoryBody
+  SearchLongTermMemoryBody:
+    $ref: ./memory.yaml#/definitions/SearchLongTermMemoryBody
+  ListPublishedLongTermMemoryQuery:
+    $ref: ./memory.yaml#/definitions/ListPublishedLongTermMemoryQuery
+  CopyPublishedMemoryBody:
+    $ref: ./memory.yaml#/definitions/CopyPublishedMemoryBody
+  CopyPublishedMemoryResult:
+    $ref: ./memory.yaml#/definitions/CopyPublishedMemoryResult
+  DeleteLongTermMemoryQuery:
+    $ref: ./memory.yaml#/definitions/DeleteLongTermMemoryQuery
+  MutateLongTermMemoryBody:
+    $ref: ./memory.yaml#/definitions/MutateLongTermMemoryBody
+  SharingLongTermMemoryBody:
+    $ref: ./memory.yaml#/definitions/SharingLongTermMemoryBody
+  MemoryListResponse:
+    $ref: ./memory.yaml#/definitions/MemoryListResponse
+  MemoryItemResponse:
+    $ref: ./memory.yaml#/definitions/MemoryItemResponse
+  MemorySearchResponse:
+    $ref: ./memory.yaml#/definitions/MemorySearchResponse
+  MemoryCopyResponse:
+    $ref: ./memory.yaml#/definitions/MemoryCopyResponse
+  MemoryDeleteResponse:
+    $ref: ./memory.yaml#/definitions/MemoryDeleteResponse
+  MemoryMutateResponse:
+    $ref: ./memory.yaml#/definitions/MemoryMutateResponse
+  SafeErrorResponse:
+    $ref: ./common.yaml#/definitions/SafeErrorResponse
+  MemoryErrorResponse:
+    $ref: ./common.yaml#/definitions/MemoryErrorResponse
+  TaskStatus:
+    $ref: ./task-channel.yaml#/definitions/TaskStatus
+  TaskEventType:
+    $ref: ./task-channel.yaml#/definitions/TaskEventType
+  ReportEvents:
+    $ref: ./task-channel.yaml#/definitions/ReportEvents
+  TaskMessage:
+    $ref: ./task-channel.yaml#/definitions/TaskMessage
+  StreamCreateTaskBody:
+    $ref: ./task-channel.yaml#/definitions/StreamCreateTaskBody
+  StreamEditTaskBody:
+    $ref: ./task-channel.yaml#/definitions/StreamEditTaskBody
+  StreamRetryTaskBody:
+    $ref: ./task-channel.yaml#/definitions/StreamRetryTaskBody
+  AsyncCreateTaskBody:
+    $ref: ./task-channel.yaml#/definitions/AsyncCreateTaskBody
+  AsyncEditTaskBody:
+    $ref: ./task-channel.yaml#/definitions/AsyncEditTaskBody
+  AsyncRetryTaskBody:
+    $ref: ./task-channel.yaml#/definitions/AsyncRetryTaskBody
+  CancelTaskBody:
+    $ref: ./task-channel.yaml#/definitions/CancelTaskBody
+  TaskQueryBody:
+    $ref: ./task-channel.yaml#/definitions/TaskQueryBody
+  TaskPendingInputAnswerBody:
+    $ref: ./task-channel.yaml#/definitions/TaskPendingInputAnswerBody
+  TaskBatchResponse:
+    $ref: ./task-channel.yaml#/definitions/TaskBatchResponse
+  TaskQueryBatchResponse:
+    $ref: ./task-channel.yaml#/definitions/TaskQueryBatchResponse
+  TaskEvent:
+    $ref: ./task-channel.yaml#/definitions/TaskEvent
+  AsyncCreateTaskItem:
+    $ref: ./task-channel.yaml#/definitions/AsyncCreateTaskItem
+  AsyncEditTaskItem:
+    $ref: ./task-channel.yaml#/definitions/AsyncEditTaskItem
+  AsyncRetryTaskItem:
+    $ref: ./task-channel.yaml#/definitions/AsyncRetryTaskItem
+  TaskControlItem:
+    $ref: ./task-channel.yaml#/definitions/TaskControlItem
+  TaskQueryItem:
+    $ref: ./task-channel.yaml#/definitions/TaskQueryItem
+  TaskPendingInputAnswerItem:
+    $ref: ./task-channel.yaml#/definitions/TaskPendingInputAnswerItem
+  TaskBatchItemResult:
+    $ref: ./task-channel.yaml#/definitions/TaskBatchItemResult
+  TaskQueryBatchItemResult:
+    $ref: ./task-channel.yaml#/definitions/TaskQueryBatchItemResult

@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nextagent/agent-contracts/session/replacement-evidence.schema.json",
+  "title": "SessionMessage.metadata.replacement evidence",
+  "description": "Stable JSON shape for large-content replacement evidence carried on SessionMessage.metadata.replacement. Owned by agent-contracts/session; consumed by large-content-references.",
+  "type": "object",
+  "required": ["kind", "reason", "originalSize", "previewSize", "lineage"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["INLINE", "PERSISTED_PREVIEW", "SPECIALIZED_REF", "EMPTY_MARKER"]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contentRef": {
+      "oneOf": [{ "$ref": "#/definitions/contentRef" }, { "type": "null" }]
+    },
+    "originalSize": {
+      "type": "number",
+      "minimum": 0
+    },
+    "previewSize": {
+      "type": "number",
+      "minimum": 0
+    },
+    "contentType": {
+      "type": "string"
+    },
+    "lineage": {
+      "type": "object",
+      "required": ["sourceMessageId", "sourceRunId", "sourceInvocationId", "stepId"],
+      "additionalProperties": false,
+      "properties": {
+        "sourceMessageId": { "type": ["string", "null"] },
+        "sourceRunId": { "type": ["string", "null"] },
+        "sourceInvocationId": { "type": ["string", "null"] },
+        "stepId": { "type": ["string", "null"] }
+      }
+    },
+    "decisionState": {
+      "type": "string",
+      "enum": ["frozen"]
+    },
+    "degradation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["code", "message", "readableContentRef"],
+          "additionalProperties": false,
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "readableContentRef": {
+              "oneOf": [{ "$ref": "#/definitions/contentRef" }, { "type": "null" }]
+            }
+          }
+        },
+        { "type": "null" }
+      ]
+    }
+  },
+  "definitions": {
+    "contentRef": {
+      "type": "object",
+      "required": ["refId", "refType"],
+      "properties": {
+        "refId": { "type": "string" },
+        "refType": {
+          "type": "string",
+          "enum": ["ATTACHMENT", "CAPABILITY_RESULT", "MODEL_SUMMARY", "ARTIFACT"]
+        },
+        "attachmentId": { "type": "string" },
+        "artifactId": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "sizeBytes": { "type": "number" },
+        "safeSummary": { "type": "string" }
+      }
+    }
+  }
+}

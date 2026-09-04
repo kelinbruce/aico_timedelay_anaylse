@@ -1,0 +1,766 @@
+.cron-dashboard {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-chat-pane-bg, var(--color-bg-primary, #fff));
+  color: var(--color-text-primary, #172033);
+}
+
+.cron-dashboard * {
+  box-sizing: border-box;
+}
+
+.cron-dashboard__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.cron-dashboard button,
+.cron-dashboard input,
+.cron-dashboard select,
+.cron-dashboard textarea {
+  font: inherit;
+}
+
+.cron-dashboard__content {
+  min-height: 100%;
+  padding-block: 20px 28px;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.cron-dashboard__tabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cron-tab {
+  position: relative;
+  padding: 0 2px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.cron-tab:hover,
+.cron-tab:focus-visible,
+.cron-tab.active {
+  color: var(--color-primary);
+}
+
+.cron-tab:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.cron-tab.active::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--color-primary);
+  content: '';
+}
+
+.cron-panel {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.cron-card-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.cron-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.cron-task-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--color-border, #dde3ea);
+  border-radius: 8px;
+  background: var(--color-bg-primary, #fff);
+  display: grid;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.cron-task-card:hover,
+.cron-task-card.active {
+  border-color: rgba(22, 119, 255, 0.32);
+  box-shadow: 0 0 0 1px rgba(22, 119, 255, 0.12);
+}
+
+.cron-task-card__head {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cron-task-card__title {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.cron-task-card__title strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.cron-task-card__title span,
+.cron-task-card__footer {
+  color: var(--color-text-secondary, #667085);
+  font-size: 12px;
+}
+
+.cron-task-card__head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.cron-task-card__menu-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.cron-task-card__menu,
+.cron-execution-filter-options {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  min-width: 92px;
+  padding: 4px;
+  border: 1px solid var(--color-border, #dde3ea);
+  border-radius: 8px;
+  background: var(--color-bg-primary, #fff);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  display: grid;
+  gap: 2px;
+}
+
+.cron-task-card__menu {
+  right: 0;
+}
+
+.cron-execution-filter-options {
+  right: 0;
+  left: 0;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.cron-task-card__menu-item,
+.cron-execution-filter-option {
+  width: 100%;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-primary, #172033);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.cron-execution-filter-option {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cron-task-card__menu-item:hover:not(:disabled),
+.cron-execution-filter-option:hover,
+.cron-execution-filter-option[aria-selected='true'] {
+  background: var(--color-bg-active, #eef6ff);
+  color: var(--color-primary, #1463d9);
+}
+
+.cron-task-card__menu-item:disabled {
+  opacity: 0.45;
+  color: var(--color-text-disabled, #98a2b3);
+  cursor: not-allowed;
+}
+
+.cron-task-card__content {
+  margin: 0;
+  color: var(--color-text-primary, #172033);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.cron-task-card__target {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cron-task-card__target span {
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border, #dde3ea);
+  border-radius: 6px;
+  background: var(--color-bg-secondary, #f8fafc);
+  color: var(--color-text-secondary, #667085);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.cron-task-card__footer {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border, #dde3ea);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.cron-task-card__schedule {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cron-task-card__owner {
+  flex: 0 0 auto;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cron-form,
+.cron-execution {
+  border: 1px solid var(--color-border, #dde3ea);
+  border-radius: 8px;
+  background: var(--color-bg-primary, #fff);
+}
+
+.cron-form {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.cron-form__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.cron-form h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.cron-target-fields {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.35fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.cron-execution-filters {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.7fr) minmax(220px, 1.2fr) minmax(120px, 0.55fr) minmax(120px, 0.55fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.cron-execution-filter-select {
+  position: relative;
+  min-width: 0;
+}
+
+.cron-execution-filter-select > input {
+  width: 100%;
+  height: 32px;
+  padding: 4px 30px 4px 11px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.cron-execution-filter-select__arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-tertiary, #999999);
+  font-size: 12px;
+  pointer-events: none;
+  transition: transform 160ms ease;
+}
+
+.cron-execution-filter-select__arrow--open {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.cron-execution-filter-select > input:hover {
+  border-color: var(--color-primary-hover);
+}
+
+.cron-execution-filter-select > input:focus,
+.cron-execution-filter-select > input:focus-visible,
+.cron-execution-filter-select > input:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  outline: 0;
+}
+
+.cron-execution-filters__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.cron-result {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border, #dde3ea);
+  border-radius: 7px;
+  background: var(--color-bg-secondary, #f8fafc);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.cron-execution-layout {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+}
+
+.cron-execution-timeline {
+  min-width: 0;
+  padding: 12px 12px 12px 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.cron-execution-timeline > strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.cron-execution-timeline__items {
+  display: grid;
+  gap: 8px;
+}
+
+.cron-execution-timeline__item {
+  position: relative;
+  min-width: 0;
+  padding-right: 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.cron-execution-timeline__item::before {
+  position: absolute;
+  top: 16px;
+  bottom: -8px;
+  right: 3.5px;
+  width: 2px;
+  background: var(--color-border, #dde3ea);
+  content: '';
+}
+
+.cron-execution-timeline__item:last-child::before {
+  bottom: 0;
+}
+
+.cron-execution-timeline__dot {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--color-primary, #1463d9);
+  border-radius: 999px;
+  background: var(--color-bg-primary, #fff);
+}
+
+.cron-execution-timeline__dot--completed {
+  border-color: #16a34a;
+  background: #16a34a;
+}
+
+.cron-execution-timeline__dot--failed {
+  border-color: #dc2626;
+  background: #dc2626;
+}
+
+.cron-execution-timeline__dot--superseded {
+  border-color: #2563eb;
+  background: #2563eb;
+}
+
+.cron-execution-timeline__dot--canceled {
+  border-color: #9ca3af;
+  background: #9ca3af;
+}
+
+.cron-execution-timeline__item time {
+  display: block;
+  color: var(--color-text-primary, #172033);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.cron-execution-timeline__item span:not(.cron-execution-timeline__dot) {
+  display: block;
+  color: var(--color-text-secondary, #667085);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.cron-executions {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.cron-execution-group {
+  display: grid;
+  gap: 8px;
+}
+
+.cron-execution {
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.cron-execution__summary {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.cron-execution__head {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  grid-column: 1 / -1;
+}
+
+.cron-execution__head strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.cron-execution__head span {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary, #667085);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.cron-execution__content {
+  min-width: 0;
+  margin: 0;
+  color: var(--color-text-primary, #172033);
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.cron-execution__detail {
+  display: grid;
+  gap: 8px;
+}
+
+.cron-execution__meta {
+  color: var(--color-text-secondary, #667085);
+  font-size: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cron-btn {
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--color-border-strong, #c8d2df);
+  border-radius: 4px;
+  background: var(--color-bg-primary, #fff);
+  color: var(--color-text-primary, #172033);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.cron-btn--primary {
+  color: #fff;
+  border-color: var(--color-primary, #1463d9);
+  background: var(--color-primary, #1463d9);
+}
+
+.cron-btn--link {
+  min-height: 28px;
+  padding: 0 6px;
+  margin-right: 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-primary, #1463d9);
+}
+
+.cron-btn--icon {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0 6px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-primary, #1463d9);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.cron-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cron-field {
+  display: grid;
+  gap: 6px;
+}
+
+.cron-field span,
+.cron-checkbox {
+  color: var(--color-text-secondary, #667085);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.cron-field input,
+.cron-field select,
+.cron-field textarea {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-strong, #c8d2df);
+  border-radius: 6px;
+  background: var(--color-bg-primary, #fff);
+  color: inherit;
+}
+
+.cron-field textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.cron-task-form__target-mode-select {
+  min-width: 0;
+}
+
+.cron-task-form__cron {
+  height: 32px;
+  padding: 4px 10px;
+}
+
+.cron-task-form__target-mode-trigger {
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  padding: 4px 30px 4px 11px;
+  border: 1px solid var(--color-border-strong, #c8d2df);
+  border-radius: 6px;
+  background: var(--color-bg-primary, #fff);
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.cron-task-form__target-mode-select .cron-execution-filter-option {
+  font-size: 14px;
+}
+
+.cron-task-form__cron:hover,
+.cron-task-form__target-mode-trigger:hover {
+  border-color: var(--color-primary-hover);
+}
+
+.cron-task-form__cron:focus,
+.cron-task-form__cron:focus-visible,
+.cron-task-form__target-mode-trigger:focus,
+.cron-task-form__target-mode-trigger:focus-visible {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  outline: 0;
+}
+
+.cron-task-form__prompt.ant-input-textarea-show-count {
+  position: relative;
+}
+
+.cron-task-form__prompt textarea {
+  padding-right: 96px;
+}
+
+.cron-task-form__prompt .ant-input-data-count {
+  position: absolute;
+  right: 6px;
+  bottom: 0;
+  z-index: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: var(--color-bg-primary, #fff);
+  color: var(--color-text-secondary, #667085);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.cron-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cron-error {
+  padding: 9px 10px;
+  border: 1px solid #fecdca;
+  border-radius: 7px;
+  background: #fff1f0;
+  color: #b42318;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.cron-field__error {
+  color: #b42318;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.cron-empty {
+  min-height: 140px;
+  padding: 18px;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  color: var(--color-text-secondary, #667085);
+  text-align: center;
+}
+
+.cron-empty.compact {
+  min-height: 68px;
+  padding: 10px;
+}
+
+@media (max-width: 760px) {
+  .cron-form__head,
+  .cron-task-card__head,
+  .cron-task-card__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cron-dashboard__content {
+    padding-block: 12px;
+  }
+
+  .cron-dashboard__tabs {
+    width: 100%;
+  }
+
+  .cron-tab {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cron-task-card__head-actions,
+  .cron-execution-filters__actions {
+    justify-content: flex-start;
+  }
+
+  .cron-task-card__owner {
+    max-width: 100%;
+  }
+
+  .cron-execution-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .cron-target-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .cron-execution-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cron-executions {
+    padding-top: 0;
+  }
+
+  .cron-execution__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .cron-execution__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}

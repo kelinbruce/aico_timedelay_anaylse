@@ -1,0 +1,33 @@
+{
+  "name": "@nextagent/agent-model",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./providers/openai-compatible": {
+      "types": "./dist/providers/openai-compatible/registration.d.ts",
+      "import": "./dist/providers/openai-compatible/registration.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js"
+    }
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "2.0.62",
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-contracts": "1.0.0",
+    "ai": "6.0.235",
+    "ajv": "8.18.0"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  }
+}

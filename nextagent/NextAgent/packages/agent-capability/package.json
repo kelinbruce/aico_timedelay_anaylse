@@ -1,0 +1,27 @@
+{
+  "name": "@nextagent/agent-capability",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-contracts": "1.0.0",
+    "ajv": "8.18.0",
+    "picomatch": "4.0.5"
+  },
+  "devDependencies": {
+    "@types/picomatch": "^4.0.2"
+  },
+  "scripts": {
+    "build": "node ../../scripts/copy-builtin-skill-assets.mjs",
+    "test": "vitest run"
+  }
+}

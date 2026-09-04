@@ -1,0 +1,23 @@
+{
+  "name": "@nextagent/agent-platform-gateway-remote",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-contracts": "1.0.0",
+    "ajv": "8.18.0"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --config vitest.config.ts"
+  }
+}

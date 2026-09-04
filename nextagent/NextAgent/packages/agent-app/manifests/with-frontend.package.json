@@ -1,0 +1,14 @@
+{
+  "name": "@nextagent/agent-app-with-frontend-runtime",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./entrypoints/with-frontend.js",
+  "dependencies": {
+    "@nextagent/agent-app": "1.0.0",
+    "@nextagent/agent-app-frontend-hosting": "1.0.0",
+    "@nextagent/agent-web": "1.0.0"
+  },
+  "x-nextagent": {
+    "packageProfile": "with-frontend"
+  }
+}

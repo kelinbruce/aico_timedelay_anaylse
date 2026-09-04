@@ -1,0 +1,13 @@
+content:
+  - id: identity
+    file: identity.md
+  - id: task_approach
+    file: task-approach.md
+  - id: tooling
+    file: tooling.md
+  - id: action_safety
+    file: action-safety.md
+  - id: communication_style
+    file: communication-style.md
+  - id: context_management
+    file: context-management.md

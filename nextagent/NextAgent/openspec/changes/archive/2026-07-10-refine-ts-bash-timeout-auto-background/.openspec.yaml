@@ -1,0 +1,5 @@
+name: refine-ts-bash-timeout-auto-background
+type: change
+status: draft
+created: 2026-07-02
+description: Auto-background foreground bash commands on timeout instead of killing

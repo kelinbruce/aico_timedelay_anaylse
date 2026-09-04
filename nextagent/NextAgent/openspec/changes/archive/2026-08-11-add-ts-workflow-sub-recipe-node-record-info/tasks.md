@@ -1,0 +1,28 @@
+﻿- [x] 1. `CreateWorkflowNodeCatalogOptions` 新增 `scene?: string` 字段
+  - 验证: `npm run build` 通过，类型无破坏
+- [x] 2. 新增 `buildNodeRecordInfo` 辅助函数和输入/输出字段分类常量
+  - 验证: `npm run build` 通过
+  - 验证: 单元测试覆盖字段分类、recipe_result 归属条件、restful outputDefine 提取、空 output 处理
+- [x] 3. `executeSubRecipeNode` 调用 `buildNodeRecordInfo`，结果写入 `node_record_info` 输出变量
+  - 验证: `npm run build` 通过
+  - 验证: 集成测试验证 `${node_record_info}` 可被后续节点引用
+- [x] 4. `agent-app` `workflow-composition.ts` 传入 `scene` 配置
+  - 验证: `npm run build` 通过
+  - 验证: `npm run lint:architecture` 通过（agent-app 无业务逻辑）
+- [x] 5. 编写 UT 测试
+  - 验证: 步骤记录构建（多节点、顺序一致、description 来源）
+  - 验证: 输入/输出字段分类（api_name/prompt_template → inputs，api_response/llm_completion → outputs）
+  - 验证: recipe_result 默认过滤
+  - 验证: is_node_record_with_recipe_result=true 时包含
+  - 验证: scene=MAE-CN 时包含
+  - 验证: restful 节点 outputDefine 提取并从 outputs 移除
+  - 验证: nodeResult.output 为 undefined 时 inputs/outputs 为空对象
+  - 验证: ${node_record_info} 可被后续节点通过 DSL 引用
+- [x] 6. 运行验证门禁
+  - 验证: `npm run build` 通过
+  - 验证: `npm test` 通过
+  - 验证: `npm run lint:architecture` 通过
+- [x] 7. 运行 `$nextagent-code-review` 模型语义检视
+  - 验证: 检视结论 PASS 或 PASS WITH FOLLOW-UP
+- [x] 8. 创建 GitCode MR 到 main
+  - 验证: MR 创建成功，CI 通过

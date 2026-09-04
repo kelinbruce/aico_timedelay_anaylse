@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NextAgent 可观测特性进展一页汇报</title>
+  <style>
+    :root {
+      --brand: rgb(212, 28, 38);
+      --brand-deep: rgb(168, 18, 28);
+      --gold: rgb(206, 135, 72);
+      --gold-light: rgb(238, 198, 159);
+      --text-strong: rgb(46, 49, 56);
+      --text: rgb(72, 76, 84);
+      --muted: rgb(130, 134, 141);
+      --line: rgb(219, 222, 226);
+      --soft: rgb(246, 247, 249);
+      --white: rgb(255, 255, 255);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: rgb(236, 238, 242);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "Noto Sans SC", Arial, sans-serif;
+    }
+
+    .slide {
+      width: min(100vw, 1600px);
+      aspect-ratio: 16 / 9;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 82% 20%, rgba(212, 28, 38, 0.05), transparent 27%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.98)),
+        var(--white);
+      box-shadow: 0 18px 48px rgba(46, 49, 56, 0.18);
+      padding: 30px 58px 34px;
+      display: grid;
+      grid-template-rows: auto auto minmax(330px, 1fr) auto;
+      gap: 14px;
+    }
+
+    .network {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.42;
+      background-image: url("data:image/svg+xml,%3Csvg width='1600' height='900' viewBox='0 0 1600 900' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23cfd2d7' stroke-width='2'%3E%3Cpath d='M-80 110L180 22L370 155L660 28L900 168L1160 42L1680 136'/%3E%3Cpath d='M10 318L250 180L500 284L730 140L1040 278L1280 126L1620 260'/%3E%3Cpath d='M120 36L250 180L370 155L500 284L660 28L730 140L900 168L1040 278L1160 42L1280 126'/%3E%3Cpath d='M42 540L242 430L452 520L706 390L954 518L1200 394L1540 500'/%3E%3C/g%3E%3Cg fill='%23c7cbd0'%3E%3Ccircle cx='180' cy='22' r='6'/%3E%3Ccircle cx='370' cy='155' r='5'/%3E%3Ccircle cx='660' cy='28' r='6'/%3E%3Ccircle cx='900' cy='168' r='5'/%3E%3Ccircle cx='1160' cy='42' r='6'/%3E%3Ccircle cx='250' cy='180' r='5'/%3E%3Ccircle cx='500' cy='284' r='5'/%3E%3Ccircle cx='730' cy='140' r='6'/%3E%3Ccircle cx='1040' cy='278' r='5'/%3E%3Ccircle cx='1280' cy='126' r='6'/%3E%3Ccircle cx='242' cy='430' r='5'/%3E%3Ccircle cx='706' cy='390' r='6'/%3E%3Ccircle cx='1200' cy='394' r='5'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+    }
+
+    .ribbon {
+      position: absolute;
+      left: -80px;
+      right: -80px;
+      bottom: 18px;
+      height: 150px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ribbon::before,
+    .ribbon::after {
+      content: "";
+      position: absolute;
+      left: -40px;
+      right: -40px;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+
+    .ribbon::before {
+      top: 0;
+      height: 128px;
+      background: linear-gradient(180deg, rgba(238, 198, 159, 0.92), rgba(206, 135, 72, 0.88));
+      transform: rotate(-1.2deg);
+    }
+
+    .ribbon::after {
+      top: 48px;
+      height: 118px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(212, 28, 38, 0.98) 76%);
+      transform: rotate(0.8deg);
+    }
+
+    .red-band {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 30px;
+      background: var(--brand);
+      z-index: 0;
+    }
+
+    header,
+    .target,
+    .middle,
+    .plan {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      column-gap: 24px;
+      min-height: 50px;
+    }
+
+    .title-line {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .logo {
+      color: var(--brand);
+      font-size: 19px;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .en {
+      color: var(--text-strong);
+      font-size: 18px;
+      letter-spacing: 0.06em;
+      line-height: 1.1;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--brand);
+      font-size: 38px;
+      line-height: 1.1;
+      letter-spacing: 0;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .motto {
+      color: var(--text);
+      font-size: 15px;
+      text-align: right;
+      white-space: nowrap;
+      padding-top: 4px;
+    }
+
+    .motto::after {
+      content: "";
+      display: block;
+      width: 26px;
+      height: 3px;
+      margin: 9px 0 0 auto;
+      background: var(--brand);
+      border-radius: 2px;
+    }
+
+    .target {
+      align-self: stretch;
+      display: grid;
+      grid-template-columns: 174px 1fr;
+      gap: 18px;
+      align-items: center;
+      padding: 8px 18px;
+      border: 1px solid rgba(212, 28, 38, 0.16);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 8px 22px rgba(46, 49, 56, 0.07);
+    }
+
+    .target-title {
+      border-right: 1px solid var(--line);
+      padding-right: 18px;
+    }
+
+    .target-title .small {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .target-title .large {
+      margin-top: 3px;
+      color: var(--brand);
+      font-size: 26px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .target-lines {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+
+    .target-line {
+      position: relative;
+      min-width: 0;
+      padding: 1px 0 1px 16px;
+      border-left: 4px solid var(--brand);
+      border-radius: 0;
+      background: transparent;
+      color: var(--text-strong);
+      font-size: 14px;
+      line-height: 1.18;
+      font-weight: 700;
+    }
+
+    .target-line::before {
+      content: none;
+    }
+
+    .target-line strong {
+      display: block;
+      color: var(--brand);
+      font-size: 16px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .middle {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .card {
+      min-width: 0;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 24px rgba(46, 49, 56, 0.08);
+      padding: 13px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      right: 18px;
+      bottom: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      transform: rotate(45deg);
+      background: rgba(212, 28, 38, 0.06);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .card-num {
+      color: var(--brand);
+      font-size: 35px;
+      line-height: 0.9;
+      font-weight: 800;
+      opacity: 0.92;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .card-head::before {
+      content: "";
+      width: 32px;
+      height: 4px;
+      background: var(--brand);
+      border-radius: 4px;
+      flex: 0 0 auto;
+    }
+
+    .card h2 {
+      margin: 0;
+      color: var(--text-strong);
+      font-size: 20px;
+      line-height: 1.15;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .card h2 em {
+      color: var(--brand);
+      font-style: normal;
+    }
+
+    .card ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .card li {
+      position: relative;
+      padding-left: 24px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .card li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.42em;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--brand);
+      box-shadow: inset 0 0 0 4px var(--white);
+      border: 1px solid rgba(212, 28, 38, 0.26);
+    }
+
+    .card.tech {
+      border-top: 5px solid var(--gold);
+    }
+
+    .card.tech .card-head::before,
+    .card.tech li::before {
+      background: var(--gold);
+      border-color: rgba(206, 135, 72, 0.3);
+    }
+
+    .card.progress {
+      border-top: 5px solid var(--brand);
+    }
+
+    .need-grid {
+      display: grid;
+      gap: 6px;
+      flex: 1;
+      grid-template-rows: repeat(4, 1fr);
+      align-content: stretch;
+    }
+
+    .need-item {
+      padding: 7px 9px 7px 12px;
+      border-left: 4px solid var(--brand);
+      border-radius: 7px;
+      background: var(--soft);
+      display: grid;
+      align-content: center;
+    }
+
+    .need-item strong,
+    .progress-detail strong {
+      display: block;
+      color: var(--brand);
+      font-size: 14px;
+      line-height: 1.1;
+      margin-bottom: 3px;
+      font-weight: 900;
+    }
+
+    .need-item b {
+      color: var(--text-strong);
+      font-weight: 900;
+    }
+
+    .need-item span,
+    .progress-detail span {
+      display: block;
+      color: var(--text);
+      font-size: 11px;
+      line-height: 1.18;
+      font-weight: 600;
+    }
+
+    .tech-flow {
+      display: grid;
+      gap: 5px;
+      padding: 5px 6px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(246, 247, 249, 0.98), rgba(255, 255, 255, 0.9));
+      border: 1px solid rgba(206, 135, 72, 0.28);
+      flex: 1;
+      grid-template-rows: 1.08fr 0.92fr;
+    }
+
+    .tech-layers {
+      display: grid;
+      gap: 4px;
+      grid-template-rows: 1fr auto 1fr auto 1fr;
+    }
+
+    .tech-layer {
+      display: grid;
+      grid-template-columns: 62px 1fr;
+      align-items: center;
+      gap: 5px;
+      min-height: 0;
+    }
+
+    .layer-label {
+      display: grid;
+      place-items: center;
+      height: 100%;
+      border-radius: 6px;
+      color: var(--white);
+      background: var(--brand);
+      font-size: 10px;
+      line-height: 1.1;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .tech-layer:nth-child(2) .layer-label {
+      background: var(--gold);
+    }
+
+    .layer-cells {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+    }
+
+    .layer-cells.three {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .layer-cell {
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border-radius: 6px;
+      color: var(--text-strong);
+      background: var(--white);
+      border: 1px solid var(--line);
+      font-size: 9px;
+      line-height: 1.08;
+      font-weight: 800;
+    }
+
+    .tech-spine {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 5px;
+      color: var(--brand-deep);
+      font-size: 9px;
+      line-height: 1.1;
+      font-weight: 900;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .tech-spine::before,
+    .tech-spine::after {
+      content: "";
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .design-points {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .design-point {
+      padding: 5px 6px;
+      border-radius: 6px;
+      background: var(--soft);
+      border-left: 3px solid var(--gold);
+      color: var(--text);
+      font-size: 10px;
+      line-height: 1.12;
+      font-weight: 700;
+      display: grid;
+      align-content: center;
+    }
+
+    .design-point strong {
+      display: block;
+      color: var(--brand);
+      font-size: 11px;
+      line-height: 1.1;
+      margin-bottom: 2px;
+      font-weight: 900;
+    }
+
+    .flow-lane {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      align-items: stretch;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 43px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border-radius: 7px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      color: var(--text-strong);
+      font-size: 11px;
+      line-height: 1.18;
+      font-weight: 900;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -8px;
+      width: 10px;
+      height: 2px;
+      background: var(--gold);
+      z-index: 1;
+    }
+
+    .flow-step.em {
+      color: var(--brand);
+      border-color: rgba(212, 28, 38, 0.25);
+      box-shadow: inset 0 0 0 3px rgba(212, 28, 38, 0.06);
+    }
+
+    .flow-outputs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+    }
+
+    .flow-cover {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+
+    .flow-stack {
+      display: grid;
+      gap: 3px;
+    }
+
+    .flow-pill,
+    .flow-sink {
+      min-height: 17px;
+      display: grid;
+      place-items: center;
+      border-radius: 5px;
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--text-strong);
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+
+    .flow-pill {
+      min-height: 18px;
+      color: var(--text);
+      font-size: 9px;
+      background: rgba(246, 247, 249, 0.95);
+    }
+
+    .flow-center {
+      position: relative;
+      min-height: 76px;
+      display: grid;
+      place-items: center;
+    }
+
+    .flow-center::before,
+    .flow-center::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 44%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .flow-center::before {
+      left: 0;
+    }
+
+    .flow-center::after {
+      right: 0;
+    }
+
+    .flow-core {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--brand);
+      font-size: 12px;
+      line-height: 1.18;
+      font-weight: 900;
+      background: var(--white);
+      border: 6px solid rgba(212, 28, 38, 0.16);
+      box-shadow: 0 8px 18px rgba(46, 49, 56, 0.08);
+      z-index: 1;
+    }
+
+    .flow-sink {
+      color: var(--brand-deep);
+      border-color: rgba(212, 28, 38, 0.2);
+      background: rgba(212, 28, 38, 0.04);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 6px 4px 5px;
+      border-radius: 7px;
+      background: var(--soft);
+      border-top: 4px solid var(--brand);
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--brand);
+      font-size: 23px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 3px;
+      color: var(--text);
+      font-size: 10px;
+      line-height: 1.2;
+      font-weight: 800;
+    }
+
+    .progress-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .progress-detail {
+      min-height: 60px;
+      padding: 7px 8px;
+      border-radius: 7px;
+      background: var(--soft);
+      border-top: 3px solid rgba(212, 28, 38, 0.82);
+    }
+
+    .progress-table-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 3px;
+      flex: 1;
+    }
+
+    .mini-table {
+      min-width: 0;
+      border-radius: 7px;
+      overflow: hidden;
+      border: 1px solid rgba(212, 28, 38, 0.16);
+      background: var(--white);
+      display: grid;
+      grid-template-rows: auto repeat(3, 1fr);
+    }
+
+    .mini-table-title {
+      padding: 2px 6px;
+      color: var(--white);
+      background: var(--brand);
+      font-size: 10px;
+      line-height: 1.05;
+      font-weight: 900;
+    }
+
+    .mini-row {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      border-top: 1px solid var(--line);
+    }
+
+    .mini-row span {
+      padding: 2px 4px;
+      color: var(--muted);
+      background: rgba(246, 247, 249, 0.95);
+      font-size: 8px;
+      line-height: 1.04;
+      font-weight: 800;
+      display: grid;
+      align-content: center;
+    }
+
+    .mini-row b {
+      padding: 2px 4px;
+      color: var(--text);
+      font-size: 8px;
+      line-height: 1.04;
+      font-weight: 700;
+      display: grid;
+      align-content: center;
+    }
+
+    .plan {
+      display: grid;
+      grid-template-columns: 196px 1fr;
+      align-items: stretch;
+      gap: 18px;
+      padding: 15px 18px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(206, 135, 72, 0.34);
+      box-shadow: 0 8px 20px rgba(46, 49, 56, 0.06);
+    }
+
+    .plan-title {
+      display: grid;
+      align-content: center;
+      justify-items: start;
+      border-right: 1px solid var(--line);
+      padding-right: 18px;
+    }
+
+    .plan-title .label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .plan-title .main {
+      color: var(--brand);
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 900;
+      margin-top: 3px;
+    }
+
+    .plan-lines {
+      display: grid;
+      gap: 8px;
+      align-content: center;
+    }
+
+    .plan-line {
+      position: relative;
+      min-width: 0;
+      padding-left: 34px;
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1.36;
+      font-weight: 600;
+    }
+
+    .plan-line::before {
+      content: attr(data-no);
+      position: absolute;
+      left: 0;
+      top: 0.05em;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--brand);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    code {
+      font-family: "Cascadia Mono", Consolas, monospace;
+      color: var(--brand-deep);
+      background: rgba(212, 28, 38, 0.07);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    @media print {
+      body {
+        background: var(--white);
+      }
+
+      .slide {
+        width: 100vw;
+        height: 100vh;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide" aria-label="NextAgent 可观测特性进展一页汇报">
+    <div class="network" aria-hidden="true"></div>
+    <div class="ribbon" aria-hidden="true"></div>
+    <div class="red-band" aria-hidden="true"></div>
+
+    <header>
+      <div class="title-line">
+        <div class="logo">NextAgent</div>
+        <h1>可观测特性进展汇报</h1>
+        <div class="en">OBSERVABILITY PROGRESS</div>
+      </div>
+      <div class="motto">可解释 · 可追溯 · 可治理</div>
+    </header>
+
+    <section class="target" aria-label="目标">
+      <div class="target-title">
+        <div class="small">WHAT / 目标牵引</div>
+        <div class="large">黑盒目标</div>
+      </div>
+      <div class="target-lines">
+        <div class="target-line">从用户侧看：长链路任务有进度、有阶段、有结果来源，不再只是“执行中”。</div>
+        <div class="target-line">从系统侧看：RAG、模型、工具、网关的耗时、token、状态和异常能串成一条证据链。</div>
+        <div class="target-line">从治理侧看：AI 资源访问、能力调用、脱敏输出和审计证据可追溯、可复盘。</div>
+      </div>
+    </section>
+
+    <main class="middle">
+      <article class="card need">
+        <div class="card-top">
+          <div class="card-num">01</div>
+          <div class="card-head"><h2>业务诉求</h2></div>
+        </div>
+        <div class="need-grid">
+          <div class="need-item">
+            <strong>运行过程可感知</strong>
+            <span><b>模型 loop 时间长：</b>多轮思考、RAG 检索、工具执行会拉长周期，需要展示阶段、进度和首个可见输出。</span>
+          </div>
+          <div class="need-item">
+            <strong>答案来源可解释</strong>
+            <span><b>网络诊断要有依据：</b>需要看到关键思考、知识来源、工具/技能选择和重要执行步骤。</span>
+          </div>
+          <div class="need-item">
+            <strong>异常定位可追踪</strong>
+            <span><b>链路跨边界：</b>RAG、模型、工具、沙箱、网关任一环节退化，都要定位到边界、原因码和影响范围。</span>
+          </div>
+          <div class="need-item">
+            <strong>治理证据可留痕</strong>
+            <span><b>AI 资源有法规要求：</b>模型访问、能力调用、策略拒绝和安全脱敏必须自动留痕，便于复盘。</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card tech">
+        <div class="card-top">
+          <div class="card-num">02</div>
+          <div class="card-head"><h2>关键技术</h2></div>
+        </div>
+        <div class="tech-flow" aria-label="关键技术链路图">
+          <div class="tech-layers">
+            <div class="tech-layer">
+              <div class="layer-label">主路径</div>
+              <div class="layer-cells">
+                <div class="layer-cell">Runtime</div>
+                <div class="layer-cell">Context<br>RAG</div>
+                <div class="layer-cell">Model<br>Loop</div>
+                <div class="layer-cell">Tool<br>Skill</div>
+                <div class="layer-cell">Gateway</div>
+              </div>
+            </div>
+            <div class="tech-spine">监听/Wrapper</div>
+            <div class="tech-layer">
+              <div class="layer-label">观测流</div>
+              <div class="layer-cells three">
+                <div class="layer-cell">稳定标识<br>Owner/Agent</div>
+                <div class="layer-cell">耗时/Token<br>状态/原因码</div>
+                <div class="layer-cell">统一脱敏<br>安全摘要</div>
+              </div>
+            </div>
+            <div class="tech-spine">Projector</div>
+            <div class="tech-layer">
+              <div class="layer-label">输出面</div>
+              <div class="layer-cells">
+                <div class="layer-cell">日志</div>
+                <div class="layer-cell">审计</div>
+                <div class="layer-cell">指标</div>
+                <div class="layer-cell">Trace</div>
+                <div class="layer-cell">健康</div>
+              </div>
+            </div>
+          </div>
+          <div class="design-points">
+            <div class="design-point"><strong>全流程覆盖</strong>同一事件模型贯穿请求、模型、能力、网关、健康和系统运行。</div>
+            <div class="design-point"><strong>无侵入采集</strong>监听 runtime 事件，用 wrapper 包住慢边界，不改业务语义。</div>
+            <div class="design-point"><strong>同源多投影</strong>一份安全观测流投影为日志、审计、指标、Trace，避免多套口径。</div>
+            <div class="design-point"><strong>安全先行</strong>禁止 raw prompt、模型输出、路径、密钥等进入任何观测输出。</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card progress">
+        <div class="card-top">
+          <div class="card-num">03</div>
+          <div class="card-head"><h2>当前进展</h2></div>
+        </div>
+        <div class="progress-table-grid">
+          <div class="mini-table">
+            <div class="mini-table-title">事件流</div>
+            <div class="mini-row"><span>规模</span><b>6 类边界</b></div>
+            <div class="mini-row"><span>覆盖</span><b>请求/模型/能力/网关/健康/系统</b></div>
+            <div class="mini-row"><span>价值</span><b>全流程先串起来</b></div>
+          </div>
+          <div class="mini-table">
+            <div class="mini-table-title">结构化日志</div>
+            <div class="mini-row"><span>规模</span><b>18 类日志</b></div>
+            <div class="mini-row"><span>覆盖</span><b>请求/模型/工具/网关/调度/恢复</b></div>
+            <div class="mini-row"><span>价值</span><b>定位、复盘、降级识别</b></div>
+          </div>
+          <div class="mini-table">
+            <div class="mini-table-title">审计</div>
+            <div class="mini-row"><span>规模</span><b>23 类事件</b></div>
+            <div class="mini-row"><span>覆盖</span><b>请求终态/能力安全/模型凭证/策略</b></div>
+            <div class="mini-row"><span>价值</span><b>AI 访问和治理留痕</b></div>
+          </div>
+          <div class="mini-table">
+            <div class="mini-table-title">监控指标</div>
+            <div class="mini-row"><span>规模</span><b>23 类指标</b></div>
+            <div class="mini-row"><span>覆盖</span><b>耗时/TTFT/chunk/token/结果/健康</b></div>
+            <div class="mini-row"><span>价值</span><b>容量治理和性能调优</b></div>
+          </div>
+          <div class="mini-table">
+            <div class="mini-table-title">Trace</div>
+            <div class="mini-row"><span>规模</span><b>OTel Span + Link</b></div>
+            <div class="mini-row"><span>覆盖</span><b>主路径 span/状态/稳定属性/traceparent</b></div>
+            <div class="mini-row"><span>价值</span><b>跨边界追踪和链路复盘</b></div>
+          </div>
+          <div class="mini-table">
+            <div class="mini-table-title">安全治理</div>
+            <div class="mini-row"><span>规模</span><b>统一脱敏策略</b></div>
+            <div class="mini-row"><span>覆盖</span><b>prompt/模型输出/路径/密钥/附件内容</b></div>
+            <div class="mini-row"><span>价值</span><b>敏感信息不进入观测输出</b></div>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <section class="plan" aria-label="下一步计划">
+      <div class="plan-title">
+        <div class="label">NEXT</div>
+        <div class="main">下一步计划</div>
+      </div>
+      <div class="plan-lines">
+        <div class="plan-line" data-no="1">在已覆盖请求、模型、能力、网关、健康和系统边界基础上，细化 workflow、RAG、remote adapter 的业务观测字段。</div>
+        <div class="plan-line" data-no="2">基于已有耗时、TTFT、chunk、token 和健康指标，建设阈值告警、容量趋势和退化预警看板。</div>
+        <div class="plan-line" data-no="3">把日志、审计、指标、Trace 汇聚成运维复盘视图，并固化脱敏、非阻塞降级和主路径稳定性的 E2E 门禁。</div>
+      </div>
+    </section>
+  </section>
+</body>
+</html>

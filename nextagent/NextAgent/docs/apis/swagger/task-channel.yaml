@@ -1,0 +1,910 @@
+swagger: '2.0'
+info:
+  title: Task Channel API
+  version: 1.0.0
+  description: >-
+    NextAgent Task Channel API. All endpoints are served under the /api/v1 prefix. Task Channel exposes runtime
+    request identity as `taskId` (runtime requestId) and preserves `sessionId` as a separate session coordinate;
+    it never exposes `runId`, `contextId` or other internal runtime diagnostic fields. Streaming endpoints return
+    SSE directly as the HTTP response body; async endpoints return JSON control responses and trigger callback
+    delivery. Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/stream-task:
+    post:
+      operationId: streamCreateTask
+      summary: Create a task and stream SSE events
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+        - multipart/form-data
+      produces:
+        - text/event-stream
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/StreamCreateTaskBody'
+      responses:
+        '200':
+          description: SSE stream of TaskEvent envelopes
+          schema:
+            $ref: '#/definitions/TaskEvent'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/stream-task/{taskId}/edit:
+    post:
+      operationId: streamEditTask
+      summary: Edit the latest task and stream SSE events
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+        - multipart/form-data
+      produces:
+        - text/event-stream
+        - application/json
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/StreamEditTaskBody'
+      responses:
+        '200':
+          description: SSE stream of TaskEvent envelopes
+          schema:
+            $ref: '#/definitions/TaskEvent'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/stream-task/{taskId}/retry:
+    post:
+      operationId: streamRetryTask
+      summary: Retry the latest task and stream SSE events
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+      produces:
+        - text/event-stream
+        - application/json
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/StreamRetryTaskBody'
+      responses:
+        '200':
+          description: SSE stream of TaskEvent envelopes
+          schema:
+            $ref: '#/definitions/TaskEvent'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/async-tasks:
+    post:
+      operationId: createAsyncTasks
+      summary: Create tasks asynchronously with callback delivery
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/AsyncCreateTaskBody'
+      responses:
+        '200':
+          description: Batch control response
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '400':
+          description: Validation error or all items failed
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/async-tasks/edit:
+    post:
+      operationId: editAsyncTasks
+      summary: Edit tasks asynchronously with callback delivery
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/AsyncEditTaskBody'
+      responses:
+        '200':
+          description: Batch control response
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '400':
+          description: Validation error or all items failed
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/async-tasks/retry:
+    post:
+      operationId: retryAsyncTasks
+      summary: Retry tasks asynchronously with callback delivery
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/AsyncRetryTaskBody'
+      responses:
+        '200':
+          description: Batch control response
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '400':
+          description: Validation error or all items failed
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/tasks/cancel:
+    post:
+      operationId: cancelTasks
+      summary: Cancel tasks in batch
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CancelTaskBody'
+      responses:
+        '200':
+          description: Batch control response
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '400':
+          description: Validation error or all items failed
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/tasks/query:
+    post:
+      operationId: queryTasks
+      summary: Query task status in batch
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TaskQueryBody'
+      responses:
+        '200':
+          description: Batch query response
+          schema:
+            $ref: '#/definitions/TaskQueryBatchResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/tasks/pending-inputs/answer:
+    post:
+      operationId: answerPendingInputs
+      summary: Answer pending inputs in batch
+      tags:
+        - TaskChannel
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/TaskPendingInputAnswerBody'
+      responses:
+        '200':
+          description: Batch control response
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '400':
+          description: Validation error or all items failed
+          schema:
+            $ref: '#/definitions/TaskBatchResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '403':
+          description: Authorization denied
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  TaskStatus:
+    type: string
+    enum:
+      - TASK_ACCEPTED
+      - TASK_QUEUED
+      - TASK_PLANNING
+      - TASK_EXECUTING
+      - TASK_PENDING
+      - TASK_COMPLETED
+      - TASK_FAILED
+      - TASK_CANCELED
+      - TASK_SUPERSEDED
+  TaskEventType:
+    type: string
+    enum:
+      - TASK_ACCEPTED
+      - THINKING_DELTA
+      - CONTENT_DELTA
+      - CAPABILITY_STARTED
+      - CAPABILITY_RESULT_DELTA
+      - CAPABILITY_COMPLETED
+      - TOOL_STRUCTURED_DELTA
+      - DEGRADATION_NOTICE
+      - TASK_COMPLETED
+      - TASK_FAILED
+      - TASK_CANCELED
+      - TASK_SUPERSEDED
+      - USER_INPUT_REQUIRED
+      - USER_INPUT_RECEIVED
+      - USER_INPUT_TIMEOUT
+      - USER_INPUT_CANCELED
+      - ATTACHMENT_ACCEPTED
+      - ATTACHMENT_REJECTED
+      - CONTEXT_COMPACTED
+  ReportEvents:
+    type: string
+    description: >-
+      Event filter selector for callback delivery. ALL delivers all event types; TERMINAL delivers only
+      terminal events. An explicit array of event types is reserved for a later change; the current behavior
+      is equivalent to ALL.
+    enum:
+      - ALL
+      - TERMINAL
+  TaskMessage:
+    type: object
+    description: >-
+      A single task input message. Exactly one of text, data, or fileContent MUST be present. The current
+      execution version requires exactly one TaskMessage for create and edit.
+    properties:
+      text:
+        type: string
+        minLength: 1
+        maxLength: 32768
+      data:
+        type: object
+        additionalProperties: true
+      fileContent:
+        type: object
+        properties:
+          raw:
+            type: string
+            minLength: 1
+            maxLength: 16777216
+            description: Base64-encoded file content.
+          url:
+            type: string
+            minLength: 1
+            maxLength: 2048
+            description: Remote HTTP(S) file locator; the channel does not download it directly.
+          filename:
+            type: string
+            minLength: 1
+            maxLength: 255
+          mediaType:
+            type: string
+            minLength: 1
+            maxLength: 255
+        required:
+          - filename
+          - mediaType
+        additionalProperties: false
+      metadata:
+        type: object
+        properties:
+          eventId:
+            type: string
+            minLength: 1
+            maxLength: 256
+        additionalProperties: true
+    additionalProperties: false
+  StreamCreateTaskBody:
+    type: object
+    required:
+      - taskMessages
+    properties:
+      taskMessages:
+        type: array
+        minItems: 1
+        maxItems: 1
+        items:
+          $ref: '#/definitions/TaskMessage'
+      locale:
+        type: string
+        minLength: 2
+        maxLength: 35
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 256
+      reportEvents:
+        $ref: '#/definitions/ReportEvents'
+    additionalProperties: false
+  StreamEditTaskBody:
+    type: object
+    required:
+      - sessionId
+      - taskMessages
+      - idempotencyKey
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      taskMessages:
+        type: array
+        minItems: 1
+        maxItems: 1
+        items:
+          $ref: '#/definitions/TaskMessage'
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 256
+      locale:
+        type: string
+        minLength: 2
+        maxLength: 35
+      reportEvents:
+        $ref: '#/definitions/ReportEvents'
+    additionalProperties: false
+  StreamRetryTaskBody:
+    type: object
+    required:
+      - sessionId
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  AsyncCreateTaskItem:
+    type: object
+    required:
+      - taskMessages
+      - callbackTarget
+    properties:
+      taskMessages:
+        type: array
+        minItems: 1
+        maxItems: 1
+        items:
+          $ref: '#/definitions/TaskMessage'
+      callbackTarget:
+        type: object
+        required:
+          - url
+        properties:
+          url:
+            type: string
+            minLength: 1
+            maxLength: 2048
+        additionalProperties: false
+      locale:
+        type: string
+        minLength: 2
+        maxLength: 35
+      reportEvents:
+        $ref: '#/definitions/ReportEvents'
+    additionalProperties: false
+  AsyncCreateTaskBody:
+    type: object
+    required:
+      - tasks
+    properties:
+      tasks:
+        type: array
+        minItems: 1
+        maxItems: 20
+        items:
+          $ref: '#/definitions/AsyncCreateTaskItem'
+    additionalProperties: false
+  AsyncEditTaskItem:
+    type: object
+    required:
+      - taskId
+      - sessionId
+      - taskMessages
+      - idempotencyKey
+    properties:
+      taskId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      taskMessages:
+        type: array
+        minItems: 1
+        maxItems: 1
+        items:
+          $ref: '#/definitions/TaskMessage'
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 256
+      locale:
+        type: string
+        minLength: 2
+        maxLength: 35
+    additionalProperties: false
+  AsyncEditTaskBody:
+    type: object
+    required:
+      - tasks
+    properties:
+      tasks:
+        type: array
+        minItems: 1
+        maxItems: 20
+        items:
+          $ref: '#/definitions/AsyncEditTaskItem'
+    additionalProperties: false
+  AsyncRetryTaskItem:
+    type: object
+    required:
+      - taskId
+      - sessionId
+    properties:
+      taskId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  AsyncRetryTaskBody:
+    type: object
+    required:
+      - tasks
+    properties:
+      tasks:
+        type: array
+        minItems: 1
+        maxItems: 20
+        items:
+          $ref: '#/definitions/AsyncRetryTaskItem'
+    additionalProperties: false
+  TaskControlItem:
+    type: object
+    required:
+      - taskId
+      - sessionId
+    properties:
+      taskId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  CancelTaskBody:
+    type: object
+    required:
+      - tasks
+    properties:
+      tasks:
+        type: array
+        minItems: 1
+        maxItems: 20
+        items:
+          $ref: '#/definitions/TaskControlItem'
+    additionalProperties: false
+  TaskQueryItem:
+    type: object
+    required:
+      - sessionId
+      - taskId
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      taskId:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  TaskQueryBody:
+    type: object
+    required:
+      - tasks
+    properties:
+      tasks:
+        type: array
+        minItems: 1
+        maxItems: 20
+        items:
+          $ref: '#/definitions/TaskQueryItem'
+    additionalProperties: false
+  TaskPendingInputAnswerItem:
+    type: object
+    required:
+      - taskId
+      - pendingInputId
+      - sessionId
+      - answers
+    properties:
+      taskId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      pendingInputId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      answers:
+        type: array
+        minItems: 1
+        maxItems: 100
+        items:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4096
+    additionalProperties: false
+  TaskPendingInputAnswerBody:
+    type: object
+    required:
+      - tasks
+    properties:
+      tasks:
+        type: array
+        minItems: 1
+        maxItems: 20
+        items:
+          $ref: '#/definitions/TaskPendingInputAnswerItem'
+    additionalProperties: false
+  TaskControlResponse:
+    type: object
+    required:
+      - sessionId
+      - taskId
+      - taskStatus
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      taskId:
+        type: string
+        minLength: 1
+      taskStatus:
+        $ref: '#/definitions/TaskStatus'
+    additionalProperties: false
+  TaskBatchItemResult:
+    type: object
+    description: >-
+      A single batch result. On success it carries sessionId, taskId and taskStatus; retry responses also
+      carry attempt. On failure it carries an error object.
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      taskId:
+        type: string
+        minLength: 1
+      taskStatus:
+        $ref: '#/definitions/TaskStatus'
+      attempt:
+        type: integer
+        minimum: 1
+      error:
+        type: object
+        required:
+          - code
+          - message
+          - retryable
+        properties:
+          code:
+            type: string
+            minLength: 1
+          message:
+            type: string
+            minLength: 1
+          retryable:
+            type: boolean
+        additionalProperties: false
+    additionalProperties: false
+  TaskBatchResponse:
+    type: object
+    required:
+      - results
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/TaskBatchItemResult'
+    additionalProperties: false
+  TaskQueryResult:
+    type: object
+    required:
+      - sessionId
+      - taskId
+      - taskStatus
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      taskId:
+        type: string
+        minLength: 1
+      taskStatus:
+        $ref: '#/definitions/TaskStatus'
+      data:
+        type: object
+        additionalProperties: true
+        description: >-
+          Flat payload keyed by task state. When a pending input is active it contains pendingInputId, kind,
+          questions, and optional overtime. When the task is terminal it contains content and contentType,
+          and optional safe error fields code, category, retryable.
+    additionalProperties: false
+  TaskQueryBatchItemResult:
+    type: object
+    description: >-
+      A single query result. On success it carries sessionId, taskId, taskStatus and optional data; on
+      failure it carries an error object.
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      taskId:
+        type: string
+        minLength: 1
+      taskStatus:
+        $ref: '#/definitions/TaskStatus'
+      data:
+        type: object
+        additionalProperties: true
+      error:
+        type: object
+        required:
+          - code
+          - message
+        properties:
+          code:
+            type: string
+            minLength: 1
+          message:
+            type: string
+            minLength: 1
+        additionalProperties: false
+    additionalProperties: false
+  TaskQueryBatchResponse:
+    type: object
+    required:
+      - results
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/TaskQueryBatchItemResult'
+    additionalProperties: false
+  TaskEvent:
+    type: object
+    description: >-
+      SSE event envelope projected by the Task Channel from runtime stream envelopes. BACKGROUND_TASK_STARTED,
+      BACKGROUND_TASK_COMPLETED, BACKGROUND_TASK_FAILED and OUTPUT_GUARD_BLOCKED event types are filtered
+      out and never delivered to SSE or callback consumers.
+    required:
+      - eventId
+      - eventType
+      - sessionId
+      - taskId
+      - sequence
+      - createdAt
+      - payload
+    properties:
+      eventId:
+        type: string
+        minLength: 1
+      eventType:
+        $ref: '#/definitions/TaskEventType'
+      sessionId:
+        type: string
+        minLength: 1
+      taskId:
+        type: string
+        minLength: 1
+      sequence:
+        type: integer
+        minimum: 0
+      createdAt:
+        type: number
+        minimum: 0
+      payload:
+        type: object
+        additionalProperties: true
+    additionalProperties: false

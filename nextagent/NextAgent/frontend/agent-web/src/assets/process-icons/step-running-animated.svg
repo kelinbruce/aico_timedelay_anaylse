@@ -1,0 +1,7 @@
+<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+<circle cx="8" cy="8" r="8" fill="rgb(32,112,243)" />
+<g>
+<animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 8 8" to="360 8 8" dur="1.2s" repeatCount="indefinite" />
+<path d="M5.26257 7.27249C5.26257 7.27249 5.26707 6.14749 5.26257 6.15349C4.90707 6.67999 4.70007 7.31599 4.70007 7.99999C4.70007 9.82249 6.17757 11.3 8.00007 11.3C8.34282 11.3 8.6732 11.2475 8.98389 11.1504M10.7361 8.72449L10.7466 9.82999C11.0961 9.30499 11.3001 8.67649 11.3001 7.99849C11.3001 6.17599 9.82257 4.69849 8.00007 4.69849C7.65882 4.69849 7.32957 4.75061 7.01982 4.84699" stroke="rgb(255,255,255)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
+</g>
+</svg>

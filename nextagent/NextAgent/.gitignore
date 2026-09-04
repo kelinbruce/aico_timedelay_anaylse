@@ -1,0 +1,82 @@
+﻿# Agents
+.omx/
+.codex/
+.zcode/
+workspaces/
+skills/nextagent-debug/
+.trae/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+/data/
+coverage/
+test-results/
+playwright-report/
+test-output/
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
+!packages/agent-local-file-roll/src/pino-roll.d.ts
+packages/agent-dev-workbench/web-dist/
+
+# Package artifacts
+nextagent-local-*.zip
+nextagent-local-*.tar.gz
+dist/pack/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+.dev-logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Cache
+.cache/
+__pycache__/
+*.py[cod]
+.nextagent/
+.npm-cache/
+.temp/
+.tmp/
+.omc/
+
+# TESTClaw test artifacts
+tests/TESTClaw/test-output/
+tests/TESTClaw/target/
+.local-config/
+
+# Local scratch / tooling artifacts
+create-mr.cjs
+err.txt
+out.txt
+start.bat
+execution/
+skills/
+# Keep the tracked agent-capability Skill sources committable: the broad
+# `skills/` rule above also matches packages/agent-capability/src/skills,
+# which makes `git add` reject its already-tracked files.
+!packages/agent-capability/src/skills/
+
+# codegraph index cache
+.codegraph/

@@ -1,0 +1,8 @@
+id: refine-session-title-and-search-validation
+title: Refine session title and history search validation
+status: active
+created: 2026-07-20
+spec:
+  - session-title-update
+  - session-history-search
+  - ts-minimal-agent-kernel

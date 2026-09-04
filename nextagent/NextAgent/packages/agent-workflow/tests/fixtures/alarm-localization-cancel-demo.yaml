@@ -1,0 +1,108 @@
+type: recipe
+recipeName: alarm-localization-cancel-demo
+version: v1
+displayName: 告警定位与取消回退演示
+description: 演示外部 cancel 触发后执行回退补偿节点（配置回滚 + 资源释放），再终止流程
+domain: 网络运维
+scene: 告警定位
+lang: zh
+runtime:
+  timeout: 120
+  controlPolicy:
+    cancel:
+      rollbackNode:
+        rollback_cleanup:
+          condition: ''
+    cancelTimeout: 30
+flowGraph:
+  nodes:
+    start:
+      type: START
+      next:
+        fetch_alarm:
+          condition: ''
+
+    fetch_alarm:
+      type: TOOL
+      description: 拉取告警详情
+      inputs:
+        tool_name: fetch_alarm_detail
+        alarm_id: '${input_question}'
+      outputs:
+        alarm_detail: '${alarm_detail}'
+        affected_cells: '${affected_cells}'
+      next:
+        diagnose:
+          condition: ''
+
+    diagnose:
+      type: TOOL
+      description: 诊断故障根因
+      inputs:
+        tool_name: diagnose_fault
+        alarm_detail: '${alarm_detail}'
+        affected_cells: '${affected_cells}'
+      outputs:
+        root_cause: '${root_cause}'
+        diagnostic_report: '${diagnostic_report}'
+      next:
+        apply_remediation:
+          condition: ''
+
+    apply_remediation:
+      type: TOOL
+      description: 执行修复操作（配置下发 + 资源调整）
+      inputs:
+        tool_name: apply_remediation
+        root_cause: '${root_cause}'
+        affected_cells: '${affected_cells}'
+      outputs:
+        remediation_result: '${remediation_result}'
+        config_snapshot: '${config_snapshot}'
+      next:
+        verify:
+          condition: ''
+
+    verify:
+      type: TOOL
+      description: 验证修复效果
+      inputs:
+        tool_name: verify_remediation
+        remediation_result: '${remediation_result}'
+        affected_cells: '${affected_cells}'
+      outputs:
+        verify_result: '${verify_result}'
+      next:
+        summarize:
+          condition: ''
+
+    summarize:
+      type: LLM
+      description: 生成告警处理总结
+      inputs:
+        prompt: '根据告警诊断和修复结果，生成处理总结。根因：${root_cause}，修复结果：${remediation_result}，验证结果：${verify_result}'
+      outputs:
+        summary: '${summary}'
+        message: '${summary}'
+      next:
+        end:
+          condition: ''
+
+    rollback_cleanup:
+      type: TOOL
+      description: 取消回退补偿节点 - 回滚已下发的配置并释放占用的资源
+      inputs:
+        tool_name: rollback_config_and_release
+        config_snapshot: '${config_snapshot}'
+        affected_cells: '${affected_cells}'
+      outputs:
+        config_reverted: '${config_reverted}'
+        resource_released: '${resource_released}'
+        cleanup_report: '${cleanup_report}'
+      next:
+        end:
+          condition: ''
+
+    end:
+      type: END
+      next: {}

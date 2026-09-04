@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist", "tsBuildInfoFile": "../../dist/tsbuildinfo/agent-context-engine.tsbuildinfo" },
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "../agent-contracts" }]
+}

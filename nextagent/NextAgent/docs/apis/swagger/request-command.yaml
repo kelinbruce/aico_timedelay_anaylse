@@ -1,0 +1,562 @@
+swagger: '2.0'
+info:
+  title: Request Command API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/sessions/{sessionId}/requests:
+    post:
+      operationId: submitRequest
+      summary: Submit a request to a session
+      tags:
+        - RequestCommand
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SubmitBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/RequestAcceptedResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/requests:
+    post:
+      operationId: convenienceSubmitRequest
+      summary: Convenience submit (auto-create or reuse session)
+      tags:
+        - RequestCommand
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ConvenienceSubmitBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/RequestAcceptedResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/cancel:
+    post:
+      operationId: cancelRequest
+      summary: Cancel the in-flight request
+      tags:
+        - RequestCommand
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CancelBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CancelResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/retry:
+    post:
+      operationId: retryRequest
+      summary: Retry the last request
+      tags:
+        - RequestCommand
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/RetryBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/RequestAcceptedResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/requests/latest/edit:
+    post:
+      operationId: editLatestRequest
+      summary: Edit the latest request input text
+      tags:
+        - RequestCommand
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/EditLatestBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/RequestAcceptedResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/pending-inputs/{pendingInputId}/answer:
+    post:
+      operationId: answerPendingInput
+      summary: Answer a pending input prompt
+      tags:
+        - RequestCommand
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: pendingInputId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PendingInputAnswerBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/PendingInputAnswerResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/requests/{requestId}/suggested-questions:
+    post:
+      operationId: getSuggestedQuestions
+      summary: Get suggested questions for a request
+      tags:
+        - RequestCommand
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: requestId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SuggestedQuestionsResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  TempFileRef:
+    type: object
+    required:
+      - tempRunId
+      - fileName
+    properties:
+      tempRunId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      fileName:
+        type: string
+        minLength: 1
+        maxLength: 255
+    additionalProperties: false
+  SubmitBody:
+    type: object
+    required:
+      - inputText
+      - idempotencyKey
+    properties:
+      inputText:
+        type: string
+        minLength: 1
+        maxLength: 32768
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 256
+      locale:
+        type: string
+        enum:
+          - zh-CN
+          - en-US
+      attachments:
+        type: array
+        maxItems: 10
+        items:
+          $ref: '#/definitions/TempFileRef'
+    additionalProperties: false
+  ConvenienceSubmitBody:
+    type: object
+    required:
+      - inputText
+      - idempotencyKey
+    properties:
+      inputText:
+        type: string
+        minLength: 1
+        maxLength: 32768
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 256
+      locale:
+        type: string
+        enum:
+          - zh-CN
+          - en-US
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      attachments:
+        type: array
+        maxItems: 10
+        items:
+          $ref: '#/definitions/TempFileRef'
+    additionalProperties: false
+  CancelBody:
+    type: object
+    required:
+      - expectedLatestRequestId
+      - idempotencyKey
+    properties:
+      expectedLatestRequestId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      action:
+        type: string
+        enum:
+          - CANCEL
+          - CANCEL_LATEST
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  RetryBody:
+    type: object
+    required:
+      - expectedLatestRequestId
+      - idempotencyKey
+    properties:
+      expectedLatestRequestId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  EditLatestBody:
+    type: object
+    required:
+      - expectedLatestRequestId
+      - editedInputText
+      - idempotencyKey
+    properties:
+      expectedLatestRequestId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      editedInputText:
+        type: string
+        minLength: 1
+        maxLength: 32768
+      idempotencyKey:
+        type: string
+        minLength: 1
+        maxLength: 256
+      locale:
+        type: string
+        enum:
+          - zh-CN
+          - en-US
+      attachments:
+        type: array
+        maxItems: 0
+        items:
+          type: string
+    additionalProperties: false
+  PendingInputAnswerBody:
+    type: object
+    required:
+      - answers
+    properties:
+      answers:
+        type: array
+        minItems: 1
+        maxItems: 100
+        items:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: string
+            minLength: 1
+            maxLength: 4096
+    additionalProperties: false
+  RequestAcceptedResponse:
+    type: object
+    required:
+      - sessionId
+      - requestId
+      - runId
+      - attempt
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      requestId:
+        type: string
+        minLength: 1
+      runId:
+        type: string
+        minLength: 1
+      attempt:
+        type: integer
+        minimum: 1
+    additionalProperties: false
+  CancelResponse:
+    type: object
+    required:
+      - sessionId
+      - targetRequestId
+      - action
+      - idempotencyKey
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      targetRequestId:
+        type: string
+        minLength: 1
+      action:
+        type: string
+        minLength: 1
+      idempotencyKey:
+        type: string
+        minLength: 1
+    additionalProperties: false
+  PendingInputAnswerResponse:
+    type: object
+    required:
+      - sessionId
+      - pendingInputId
+      - status
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+      pendingInputId:
+        type: string
+        minLength: 1
+      status:
+        type: string
+        minLength: 1
+    additionalProperties: false
+  SuggestedQuestionsResponse:
+    type: object
+    required:
+      - questions
+    properties:
+      questions:
+        type: array
+        items:
+          type: string
+    additionalProperties: false

@@ -1,0 +1,11 @@
+{
+  "profileId": "timeout-budget-p0-regression",
+  "nonScoring": true,
+  "taskIds": [
+    "021-batch-rename-transform",
+    "042-api-schema-migration",
+    "077-archive-manifest-defense",
+    "086-sql-migration-preflight-rollback",
+    "092-schema-drift-audit"
+  ]
+}

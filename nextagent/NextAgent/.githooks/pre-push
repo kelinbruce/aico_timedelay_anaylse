@@ -1,0 +1,19 @@
+#!/bin/sh
+
+echo "Running npm test before push..."
+npm test
+status=$?
+
+if [ "$status" -ne 0 ]; then
+  echo "npm test failed. Push aborted."
+  exit "$status"
+fi
+
+echo "Running lint:architecture before push..."
+npm run lint:architecture
+status=$?
+
+if [ "$status" -ne 0 ]; then
+  echo "lint:architecture failed. Push aborted."
+  exit "$status"
+fi

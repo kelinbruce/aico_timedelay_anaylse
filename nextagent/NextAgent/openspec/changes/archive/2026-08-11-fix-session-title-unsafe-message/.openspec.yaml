@@ -1,0 +1,6 @@
+id: fix-session-title-unsafe-message
+title: Distinguish session title unsafe-content messages by category and fix title validation error formatting
+status: draft
+created: 2026-08-08
+spec:
+  - session-title-update

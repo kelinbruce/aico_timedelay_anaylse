@@ -1,0 +1,318 @@
+openapi: 3.0.3
+info:
+  title: AgentMemory Runtime Trace API
+  version: 0.3.0
+  description: AgentMemory 对外提供的运行轨迹查询接口。
+
+paths:
+  /rest/naie/memory/runtime-traces:
+    post:
+      summary: 查询运行轨迹
+      description: >-
+        按 trace/span、业务条件和时间范围查询 AgentMemory 中的 timeline event，
+        并按 traceId、spanId 分组返回标准调用关系和 workflow 实际控制流关系。
+      operationId: queryRuntimeTraces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuntimeTraceQueryRequest"
+            example:
+              condition:
+                eventId: 0123456789abcdef0123456789abcdef
+              traceId: 7bba9f33312b3dbb8b2c2c62bb7abe2d
+              startTime: 1776684899000
+              endTime: 1776684999000
+              limit: 100
+      responses:
+        "200":
+          description: 运行轨迹查询结果。
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeTraceQueryResponse"
+              example:
+                traceId: 7bba9f33312b3dbb8b2c2c62bb7abe2d
+                events:
+                  - trace:
+                      traceId: 7bba9f33312b3dbb8b2c2c62bb7abe2d
+                      spanId: "1111111111111111"
+                    attributes:
+                      eventId: 0123456789abcdef0123456789abcdef
+                    timelineEvents:
+                      - eventId: evt_001
+                        tenantId: tenant_001
+                        userId: user_001
+                        agentId: agent_001
+                        type: REQUEST_ACCEPTED
+                        createTime: 1776684899000
+                        updateTime: 1776684899000
+                      - eventId: evt_030
+                        tenantId: tenant_001
+                        userId: user_001
+                        agentId: agent_001
+                        type: REQUEST_COMPLETED
+                        createTime: 1776684920000
+                        updateTime: 1776684920000
+                  - trace:
+                      traceId: 7bba9f33312b3dbb8b2c2c62bb7abe2d
+                      spanId: "2222222222222222"
+                      parentSpanId: "1111111111111111"
+                      previewSpanIds: []
+                    attributes:
+                      eventId: 0123456789abcdef0123456789abcdef
+                    timelineEvents:
+                      - eventId: evt_010
+                        tenantId: tenant_001
+                        userId: user_001
+                        agentId: agent_001
+                        type: CAPABILITY_STARTED
+                        createTime: 1776684900000
+                        updateTime: 1776684900000
+                        inlinePayload:
+                          nodeId: query-alarm
+                          description: Query active alarms.
+                      - eventId: evt_020
+                        tenantId: tenant_001
+                        userId: user_001
+                        agentId: agent_001
+                        type: CAPABILITY_COMPLETED
+                        createTime: 1776684905000
+                        updateTime: 1776684905000
+                        inlinePayload:
+                          nodeId: query-alarm
+                          description: Query active alarms.
+                  - trace:
+                      traceId: 7bba9f33312b3dbb8b2c2c62bb7abe2d
+                      spanId: "3333333333333333"
+                      parentSpanId: "1111111111111111"
+                      previewSpanIds:
+                        - "2222222222222222"
+                    attributes:
+                      eventId: 0123456789abcdef0123456789abcdef
+                    timelineEvents:
+                      - eventId: evt_021
+                        tenantId: tenant_001
+                        userId: user_001
+                        agentId: agent_001
+                        type: CAPABILITY_STARTED
+                        createTime: 1776684906000
+                        updateTime: 1776684906000
+                        inlinePayload:
+                          nodeId: analyze-alarm
+                          description: Analyze alarm root cause.
+                      - eventId: evt_029
+                        tenantId: tenant_001
+                        userId: user_001
+                        agentId: agent_001
+                        type: CAPABILITY_COMPLETED
+                        createTime: 1776684912000
+                        updateTime: 1776684912000
+                        inlinePayload:
+                          nodeId: analyze-alarm
+                          description: Analyze alarm root cause.
+
+
+components:
+  schemas:
+    RuntimeTraceQueryRequest:
+      type: object
+      additionalProperties: false
+      description: traceId 与 condition 至少传入一个。
+      properties:
+        tenantId:
+          $ref: "#/components/schemas/TenantId"
+        userId:
+          $ref: "#/components/schemas/UserId"
+        agentId:
+          $ref: "#/components/schemas/AgentId"
+        traceId:
+          $ref: "#/components/schemas/TraceId"
+        spanId:
+          $ref: "#/components/schemas/SpanId"
+        condition:
+          $ref: "#/components/schemas/RuntimeTraceCondition"
+        startTime:
+          $ref: "#/components/schemas/EpochMillis"
+        endTime:
+          allOf:
+            - $ref: "#/components/schemas/EpochMillis"
+          description: 查询结束时间，返回 createTime 小于或等于该值的轨迹项；不得早于 startTime。
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 100
+          description: 最大返回条数。
+      anyOf:
+        - required:
+            - traceId
+        - required:
+            - condition
+
+    RuntimeTraceCondition:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      description: 业务轨迹 attribute 精确匹配条件；多个条件之间为 AND。
+      properties:
+        eventId:
+          type: string
+          minLength: 1
+          maxLength: 32
+          pattern: "^[A-Za-z0-9_.: -]{1,32}$"
+          description: 业务事件标识，字符规则与任务通道 metadata.eventId 一致。
+
+    RuntimeTraceQueryResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        traceId:
+          $ref: "#/components/schemas/TraceId"
+        events:
+          type: array
+          description: 按 traceId、spanId 分组后的轨迹列表。
+          items:
+            $ref: "#/components/schemas/RuntimeTraceGroup"
+
+    RuntimeTraceGroup:
+      type: object
+      additionalProperties: false
+      required:
+        - trace
+        - attributes
+        - timelineEvents
+      properties:
+        trace:
+          $ref: "#/components/schemas/TraceContext"
+        attributes:
+          $ref: "#/components/schemas/RuntimeTraceAttributes"
+        timelineEvents:
+          type: array
+          description: 同一个 span 下按 sequence 优先、createTime 次优排序的 timeline event 查询投影。
+          items:
+            $ref: "#/components/schemas/RuntimeTimelineEvent"
+
+    RuntimeTimelineEvent:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - tenantId
+        - userId
+        - agentId
+        - type
+        - createTime
+        - updateTime
+      properties:
+        eventId:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: timeline event 标识。
+        tenantId:
+          $ref: "#/components/schemas/TenantId"
+        userId:
+          $ref: "#/components/schemas/UserId"
+        agentId:
+          $ref: "#/components/schemas/AgentId"
+        type:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: timeline event 类型。
+        createTime:
+          $ref: "#/components/schemas/EpochMillis"
+        updateTime:
+          $ref: "#/components/schemas/EpochMillis"
+        inlinePayload:
+          allOf:
+            - $ref: "#/components/schemas/RuntimeTraceInlinePayload"
+          description: CAPABILITY_STARTED、CAPABILITY_COMPLETED 的业务节点展示投影。
+
+
+    TraceContext:
+      type: object
+      additionalProperties: false
+      required:
+        - traceId
+        - spanId
+      properties:
+        traceId:
+          $ref: "#/components/schemas/TraceId"
+        spanId:
+          $ref: "#/components/schemas/SpanId"
+        parentSpanId:
+          allOf:
+            - $ref: "#/components/schemas/SpanId"
+          description: 标准调用关系中的直接父 span 标识。
+        previewSpanIds:
+          type: array
+          uniqueItems: true
+          maxItems: 100
+          description: 当前 workflow span 的实际直接前驱 span 标识列表。
+          items:
+            $ref: "#/components/schemas/SpanId"
+
+    RuntimeTraceAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        eventId:
+          type: string
+          minLength: 1
+          maxLength: 32
+          pattern: "^[A-Za-z0-9_.: -]{1,32}$"
+          description: 业务事件标识，字符规则与任务通道 metadata.eventId 一致。
+
+    RuntimeTraceInlinePayload:
+      type: object
+      additionalProperties: false
+      properties:
+        nodeId:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: 业务定义的 workflow 节点标识。
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1024
+          description: 业务定义的 workflow 节点描述。
+
+    TenantId:
+      type: string
+      minLength: 1
+      maxLength: 64
+      description: 租户标识或精确过滤条件。
+
+    UserId:
+      type: string
+      minLength: 1
+      maxLength: 64
+      description: 用户标识或精确过滤条件，对内映射为 subject scope。
+
+    AgentId:
+      type: string
+      minLength: 1
+      maxLength: 64
+      description: Agent 标识或精确过滤条件。
+
+    TraceId:
+      type: string
+      pattern: "^[0-9a-fA-F]{32}$"
+      description: W3C trace id，32 位十六进制字符串。
+
+    SpanId:
+      type: string
+      pattern: "^[0-9a-fA-F]{16}$"
+      description: W3C span id，16 位十六进制字符串。
+
+    EpochMillis:
+      type: integer
+      format: int64
+      minimum: 0
+      description: Unix epoch 毫秒时间戳。

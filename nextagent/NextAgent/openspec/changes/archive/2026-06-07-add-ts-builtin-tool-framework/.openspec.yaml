@@ -1,0 +1,5 @@
+name: add-ts-builtin-tool-framework
+type: change
+status: draft
+created: 2026-06-05
+description: Builtin tool framework - shared Provider, Discovery, Executor skeleton

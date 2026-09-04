@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>add-ts-large-content-references Review Summary</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --panel: #fffdf8;
+      --ink: #1e2a2f;
+      --muted: #5a6a70;
+      --line: #d7cdbd;
+      --accent: #8f3b2d;
+      --accent-soft: #f3ddd6;
+      --ok: #1f6b52;
+      --warn: #8a5a12;
+      --deep: #20343b;
+      --deep-2: #38535d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, #efe3cc 0, transparent 28%),
+        linear-gradient(180deg, #f8f4ec 0%, var(--bg) 100%);
+      line-height: 1.65;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--deep) 0%, var(--deep-2) 100%);
+      color: #fff;
+      border-radius: 22px;
+      padding: 28px 28px 22px;
+      box-shadow: 0 18px 48px rgba(30, 42, 47, 0.18);
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 960px;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .card {
+      grid-column: span 12;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px 22px 18px;
+      box-shadow: 0 10px 24px rgba(42, 49, 55, 0.06);
+    }
+
+    .two-up { grid-column: span 6; }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .card h3 {
+      margin: 18px 0 10px;
+      font-size: 15px;
+      color: var(--accent);
+    }
+
+    .card p { margin: 0 0 10px; }
+
+    .card ul,
+    .card ol {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+
+    .card li + li { margin-top: 6px; }
+
+    .highlight {
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    .mini {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .flow {
+      display: grid;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 14px 14px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .step-no {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: #243b42;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fcfaf5;
+    }
+
+    .tag.ok {
+      color: var(--ok);
+      border-color: rgba(31, 107, 82, 0.25);
+      background: rgba(31, 107, 82, 0.08);
+    }
+
+    .tag.warn {
+      color: var(--warn);
+      border-color: rgba(138, 90, 18, 0.25);
+      background: rgba(138, 90, 18, 0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #f6efe4;
+      font-weight: 600;
+    }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      background: #f5efe4;
+      padding: 1px 5px;
+      border-radius: 6px;
+      font-size: 0.95em;
+    }
+
+    @media (max-width: 920px) {
+      .two-up { grid-column: span 12; }
+      .hero h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>add-ts-large-content-references</h1>
+      <p>
+        这份页面面向设计评审，提炼当前 change 的黑盒目标、实现边界、核心策略、固定流程、
+        决策契约、输出、失败/降级规则、典型示例和评审重点。页面只描述稳定业务语义和实现约束，
+        不展开代码细节。
+      </p>
+      <div class="meta">
+        <span class="chip">Primary Owner: agent-context-engine</span>
+        <span class="chip">类型: OpenSpec Change</span>
+        <span class="chip">焦点: Large Content Projection</span>
+        <span class="chip">状态: Apply-ready</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>黑盒目标</h2>
+        <p>
+          当请求生命周期中出现无法安全 inline 的内容时，系统必须把它从“原文直接拼接”
+          收敛成“owner-scoped 引用 + 按需投影”的稳定行为。对外可观察到的效果是：
+          小内容正常 inline；大内容按预算和权限进入 prompt；关键内容读不到就显式失败；
+          非关键内容读不到就显式降级；模型、前端、日志和 stream 都看不到物理路径或越权内容。
+        </p>
+        <div class="highlight">
+          核心黑盒承诺：系统不会通过静默截断、静默丢弃、路径泄露或 fake owner identity
+          来“勉强成功”。
+        </div>
+      </article>
+
+      <article class="card two-up">
+        <h2>Change 边界</h2>
+        <ul>
+          <li>负责：什么时候 externalize、什么时候读 ref、谁能读、读多少、读失败如何分流。</li>
+          <li>负责：Context Engine / MessageContentLoader 对大内容的同步消费契约。</li>
+          <li>负责：attachment、长消息、archived capability result、replacement 内容进入上下文时的统一语义。</li>
+          <li>不负责：重写 Query Policy 阶段模型、summary 生成、附件上传规则、后台 projection job、下载器或文件浏览器。</li>
+          <li>不负责：改变 attachment 或 summary 的领域 ownership。</li>
+        </ul>
+      </article>
+
+      <article class="card two-up">
+        <h2>当前核心实现策略</h2>
+        <ul>
+          <li><strong>写时 externalize</strong>：超阈值或天然不该 inline 的内容先存为 <code>LargeContentRef</code>。</li>
+          <li><strong>读时同步 projection</strong>：只在真正消费时按 identity、purpose、budget 做投影。</li>
+          <li><strong>Query Policy 只做决策</strong>：预算、trim、archive、replacement 由 Query Policy 决定，不提前读正文。</li>
+          <li><strong>Context Engine 单点判定关键性</strong>：<code>latest-request-critical</code> 只能由 <code>ContextEngine.build(...)</code> 划定。</li>
+          <li><strong>失败显式化</strong>：关键内容失败阻断，非关键内容失败降级。</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>核心实现流程</h2>
+        <div class="flow">
+          <div class="step">
+            <div class="step-no">1</div>
+            <div><strong>内容产生时判断是否 inline</strong><br />消息正文、attachment blob、capability result 等内容先判断是否还能安全 inline；不能 inline 的内容 externalize 为 <code>LargeContentRef</code>。</div>
+          </div>
+          <div class="step">
+            <div class="step-no">2</div>
+            <div><strong>组装前收集候选，不读正文</strong><br />Context Engine 收集 current request、prior history、attachment context、capability result refs 和 replacement 内容，只建立候选集合。</div>
+          </div>
+          <div class="step">
+            <div class="step-no">3</div>
+            <div><strong>Query Policy 做预算与 compaction 决策</strong><br />决定 trim、archive、replacement、drop 和 degrade 路径，但不读正文。</div>
+          </div>
+          <div class="step">
+            <div class="step-no">4</div>
+            <div><strong>Context Engine 单点划定 <code>latest-request-critical</code></strong><br />基于当前 root request、任务语义和等价替代物，决定哪些内容失败时必须阻断请求。</div>
+          </div>
+          <div class="step">
+            <div class="step-no">5</div>
+            <div><strong>执行 authorized projection</strong><br />真实消费时才按 caller identity、gateway、ref 状态、purpose 和 budget 选择 <code>FULL / RANGE / SUMMARY / EXCERPT / METADATA_ONLY</code>。</div>
+          </div>
+          <div class="step">
+            <div class="step-no">6</div>
+            <div><strong>失败按关键 / 非关键两路分流</strong><br />关键内容失败返回 <code>failure</code> / <code>insufficient-context</code>；非关键内容失败返回 degradation marker。</div>
+          </div>
+          <div class="step">
+            <div class="step-no">7</div>
+            <div><strong>渲染最终模型输入</strong><br />小内容 inline，大内容以预算允许的 projection 进入 prompt，失败内容以显式 marker 或 failure 呈现。</div>
+          </div>
+          <div class="step">
+            <div class="step-no">8</div>
+            <div><strong>下游只消费安全结果</strong><br />model invocation、history、stream、observability 只消费已处理结果，不得绕过 Context Engine 回头读物理路径。</div>
+          </div>
+          <div class="step">
+            <div class="step-no">9</div>
+            <div><strong>输出 machine-readable 证据</strong><br />每次 externalize、projection、replacement、failure、degrade 都要产出 safe diagnostics 和 lineage evidence。</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>决策契约</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>问题</th>
+              <th>当前契约</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>什么时候存 ref</td>
+              <td>当内容已不适合继续作为 inline 事实跨越 message / prompt / stream / log / archive 边界传播时。</td>
+            </tr>
+            <tr>
+              <td>什么时候读 ref</td>
+              <td>只有在真实消费流程需要正文或其投影时才读；Query Policy 决策阶段不得 eager 读正文。</td>
+            </tr>
+            <tr>
+              <td>谁能读</td>
+              <td>只有携带真实 <code>IdentityContext</code> 的合法调用链能读取正文级内容；不能从 ref 反推 fake owner。</td>
+            </tr>
+            <tr>
+              <td>读多少</td>
+              <td>按 <code>purpose + budget + policy</code> 选择 <code>FULL / RANGE / SUMMARY / EXCERPT / METADATA_ONLY</code>。</td>
+            </tr>
+            <tr>
+              <td>读失败怎么办</td>
+              <td>关键内容失败阻断；非关键内容失败显式降级，并输出 diagnostics。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3><code>latest-request-critical</code> 判定公式</h3>
+        <div class="highlight">
+          <code>latest-request-critical = 当前请求显式绑定 AND 离开后基本任务语义失真 AND 当前装配中不存在等价已保留替代物</code>
+        </div>
+        <div class="tag-row">
+          <span class="tag ok">单点判定者: Context Engine</span>
+          <span class="tag warn">禁止: 其他模块各自重定义</span>
+        </div>
+      </article>
+
+      <article class="card two-up">
+        <h2>输出</h2>
+        <ul>
+          <li><code>ContextAssembly</code></li>
+          <li>rendered model-facing messages</li>
+          <li><code>ArchivedRef</code></li>
+          <li><code>CleanupAction.contentRef</code></li>
+          <li><code>LargeContentProjection</code> 结果</li>
+          <li><code>compactionReasons()</code></li>
+          <li><code>contextWindowSelectionReasons()</code></li>
+          <li>safe degradation marker / omission reason / placeholder</li>
+          <li>可供 runtime、stream、observability 使用的 safe lineage evidence</li>
+        </ul>
+      </article>
+
+      <article class="card two-up">
+        <h2>失败 / 降级规则</h2>
+        <ul>
+          <li><strong>关键内容失败</strong>：返回 <code>failure</code>、<code>insufficient-context</code> 或明确 degraded outcome。</li>
+          <li><strong>非关键内容失败</strong>：返回 degradation marker / placeholder / omission reason。</li>
+          <li><strong>无 identity</strong>：只能 <code>METADATA_ONLY</code>，不得伪造 owner。</li>
+          <li><strong>cross-owner</strong>：返回 not-found / unavailable 风格安全结果，不暴露存在性。</li>
+          <li><strong>已有等价替代物</strong>：原始大内容不再升级为 <code>latest-request-critical</code>。</li>
+          <li><strong>禁止静默处理</strong>：不得静默截断、静默丢弃、静默降级或暴露路径。</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>典型示例</h2>
+        <ol>
+          <li>当前请求明确要求“根据超大附件回答”，附件成为 <code>latest-request-critical</code>，读不到就阻断。</li>
+          <li>当前请求正文本身超长，写时 externalize，装配时不得拿 excerpt 冒充完整正文。</li>
+          <li>大 capability result 被 compaction 决定 archive，后续通过 <code>ArchivedRef + contentRef</code> 继续消费。</li>
+          <li>较早历史中的 archived result 读取失败，但当前请求不依赖它，系统显式降级并继续执行。</li>
+          <li>当前调用没有真实 caller identity，只能拿到 <code>METADATA_ONLY</code>。</li>
+          <li>cross-owner 读取返回 not-found / unavailable，不泄露该 ref 是否存在。</li>
+          <li>当前请求绑定附件，但本次装配已保留等价 excerpt / summary，原始大内容不再算 critical。</li>
+          <li>Query Policy 阶段看到 ref，只能做预算与 compaction 决策，不能提前读正文。</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>评审重点</h2>
+        <ul>
+          <li><strong>边界是否足够窄</strong>：是否真的只处理 large-content 消费逻辑，而没有顺手重做 attachment / summary 子系统。</li>
+          <li><strong>判定者是否唯一</strong>：<code>latest-request-critical</code> 是否只由 Context Engine 单点判定。</li>
+          <li><strong>决策与消费是否分离</strong>：Query Policy 是否只做预算与 compaction，Context Engine / loader 是否才负责读正文。</li>
+          <li><strong>失败语义是否明确</strong>：关键内容失败是否必然阻断，非关键内容失败是否必然显式降级。</li>
+          <li><strong>安全边界是否稳定</strong>：无 identity、cross-owner、路径不暴露、不能 fake owner 这些规则是否在实现层也能落住。</li>
+          <li><strong>替代物逻辑是否收敛</strong>：存在等价 excerpt / summary / replacement 时，是否能防止原始大内容被过度提升为 critical。</li>
+          <li><strong>测试是否覆盖主流程</strong>：九步主流程和 8 个典型示例是否都能映射到 characterization tests。</li>
+        </ul>
+        <div class="highlight">
+          这份 change 值得评审的关键，不是“有没有 large content store”，而是
+          “externalize、budget/compaction、authorized projection、critical/non-critical failure split
+          是否被收敛成唯一稳定语义”。
+        </div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

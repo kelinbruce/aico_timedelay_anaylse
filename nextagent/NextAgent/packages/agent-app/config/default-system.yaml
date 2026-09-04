@@ -1,0 +1,195 @@
+deployment:
+  mode: LOCAL
+paths:
+  workspaceRoot: workspaces
+  logDirectory: logs
+  agentRoot: agents
+  skillRoot: skills
+observability:
+  logging:
+    diagnosticDetail: normal
+    level: info
+    console:
+      enabled: false
+    file:
+      enabled: true
+      name: nextagent-operational.log.jsonl
+      rotation:
+        maxFileSizeMiB: 30
+      retentionDays: 7
+      maxArchiveFiles: 10
+  tracing:
+    enabled: true
+auth:
+  mode: local
+  localIdentity:
+    tenantId: local-tenant
+    subjectId: local-subject
+    displayName: Local developer
+  localAuth:
+    enabled: false
+channel:
+  transport: fastify
+  host: 127.0.0.1
+  port: 3000
+  # Public path prefix P prepended in front of the fixed API segment /api/v1
+  # for all NextAgent Web APIs. `/` (or omitted) = no prefix, API stays at
+  # /api/v1/... . Set e.g. /svcA to mount APIs at /svcA/api/v1/... . Pages and
+  # static assets are not affected (stay at root /). Frontend must resolve to
+  # the same P (VITE_API_PREFIX or /config.json pathPrefix) or requests 404.
+  # NOTE: previously defaulted to /api/v1; configs that still write
+  # routePrefix: /api/v1 now produce /api/v1/api/v1/... — migrate to /.
+  routePrefix: /
+hostedAgent:
+  activeAgentId: default-agent
+modelProfiles:
+  - providerId: openai-compatible
+    # Model access is intentionally omitted until configured by a deployment overlay.
+    # baseUrl: https://your-model-endpoint.example/v1
+    # credentialRef is a SecretReference: use file:config/model-credential.txt
+    # or env:DEPLOYMENT_CHOSEN_NAME.
+    models:
+      - modelId: env:OPENAI_MODEL_NAME
+        displayName: Default OpenAI Model
+        contextWindowTokens: 128000
+        fallbackEligible: false
+        temperature: 0.2
+        maxOutputTokens: 2048
+        topP: 1
+        timeoutMs: 300000
+gateway:
+  gateways:
+    - gatewayId: local-working-memory
+      gatewayKind: working-memory
+      deploymentMode: LOCAL
+    - gatewayId: local-long-term-memory
+      gatewayKind: long-term-memory
+      deploymentMode: LOCAL
+    - gatewayId: local-sqlite
+      gatewayKind: sqlite
+      deploymentMode: LOCAL
+      sqliteFileRef: paths.sqliteFile
+    - gatewayId: local-cron
+      gatewayKind: cron-tasks
+      deploymentMode: LOCAL
+      sqliteFileRef: paths.sqliteFile
+    - gatewayId: local-rag
+      gatewayKind: rag-knowledge
+      deploymentMode: LOCAL
+    - gatewayId: local-workflow
+      gatewayKind: workflow-execution
+      deploymentMode: LOCAL
+    - gatewayId: local-api-call
+      gatewayKind: api-call
+      deploymentMode: LOCAL
+    - gatewayId: local-user-query
+      gatewayKind: user-query
+      deploymentMode: LOCAL
+    - gatewayId: local-sandbox
+      gatewayKind: sandbox
+      deploymentMode: LOCAL
+rag:
+  indexes:
+    - local
+sandbox:
+  allowedApis: []
+  allowedExecutables:
+    - clipc
+    - curl
+    - python
+  clipcExecutableDirectoryEnv: CLIP_HOME
+  enabled: true
+  deniedExecutables:
+    - bash
+    - sh
+    - zsh
+    - fish
+    - cmd
+    - cmd.exe
+    - powershell
+    - powershell.exe
+    - pwsh
+    - eval
+    - exec
+    - env
+    - xargs
+    - node
+    - npm
+    - npx
+    - deno
+    - bun
+    - pip
+    - pip3
+    - perl
+    - ruby
+    - php
+    - lua
+    - awk
+    - find
+    - sed
+    - wget
+    - ssh
+    - scp
+    - sftp
+    - nc
+    - netcat
+    - socat
+    - rm
+    - mv
+    - cp
+    - install
+    - tee
+    - dd
+    - truncate
+    - chmod
+    - chown
+    - chgrp
+    - ln
+    - tar
+    - unzip
+    - zip
+    - 7z
+    - kill
+    - killall
+    - pkill
+    - taskkill
+    - sudo
+    - su
+    - runas
+    - mount
+    - umount
+    - systemctl
+    - service
+    - docker
+    - podman
+    - kubectl
+    - helm
+noopBoundaries:
+  lifecycleHook: noop
+  checkpoint: noop
+  audit: noop
+nextAgent:
+  memory:
+    enabled: true
+    search:
+      default-limit: 20
+      min-confidence: 0.3
+    extraction:
+      enabled: true
+      strategy: RULE_FIRST
+      crossSessionSchedule: '0 0 0 * * ?'
+      maxCycleTrajectories: 20
+      maxCandidates: 50
+      timeoutMs: 60000
+      lookbackDays: 7
+    aging:
+      enabled: true
+      schedule: '0 0 0 * * ?'
+      decayStaleDays: 30
+      archiveRetentionDays: 90
+      decayFactor: 0.05
+      batchLimit: 1000
+      timeoutMs: 30000
+      reviveConfidenceBoost: 0.1
+  highFrequencyQuestion:
+    frequencyThreshold: 8

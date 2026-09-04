@@ -1,0 +1,687 @@
+/* Theme CSS Variables for Light/Dark Mode */
+
+:root {
+  --font-family-app:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC',
+    'Hiragino Sans GB', 'Noto Sans CJK SC', Arial, sans-serif;
+}
+
+html,
+body,
+#root {
+  font-family: var(--font-family-app);
+}
+
+/* Suppress host-injected :focus dotted outline on mouse/touch focus.
+   Keyboard focus visibility is preserved via :focus-visible.
+   !important deterministically beats the host :focus rule; scope is limited to [data-nextagent-root]. */
+[data-nextagent-root] :focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+body[data-nextagent-host-mode='immersive'] {
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
+}
+
+body[data-nextagent-host-mode='immersive'] #root {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+body[data-nextagent-host-mode='collaborative'][data-nextagent-prel-menu-layout='flow'] {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+body[data-nextagent-host-mode='collaborative'] {
+  margin: 0;
+}
+
+.sidebar-nav-button .ant-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  line-height: 0;
+}
+
+.sidebar-nav-button:not(.sidebar-nav-button-collapsed) .ant-btn-icon {
+  margin-inline-end: 8px;
+}
+
+.sidebar-nav-button,
+.sidebar-nav-button.ant-btn {
+  border-radius: 0;
+}
+
+.sidebar-session-list-toggle {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  font-family: 'HarmonyOS Sans SC';
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0;
+  text-align: left;
+  padding: 4px 14px;
+  transition: color 160ms ease;
+}
+
+.sidebar-session-list-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 0;
+}
+
+.sidebar-session-list-toggle-text {
+  font-family: 'HarmonyOS Sans SC';
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.sidebar-session-list-toggle:hover {
+  color: var(--color-primary);
+}
+
+.sidebar-session-list-toggle:focus-visible {
+  color: var(--color-primary);
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 1px;
+}
+
+.sidebar-session-list-load-more {
+  width: 100%;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  padding: 3px 8px;
+  text-align: left;
+  transition: color 160ms ease;
+}
+
+.sidebar-session-list-load-more:hover {
+  color: var(--color-primary);
+}
+
+.sidebar-session-list-load-more:focus-visible {
+  color: var(--color-primary);
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 1px;
+}
+
+.sidebar-session-list-load-more:disabled {
+  color: var(--color-text-tertiary);
+  cursor: default;
+}
+
+.sidebar-session-list-load-more:disabled:hover {
+  color: var(--color-text-tertiary);
+}
+
+.nextagent-themed-scrollbar {
+  color-scheme: light;
+}
+
+.nextagent-themed-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+
+.nextagent-themed-scrollbar::-webkit-scrollbar-thumb {
+  border: 0;
+  border-radius: 0;
+  background-color: var(--color-scrollbar);
+}
+
+.nextagent-themed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scrollbar-hover);
+}
+
+.association-panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.association-panel-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.association-panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.association-panel-scroll::-webkit-scrollbar-thumb {
+  border: none;
+  border-radius: 999px;
+  background-color: var(--color-scrollbar);
+}
+
+.association-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scrollbar-hover);
+}
+
+:root[data-theme='light'],
+:root[data-theme='lightday'] {
+  /* Backgrounds */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f0f0f0;
+  --color-bg-hover: #f5f7fa;
+  --color-bg-active: #e6f4ff;
+  --color-bg-tooltip: #ffffff;
+  --color-nav-button-highlight: rgba(230, 242, 253, 1);
+  --color-nav-button-hover: rgba(25, 25, 25, 0.05);
+  --color-sidebar-bg: rgba(255, 255, 255, 1);
+  --color-sidebar-border: rgba(223, 223, 223, 1);
+  --color-sidebar-divider: rgba(223, 223, 223, 1);
+  --color-bg-inverse: #1a1a1a;
+  --association-panel-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.16);
+  --association-item-hover: rgba(223, 223, 223, 1);
+  --association-panel-bg: rgba(255, 255, 255, 1);
+  --association-highlight-color: #e8470d;
+  --association-tag-pinned-bg: rgba(22, 119, 255, 0.1);
+  --association-tag-freq-bg: rgba(250, 140, 22, 0.1);
+  --association-tag-recommended-bg: rgba(82, 196, 26, 0.1);
+  --association-tag-static-bg: rgba(0, 0, 0, 0.06);
+
+  /* Borders */
+  --color-border: #e5e7eb;
+  --color-border-strong: #d0d5dd;
+  --color-border-focus: #1677ff;
+
+  /* Text */
+  --color-text-primary: #1f1f1f;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  --color-text-inverse: #ffffff;
+  --color-text-link: #1677ff;
+  --color-text-tooltip: #191919;
+
+  /* Chat Bubbles */
+  --color-user-bubble-bg: rgba(184, 217, 249, 1);
+  --color-user-bubble-text: #102033;
+
+  /* Status Colors */
+  --color-primary: #1677ff;
+  --color-primary-hover: #4096ff;
+  --color-success: #389e0d;
+  --color-success-bg: #f6ffed;
+  --color-error: #cf1322;
+  --color-error-bg: #fff1f0;
+  --color-warning: #fa8c16;
+  --color-warning-bg: #fff7e6;
+  --color-info: #1677ff;
+  --color-info-bg: #e6f4ff;
+
+  /* Thinking Node Colors */
+  --color-thinking-bg: #fafafa;
+  --color-thinking-hover: #f5f5f5;
+  --color-thinking-thinking-bg: #e6f7ff;
+  --color-thinking-thinking-hover: #bae7ff;
+  --color-thinking-tool-call-bg: #fff7e6;
+  --color-thinking-tool-call-hover: #ffe7ba;
+  --color-thinking-tool-result-bg: #f6ffed;
+  --color-thinking-tool-result-hover: #d9f7be;
+  --color-thinking-error-bg: #fff1f0;
+  --color-thinking-error-hover: #ffccc7;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* Sidebar */
+  --color-sidebar-border: #d9d9d9;
+  --color-sidebar-item-hover: #f0f7ff;
+  --color-sidebar-item-active: #f0f7ff;
+  --color-sidebar-item-active-border: #1677ff;
+
+  /* Composer */
+  --color-composer-bg: #ffffff;
+  --color-category-modal-bg: #ffffff;
+  --color-category-block-bg: #ffffff;
+  --color-composer-border: #e5e7eb;
+  --color-composer-shadow: rgba(0, 0, 0, 0.08);
+  --color-composer-drop-border: rgba(22, 119, 255, 0.35);
+  --color-composer-drop-bg: rgba(22, 119, 255, 0.06);
+
+  /* Run Graph */
+  --color-graph-bg: #ffffff;
+  --color-graph-header-border: #eaecf0;
+  --color-graph-title: #101828;
+  --color-graph-meta: #667085;
+  --color-graph-canvas-bg: #f8fafc;
+  --color-graph-node-bg: #f8fafc;
+  --color-graph-node-border: #d0d5dd;
+  --color-graph-node-title: #101828;
+  --color-graph-node-text: #344054;
+
+  /* Table */
+  --color-table-header-bg: #f8fafc;
+  --color-table-border: #e5e7eb;
+  --color-table-row-hover: #f8fafc;
+
+  /* Status Strip */
+  --color-status-running-bg: #fff7e6;
+  --color-status-running-text: #ad6800;
+  --color-status-info-bg: #f5faff;
+  --color-status-info-text: #1d4ed8;
+
+  /* Scrollbar */
+  --color-scrollbar: #d9d9d9;
+  --color-scrollbar-hover: #bfbfbf;
+
+  /* Status Class Colors (for RunGraph) */
+  --color-status-pending-bg: #f2f4f7;
+  --color-status-pending-text: #344054;
+  --color-status-pending-dot: #667085;
+  --color-status-running-bg: #e6f4ff;
+  --color-status-running-text: #175cd3;
+  --color-status-running-dot: #1677ff;
+  --color-status-success-bg: #dcfae6;
+  --color-status-success-text: #067647;
+  --color-status-success-dot: #12b76a;
+  --color-status-failed-bg: #fee4e2;
+  --color-status-failed-text: #b42318;
+  --color-status-failed-dot: #f04438;
+  --color-status-canceled-bg: #f2f4f7;
+  --color-status-canceled-text: #475467;
+  --color-status-canceled-dot: #98a2b3;
+  --color-status-waiting-bg: #fef0c7;
+  --color-status-waiting-text: #b54708;
+  --color-status-waiting-dot: #f79009;
+  --color-status-warning-bg: #fef0c7;
+  --color-status-warning-text: #b54708;
+  --color-status-warning-dot: #f79009;
+  --color-status-info-bg: #f2f4f7;
+  --color-status-info-text: #344054;
+  --color-status-info-dot: #667085;
+
+  /* Welcome Block */
+  --bg-color-logo-text: #191919;
+  --bg-high-recommend: rgb(255, 255, 255);
+  --color-recommend-question: rgba(119, 119, 119, 1);
+
+  /* Chat Pane */
+  --color-chat-pane-bg:
+    radial-gradient(ellipse 39.33% 17.19% at 84.78% 112.55%, rgba(122, 102, 255, 0.1) 0%, rgba(122, 102, 255, 0) 100%),
+    radial-gradient(ellipse 39.33% 17.19% at 22.1% 105.94%, rgba(102, 235, 255, 0.1) 0%, rgba(102, 235, 255, 0) 100%),
+    radial-gradient(ellipse 39.33% 17.19% at 61.51% 98.66%, rgba(102, 159, 255, 0.1) 0%, rgba(102, 159, 255, 0) 100%), #f3f3f3;
+  /* Send icon */
+  --send-icon-enabled: rgb(0, 103, 209);
+  --send-icon-disabled: rgb(138, 190, 243);
+  --send-btn-bg: rgba(0, 103, 209, 0.1);
+  --send-btn-bg-hover: rgba(0, 103, 209, 0.15);
+  --stop-icon-color: #0067d1;
+  --color-stop-text: rgb(0, 103, 209);
+  --bg-input-context: rgba(25, 25, 25, 0.05);
+  --color-chat-answer: rgb(25, 25, 25);
+  --color-ai-bubble-bg: rgba(255, 255, 255, 1);
+  --color-answer-separator: rgba(223, 223, 223, 1);
+  --color-share-selection-turn-bg: rgba(201, 201, 201, 0.2);
+}
+
+:root[data-theme='dark'],
+:root[data-theme='evening'] {
+  /* Backgrounds */
+  --color-bg-primary: #1a1a1a;
+  --color-bg-secondary: #242424;
+  --color-bg-tertiary: #333333;
+  --color-bg-hover: #2a2a2a;
+  --color-bg-active: #1a3a5c;
+  --color-bg-tooltip: #393939;
+  --color-nav-button-highlight: rgba(0, 103, 209, 0.4);
+  --color-nav-button-hover: rgba(243, 243, 243, 0.2);
+  --color-sidebar-bg: rgba(25, 25, 25, 1);
+  --color-sidebar-border: rgba(243, 243, 243, 0.15);
+  --color-sidebar-divider: rgba(243, 243, 243, 0.15);
+  --color-bg-inverse: #ffffff;
+  --association-panel-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.5);
+  --association-item-hover: rgba(89, 89, 89, 1);
+  --association-panel-bg: rgba(57, 57, 57, 1);
+  --association-highlight-color: #ff6b35;
+  --association-tag-pinned-bg: rgba(22, 119, 255, 0.2);
+  --association-tag-freq-bg: rgba(250, 140, 22, 0.2);
+  --association-tag-recommended-bg: rgba(82, 196, 26, 0.2);
+  --association-tag-static-bg: rgba(255, 255, 255, 0.08);
+
+  /* Borders */
+  --color-border: #3a3a3a;
+  --color-border-strong: #4a4a4a;
+  --color-border-focus: #4d9aff;
+
+  /* Text */
+  --color-text-primary: #e8e8e8;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #707070;
+  --color-text-inverse: #1a1a1a;
+  --color-text-link: #4d9aff;
+  --color-text-tooltip: #ffffff;
+
+  /* Chat Bubbles */
+  --color-user-bubble-bg: rgba(0, 103, 209, 0.4);
+  --color-user-bubble-text: #f4f8ff;
+
+  /* Status Colors */
+  --color-primary: #4d9aff;
+  --color-primary-hover: #6bb3ff;
+  --color-success: #6dd066;
+  --color-success-bg: #1a2e1a;
+  --color-error: #ff6b6b;
+  --color-error-bg: #2e1a1a;
+  --color-warning: #ffb347;
+  --color-warning-bg: #2e2a1a;
+  --color-info: #4d9aff;
+  --color-info-bg: #1a2a3a;
+
+  /* Thinking Node Colors */
+  --color-thinking-bg: #252525;
+  --color-thinking-hover: #2f2f2f;
+  --color-thinking-thinking-bg: #1a2a3a;
+  --color-thinking-thinking-hover: #1f3045;
+  --color-thinking-tool-call-bg: #2e2a1a;
+  --color-thinking-tool-call-hover: #3a3520;
+  --color-thinking-tool-result-bg: #1a2e1a;
+  --color-thinking-tool-result-hover: #203520;
+  --color-thinking-error-bg: #2e1a1a;
+  --color-thinking-error-hover: #3a2020;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  /* Sidebar */
+  --color-sidebar-border: #3a3a3a;
+  --color-sidebar-item-hover: #2a2a2a;
+  --color-sidebar-item-active: #1a2a3a;
+  --color-sidebar-item-active-border: #4d9aff;
+
+  /* Composer */
+  --color-composer-bg: #202020;
+  --color-category-modal-bg: rgb(57, 57, 57);
+  --color-category-block-bg: rgba(243, 243, 243, 0.1);
+  --color-composer-border: #4a4a4a;
+  --color-composer-shadow: rgba(0, 0, 0, 0.4);
+  --color-composer-drop-border: rgba(77, 154, 255, 0.5);
+  --color-composer-drop-bg: rgba(77, 154, 255, 0.1);
+
+  /* Run Graph */
+  --color-graph-bg: #242424;
+  --color-graph-header-border: #3a3a3a;
+  --color-graph-title: #e8e8e8;
+  --color-graph-meta: #a0a0a0;
+  --color-graph-canvas-bg: #1a1a1a;
+  --color-graph-node-bg: #2a2a2a;
+  --color-graph-node-border: #4a4a4a;
+  --color-graph-node-title: #e8e8e8;
+  --color-graph-node-text: #a0a0a0;
+
+  /* Table */
+  --color-table-header-bg: #242424;
+  --color-table-border: #3a3a3a;
+  --color-table-row-hover: #252525;
+
+  /* Status Strip */
+  --color-status-running-bg: #2e2a1a;
+  --color-status-running-text: #ffb347;
+  --color-status-info-bg: #1a2a3a;
+  --color-status-info-text: #4d9aff;
+
+  /* Scrollbar */
+  --color-scrollbar: #5a5a5a;
+  --color-scrollbar-hover: #707070;
+
+  /* Status Class Colors (for RunGraph) */
+  --color-status-pending-bg: #2a2e3a;
+  --color-status-pending-text: #a0a0a0;
+  --color-status-pending-dot: #667085;
+  --color-status-running-bg: #1a2a3a;
+  --color-status-running-text: #4d9aff;
+  --color-status-running-dot: #4d9aff;
+  --color-status-success-bg: #1a2e1a;
+  --color-status-success-text: #6dd066;
+  --color-status-success-dot: #12b76a;
+  --color-status-failed-bg: #2e1a1a;
+  --color-status-failed-text: #ff6b6b;
+  --color-status-failed-dot: #f04438;
+  --color-status-canceled-bg: #2a2e3a;
+  --color-status-canceled-text: #707070;
+  --color-status-canceled-dot: #98a2b3;
+  --color-status-waiting-bg: #2e2a1a;
+  --color-status-waiting-text: #ffb347;
+  --color-status-waiting-dot: #f79009;
+  --color-status-warning-bg: #2e2a1a;
+  --color-status-warning-text: #ffb347;
+  --color-status-warning-dot: #f79009;
+  --color-status-info-bg: #2a2e3a;
+  --color-status-info-text: #a0a0a0;
+  --color-status-info-dot: #667085;
+
+  /* Welcome Block */
+  --bg-color-logo-text: #fff;
+  --bg-high-recommend: rgba(243, 243, 243, 0.1);
+  --color-recommend-question: rgba(201, 201, 201, 1);
+
+  /* Chat Pane */
+  --color-chat-pane-bg: var(--color-bg-primary);
+  /* Send icon */
+  --send-icon-enabled: #5ca2e9;
+  --send-icon-disabled: rgba(92, 162, 233, 0.5);
+  --send-btn-bg: rgba(92, 162, 233, 0.15);
+  --send-btn-bg-hover: rgba(92, 162, 233, 0.2);
+  --stop-icon-color: #5ca2e9;
+  --color-stop-text: #5ca2e9;
+  --bg-input-context: rgba(243, 243, 243, 0.2);
+  --color-chat-answer: rgb(255, 255, 255);
+  --color-ai-bubble-bg: rgba(243, 243, 243, 0.05);
+  --color-answer-separator: rgba(243, 243, 243, 0.15);
+  --color-share-selection-turn-bg: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme='dark'] .nextagent-themed-scrollbar,
+:root[data-theme='evening'] .nextagent-themed-scrollbar {
+  color-scheme: dark;
+}
+
+.sidebar-session-list-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) var(--color-bg-primary);
+}
+
+.sidebar-session-list-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-session-list-scroll::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+
+.sidebar-session-list-scroll::-webkit-scrollbar-thumb {
+  border: 0;
+  border-radius: 0;
+  background-color: var(--color-scrollbar);
+}
+
+.sidebar-session-list-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scrollbar-hover);
+}
+
+/* Scrollbar without visible track for popups/modals */
+.nextagent-trackless-scrollbar {
+  color-scheme: light;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.nextagent-trackless-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.nextagent-trackless-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nextagent-trackless-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background-color: var(--color-scrollbar);
+}
+
+.nextagent-trackless-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scrollbar-hover);
+}
+
+:root[data-theme='dark'] .nextagent-trackless-scrollbar,
+:root[data-theme='evening'] .nextagent-trackless-scrollbar {
+  color-scheme: dark;
+}
+
+.conversation-preview-scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.conversation-preview-scrollbar-hidden::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.skill-chip-description-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.skill-chip-description-scroll::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+.skill-chip-description-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.skill-chip-description-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background-color: var(--color-scrollbar);
+}
+
+.skill-chip-description-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scrollbar-hover);
+}
+
+.message-textarea-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.message-textarea-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.message-textarea-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.message-textarea-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background-color: var(--color-scrollbar);
+}
+
+.message-textarea-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scrollbar-hover);
+}
+
+.send-btn {
+  height: 32px;
+  width: 32px;
+  border-radius: 16px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--send-btn-bg);
+  border: none;
+  transition: background 120ms ease;
+}
+
+.send-btn:hover:not(:disabled) {
+  background: var(--send-btn-bg-hover);
+}
+
+.send-btn:disabled {
+  opacity: 1;
+}
+
+.stop-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  line-height: 32px;
+  border-radius: 16px;
+  padding: 0 8px;
+  background-color: var(--send-btn-bg);
+  cursor: pointer;
+  border: none;
+  transition: background 120ms ease;
+}
+
+.stop-button:hover {
+  background-color: var(--send-btn-bg-hover);
+}
+
+.stop-button .stop-text {
+  font-size: 14px;
+  color: var(--color-stop-text);
+}
+
+[data-testid='ai-bubble'] {
+  border-radius: 0px 8px 8px 8px;
+  background: var(--color-ai-bubble-bg);
+}
+
+.app-common-tooltip .ant-tooltip-inner {
+  background: var(--color-bg-tooltip);
+  color: var(--color-text-tooltip);
+  font-size: 14px;
+}
+
+.app-common-tooltip .ant-tooltip-arrow::before {
+  background: var(--color-bg-tooltip);
+}

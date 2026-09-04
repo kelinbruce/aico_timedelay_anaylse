@@ -1,0 +1,5 @@
+name: add-ts-edit-tool
+type: change
+status: draft
+created: 2026-06-16
+description: Governed workspace text Edit tool with Read-before-Edit snapshot guard

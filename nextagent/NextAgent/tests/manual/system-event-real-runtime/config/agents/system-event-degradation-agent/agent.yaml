@@ -1,0 +1,34 @@
+agentId: system-event-degradation-agent
+agentVersion: v1
+displayName: System event degradation verification agent
+description: Invokes the explicitly requested system_event_failure_probe Tool once for integration verification.
+modelIds:
+  - env:OPENAI_MODEL_NAME
+defaultModelId: env:OPENAI_MODEL_NAME
+capabilityBindings:
+  - capabilityId: system_event_failure_probe
+    capabilityType: TOOL
+    providerId: system-event-failure.tools
+    enabled: true
+  - { capabilityId: Read, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Write, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Glob, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Grep, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Bash, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Python, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Edit, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Rag, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Skill, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: AskUserQuestion, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Agent, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: ToolSearch, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: TodoWrite, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Workflow, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: ApiCall, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+  - { capabilityId: Cron, capabilityType: TOOL, providerId: builtin-tools, enabled: false }
+runtimeSettings:
+  defaultLanguage: zh-CN
+  maxTurns: 1
+  maxToolCallsPerTurn: 1
+  requestTimeoutMs: 120000
+resources: []

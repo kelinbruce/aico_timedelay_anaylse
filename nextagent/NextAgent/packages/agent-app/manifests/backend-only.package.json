@@ -1,0 +1,12 @@
+{
+  "name": "@nextagent/agent-app-backend-only-runtime",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./entrypoints/backend-only.js",
+  "dependencies": {
+    "@nextagent/agent-app": "1.0.0"
+  },
+  "x-nextagent": {
+    "packageProfile": "backend-only"
+  }
+}

@@ -1,0 +1,30 @@
+.highFrequencyWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+  /* 3 rows: 3 x 46px button height + 2 x 12px gap = 162px */
+  max-height: 162px;
+  overflow: hidden;
+}
+
+.highFrequencyWrapper .questionItem {
+  background: var(--bg-high-recommend);
+  border: 0;
+  border-radius: 16px;
+  box-sizing: border-box;
+  color: var(--color-recommend-question);
+  cursor: pointer;
+  flex: 0 1 auto;
+  font-family: inherit;
+  font-size: 14px;
+  height: 46px;
+  line-height: 22px;
+  opacity: 0.8;
+  overflow: hidden;
+  padding: 12px 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}

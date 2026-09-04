@@ -1,0 +1,5 @@
+{
+  "profileId": "sandbox-regression",
+  "nonScoring": true,
+  "taskIds": ["002-exec", "016-code-repair-pytest"]
+}

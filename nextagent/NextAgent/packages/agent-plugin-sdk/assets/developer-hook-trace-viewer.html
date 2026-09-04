@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>NextAgent Plugin Trace Viewer</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --canvas: #07111f;
+        --panel: rgba(16, 29, 48, 0.88);
+        --panel-strong: #14243b;
+        --line: #2a4261;
+        --text: #e8f0fa;
+        --muted: #91a6bd;
+        --accent: #60d6b0;
+        --accent-soft: rgba(96, 214, 176, 0.14);
+        --warning: #ffbf69;
+        --danger: #ff7b8b;
+        --shadow: 0 18px 55px rgba(0, 0, 0, 0.28);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 15% 0%, rgba(34, 105, 134, 0.2), transparent 35rem),
+          radial-gradient(circle at 100% 20%, rgba(62, 145, 117, 0.13), transparent 32rem), var(--canvas);
+        font-family: 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .shell {
+        width: min(1500px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+
+      .hero {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(28px, 4vw, 48px);
+        letter-spacing: -0.04em;
+      }
+
+      .subtitle {
+        max-width: 680px;
+        margin: 12px 0 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .file-picker {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 10px;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 1px solid rgba(96, 214, 176, 0.42);
+        border-radius: 12px;
+        color: #071a17;
+        background: var(--accent);
+        font-weight: 750;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(96, 214, 176, 0.18);
+      }
+
+      .file-picker:hover {
+        filter: brightness(1.05);
+      }
+      .file-picker input {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        opacity: 0;
+      }
+
+      .status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 58px;
+        margin-bottom: 18px;
+        padding: 12px 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(9, 20, 35, 0.72);
+      }
+
+      #file-name {
+        color: var(--muted);
+        overflow-wrap: anywhere;
+      }
+      #import-summary {
+        color: var(--accent);
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 18px;
+        overflow: hidden;
+      }
+      .panel-heading {
+        padding: 17px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .panel-heading h2 {
+        margin: 0;
+        font-size: 15px;
+      }
+      .panel-heading p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .trace-list {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .trace-option {
+        display: grid;
+        width: 100%;
+        gap: 5px;
+        padding: 12px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        color: var(--text);
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .trace-option:hover {
+        background: rgba(255, 255, 255, 0.035);
+      }
+      .trace-option[aria-current='true'] {
+        border-color: rgba(96, 214, 176, 0.38);
+        background: var(--accent-soft);
+      }
+      .trace-label {
+        overflow-wrap: anywhere;
+        font-family: Consolas, monospace;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .trace-count {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .content {
+        min-width: 0;
+      }
+      .trace-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+        padding: 18px 20px;
+      }
+      .trace-header h2 {
+        margin: 0;
+        font-size: 17px;
+        overflow-wrap: anywhere;
+      }
+      .trace-meta {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .timeline {
+        padding: 4px 20px 22px;
+      }
+
+      .event-card {
+        position: relative;
+        margin-left: 12px;
+        padding: 16px 16px 16px 22px;
+        border-left: 2px solid var(--line);
+      }
+
+      .event-card::before {
+        position: absolute;
+        top: 21px;
+        left: -7px;
+        width: 12px;
+        height: 12px;
+        border: 2px solid var(--canvas);
+        border-radius: 50%;
+        background: var(--accent);
+        content: '';
+        box-shadow: 0 0 0 4px rgba(96, 214, 176, 0.12);
+      }
+
+      .event-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .event-stage {
+        color: var(--accent);
+        font-family: Consolas, monospace;
+        font-size: 13px;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
+      .event-delta {
+        flex: 0 0 auto;
+        color: var(--warning);
+        font-family: Consolas, monospace;
+        font-size: 12px;
+      }
+      .event-time {
+        margin: 7px 0 10px;
+        color: var(--muted);
+        font-family: Consolas, monospace;
+        font-size: 11px;
+      }
+      .coordinates {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .coordinate {
+        padding: 4px 7px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        color: #b8c8d9;
+        background: rgba(0, 0, 0, 0.13);
+        font:
+          11px Consolas,
+          monospace;
+        overflow-wrap: anywhere;
+      }
+      .event-core {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border: 1px solid rgba(96, 214, 176, 0.28);
+        border-radius: 10px;
+        background: var(--accent-soft);
+      }
+      .core-metric + .core-metric {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(96, 214, 176, 0.18);
+      }
+      .core-label {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--accent);
+        font:
+          700 11px Consolas,
+          monospace;
+      }
+      .core-value {
+        color: #dce9f5;
+        font:
+          12px/1.55 Consolas,
+          monospace;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      details {
+        margin-top: 12px;
+      }
+      summary {
+        color: #c9d7e5;
+        font-size: 12px;
+        cursor: pointer;
+        user-select: none;
+      }
+      pre {
+        max-height: 360px;
+        margin: 10px 0 0;
+        padding: 14px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: #cbd9e8;
+        background: #07101d;
+        font:
+          11px/1.6 Consolas,
+          monospace;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .issues {
+        margin-top: 18px;
+        overflow: hidden;
+      }
+      .issue-list {
+        display: grid;
+        gap: 1px;
+        background: var(--line);
+      }
+      .issue-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 16px;
+        color: #d3dce7;
+        background: var(--panel-strong);
+        font:
+          12px Consolas,
+          monospace;
+      }
+      .issue-row span:last-child {
+        color: var(--danger);
+      }
+
+      .empty {
+        display: grid;
+        min-height: 340px;
+        place-items: center;
+        padding: 40px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .empty strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text);
+        font-size: 17px;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 780px) {
+        .shell {
+          width: min(100% - 24px, 1500px);
+          padding-top: 20px;
+        }
+        .hero {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          position: static;
+        }
+        .trace-list {
+          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Developer diagnostic artifact</p>
+          <h1>插件诊断轨迹查看器</h1>
+          <p class="subtitle">导入本地 NDJSON，按 sessionId 与 requestId 精确区分执行轨迹。数据只在当前页面内存中处理。</p>
+        </div>
+        <label class="file-picker"
+          >导入 NDJSON<input id="trace-file" type="file" accept=".ndjson,application/x-ndjson,application/json,text/plain"
+        /></label>
+      </header>
+
+      <section class="status-bar" aria-live="polite">
+        <span id="file-name">尚未导入文件</span>
+        <span id="import-summary">0 条轨迹 · 0 条问题</span>
+      </section>
+
+      <div class="workspace">
+        <aside class="panel sidebar">
+          <div class="panel-heading">
+            <h2>执行轨迹</h2>
+            <p>sessionId / requestId</p>
+          </div>
+          <nav id="trace-list" class="trace-list" aria-label="执行轨迹"></nav>
+        </aside>
+
+        <section class="content">
+          <section id="trace-panel" class="panel hidden">
+            <header class="trace-header">
+              <h2 id="trace-title"></h2>
+              <span id="trace-meta" class="trace-meta"></span>
+            </header>
+            <div id="timeline" class="timeline"></div>
+          </section>
+          <section id="empty-state" class="panel empty">
+            <div><strong>等待导入轨迹</strong><span>选择 developer diagnostic artifact NDJSON 后在此查看执行流程。</span></div>
+          </section>
+          <section id="issues-panel" class="panel issues hidden">
+            <div class="panel-heading">
+              <h2>导入问题</h2>
+              <p>非法记录只影响自身</p>
+            </div>
+            <div id="issue-list" class="issue-list"></div>
+          </section>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      'use strict';
+
+      const state = { traces: [], issues: [], selectedTrace: null };
+      const fileInput = document.querySelector('#trace-file');
+      const fileName = document.querySelector('#file-name');
+      const importSummary = document.querySelector('#import-summary');
+      const traceList = document.querySelector('#trace-list');
+      const tracePanel = document.querySelector('#trace-panel');
+      const traceTitle = document.querySelector('#trace-title');
+      const traceMeta = document.querySelector('#trace-meta');
+      const timeline = document.querySelector('#timeline');
+      const emptyState = document.querySelector('#empty-state');
+      const issuesPanel = document.querySelector('#issues-panel');
+      const issueList = document.querySelector('#issue-list');
+
+      fileInput.addEventListener('change', async function () {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          return;
+        }
+        try {
+          const imported = parseDocument(await file.text());
+          state.traces = imported.traces;
+          state.issues = imported.issues;
+          state.selectedTrace = state.traces[0] || null;
+          fileName.textContent = file.name;
+          render();
+        } catch {
+          state.traces = [];
+          state.issues = [];
+          state.selectedTrace = null;
+          fileName.textContent = file.name + '（读取失败）';
+          render();
+        }
+      });
+
+      function parseDocument(source) {
+        const traces = [];
+        const issues = [];
+        const bySession = new Map();
+        const lines = source.split(/\r?\n/u);
+
+        lines.forEach(function (line, index) {
+          if (line.trim() === '') {
+            return;
+          }
+          const lineNumber = index + 1;
+          let value;
+          try {
+            value = JSON.parse(line);
+          } catch {
+            issues.push({ lineNumber: lineNumber, reason: 'INVALID_JSON' });
+            return;
+          }
+          if (!isRecord(value)) {
+            issues.push({ lineNumber: lineNumber, reason: 'NOT_OBJECT' });
+            return;
+          }
+          if (!isNonEmptyString(value.sessionId)) {
+            issues.push({ lineNumber: lineNumber, reason: 'MISSING_SESSION_ID' });
+            return;
+          }
+          if (!isNonEmptyString(value.requestId)) {
+            issues.push({ lineNumber: lineNumber, reason: 'MISSING_REQUEST_ID' });
+            return;
+          }
+
+          let byRequest = bySession.get(value.sessionId);
+          if (!byRequest) {
+            byRequest = new Map();
+            bySession.set(value.sessionId, byRequest);
+          }
+          let trace = byRequest.get(value.requestId);
+          if (!trace) {
+            trace = { sessionId: value.sessionId, requestId: value.requestId, events: [] };
+            byRequest.set(value.requestId, trace);
+            traces.push(trace);
+          }
+          trace.events.push({ lineNumber: lineNumber, value: value, timestamp: parseTimestamp(value.recordedAt) });
+        });
+
+        traces.forEach(function (trace) {
+          trace.events.sort(compareEvents);
+        });
+        return { traces: traces, issues: issues };
+      }
+
+      function isRecord(value) {
+        return typeof value === 'object' && value !== null && !Array.isArray(value);
+      }
+
+      function isNonEmptyString(value) {
+        return typeof value === 'string' && value.trim().length > 0;
+      }
+
+      function parseTimestamp(value) {
+        if (typeof value !== 'string') {
+          return null;
+        }
+        const timestamp = Date.parse(value);
+        return Number.isFinite(timestamp) ? timestamp : null;
+      }
+
+      function formatLocalTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        const p = function (num, width) {
+          return String(num).padStart(width, '0');
+        };
+        return (
+          date.getFullYear() +
+          '-' +
+          p(date.getMonth() + 1, 2) +
+          '-' +
+          p(date.getDate(), 2) +
+          ' ' +
+          p(date.getHours(), 2) +
+          ':' +
+          p(date.getMinutes(), 2) +
+          ':' +
+          p(date.getSeconds(), 2) +
+          '.' +
+          p(date.getMilliseconds(), 3)
+        );
+      }
+
+      function compareEvents(left, right) {
+        if (left.timestamp !== null && right.timestamp !== null) {
+          return left.timestamp - right.timestamp || left.lineNumber - right.lineNumber;
+        }
+        if (left.timestamp !== null) {
+          return -1;
+        }
+        if (right.timestamp !== null) {
+          return 1;
+        }
+        return left.lineNumber - right.lineNumber;
+      }
+
+      function render() {
+        importSummary.textContent = state.traces.length + ' 条轨迹 · ' + state.issues.length + ' 条问题';
+        renderTraceList();
+        renderSelectedTrace();
+        renderIssues();
+      }
+
+      function renderTraceList() {
+        traceList.replaceChildren();
+        state.traces.forEach(function (trace) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'trace-option';
+          button.setAttribute('aria-label', trace.sessionId + ' / ' + trace.requestId);
+          button.setAttribute('aria-current', String(trace === state.selectedTrace));
+          const label = document.createElement('span');
+          label.className = 'trace-label';
+          label.textContent = trace.sessionId + ' / ' + trace.requestId;
+          const count = document.createElement('span');
+          count.className = 'trace-count';
+          count.textContent = trace.events.length + ' 个事件';
+          button.append(label, count);
+          button.addEventListener('click', function () {
+            state.selectedTrace = trace;
+            renderTraceList();
+            renderSelectedTrace();
+          });
+          traceList.append(button);
+        });
+      }
+
+      function renderSelectedTrace() {
+        timeline.replaceChildren();
+        if (!state.selectedTrace) {
+          tracePanel.classList.add('hidden');
+          emptyState.classList.remove('hidden');
+          emptyState.querySelector('strong').textContent = state.issues.length > 0 ? '无可用轨迹' : '等待导入轨迹';
+          emptyState.querySelector('span').textContent =
+            state.issues.length > 0
+              ? '文件中没有同时具备有效 sessionId 与 requestId 的记录。'
+              : '选择 developer diagnostic artifact NDJSON 后在此查看执行流程。';
+          return;
+        }
+        tracePanel.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        traceTitle.textContent = state.selectedTrace.sessionId + ' / ' + state.selectedTrace.requestId;
+        traceMeta.textContent = state.selectedTrace.events.length + ' 个事件';
+        let previousValidTimestamp = null;
+        state.selectedTrace.events.forEach(function (event) {
+          timeline.append(createEventCard(event, previousValidTimestamp));
+          if (event.timestamp !== null) {
+            previousValidTimestamp = event.timestamp;
+          }
+        });
+      }
+
+      function createEventCard(event, previousValidTimestamp) {
+        const card = document.createElement('article');
+        card.className = 'event-card';
+        card.dataset.lineNumber = String(event.lineNumber);
+
+        const top = document.createElement('div');
+        top.className = 'event-top';
+        const stage = document.createElement('span');
+        stage.className = 'event-stage';
+        stage.textContent = stageOf(event.value);
+        const delta = document.createElement('span');
+        delta.className = 'event-delta';
+        delta.textContent = deltaOf(event.timestamp, previousValidTimestamp);
+        top.append(stage, delta);
+
+        const time = document.createElement('div');
+        time.className = 'event-time';
+        time.textContent = '第 ' + event.lineNumber + ' 行 · ' + (event.timestamp === null ? '时间未知' : formatLocalTimestamp(event.timestamp));
+
+        const coordinates = document.createElement('div');
+        coordinates.className = 'coordinates';
+        coordinatesOf(event.value).forEach(function (coordinate) {
+          const chip = document.createElement('span');
+          chip.className = 'coordinate';
+          chip.textContent = coordinate;
+          coordinates.append(chip);
+        });
+
+        const coreMetrics = coreMetricsOf(event.value);
+        const core = coreMetrics.length === 0 ? null : createCoreMetrics(coreMetrics);
+
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = '查看完整 JSON';
+        const raw = document.createElement('pre');
+        raw.textContent = JSON.stringify(event.value, null, 2);
+        details.append(summary, raw);
+        card.append(top, time, coordinates);
+        if (core !== null) {
+          card.append(core);
+        }
+        card.append(details);
+        return card;
+      }
+
+      function stageOf(value) {
+        const payload = isRecord(value.payload) ? value.payload : null;
+        if (payload && isNonEmptyString(payload.stage)) {
+          return payload.stage;
+        }
+        if (isNonEmptyString(value.stage)) {
+          return value.stage;
+        }
+        return 'UNKNOWN_STAGE';
+      }
+
+      function deltaOf(timestamp, previousValidTimestamp) {
+        if (timestamp === null) {
+          return '不可用';
+        }
+        if (previousValidTimestamp === null) {
+          return '起点';
+        }
+        return '+' + Math.max(0, timestamp - previousValidTimestamp).toLocaleString('zh-CN') + ' ms';
+      }
+
+      function coreMetricsOf(value) {
+        const stage = stageOf(value);
+        const payload = isRecord(value.payload) ? value.payload : null;
+        const boundary = payload && isRecord(payload.boundary) ? payload.boundary : null;
+        if (stage === 'BEFORE_PLANNING') {
+          const flowVariables = boundary && isRecord(boundary.flowVariables) ? boundary.flowVariables : null;
+          return [{ label: 'input_question', value: displayCoreValue(flowVariables ? flowVariables.input_question : undefined) }];
+        }
+        if (stage === 'AFTER_MODEL_RESULT') {
+          return [
+            { label: 'firstContentLatencyMs', value: displayLatency(boundary ? boundary.firstContentLatencyMs : undefined) },
+            { label: 'modelE2ELatencyMs', value: displayLatency(boundary ? boundary.modelE2ELatencyMs : undefined) },
+            { label: 'usage', value: displayCoreValue(boundary ? boundary.usage : undefined) },
+            { label: 'toolCalls', value: displayCoreValue(boundary ? boundary.toolCalls : undefined) },
+          ];
+        }
+        if (stage === 'BEFORE_CAPABILITY_INVOKE') {
+          return [{ label: 'capabilityId', value: displayCoreValue(boundary ? boundary.capabilityId : undefined) }];
+        }
+        return [];
+      }
+
+      function displayLatency(value) {
+        return typeof value === 'number' && Number.isFinite(value) ? String(value) + ' ms' : displayCoreValue(value);
+      }
+
+      function displayCoreValue(value) {
+        if (value === undefined) {
+          return '不可用';
+        }
+        if (typeof value === 'string') {
+          return value;
+        }
+        const serialized = JSON.stringify(value, null, 2);
+        return serialized === undefined ? '不可用' : serialized;
+      }
+
+      function createCoreMetrics(metrics) {
+        const core = document.createElement('div');
+        core.className = 'event-core';
+        metrics.forEach(function (metric) {
+          const row = document.createElement('div');
+          row.className = 'core-metric';
+          const label = document.createElement('span');
+          label.className = 'core-label';
+          label.textContent = metric.label;
+          const value = document.createElement('div');
+          value.className = 'core-value';
+          value.textContent = metric.value;
+          row.append(label, value);
+          core.append(row);
+        });
+        return core;
+      }
+
+      function coordinatesOf(value) {
+        const result = [];
+        if (isNonEmptyString(value.runId)) {
+          result.push('runId=' + value.runId);
+        }
+        const payload = isRecord(value.payload) ? value.payload : null;
+        if (!payload) {
+          return result;
+        }
+        ['stepId', 'modelId', 'toolCallId', 'capabilityId', 'capabilityInvocationId'].forEach(function (key) {
+          if (isNonEmptyString(payload[key])) {
+            result.push(key + '=' + payload[key]);
+          }
+        });
+        return result;
+      }
+
+      function renderIssues() {
+        issueList.replaceChildren();
+        issuesPanel.classList.toggle('hidden', state.issues.length === 0);
+        state.issues.forEach(function (issue) {
+          const row = document.createElement('div');
+          row.className = 'issue-row';
+          const line = document.createElement('span');
+          line.textContent = '第 ' + issue.lineNumber + ' 行';
+          const reason = document.createElement('span');
+          reason.textContent = issue.reason;
+          row.append(line, reason);
+          issueList.append(row);
+        });
+      }
+    </script>
+  </body>
+</html>

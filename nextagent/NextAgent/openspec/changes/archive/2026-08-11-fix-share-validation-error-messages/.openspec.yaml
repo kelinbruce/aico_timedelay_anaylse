@@ -1,0 +1,5 @@
+id: fix-share-validation-error-messages
+title: Fix share validation error messages and global Fastify formatter
+status: draft
+owner: agent-channel-web
+schema: spec-driven

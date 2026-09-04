@@ -1,0 +1,16 @@
+.right-pane-content-column > .page-content-frame {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.right-pane-content-column--centered > .page-content-frame {
+  height: 100%;
+}
+
+.right-pane-floating-content {
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}

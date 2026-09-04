@@ -1,0 +1,178 @@
+@keyframes nextagent-process-entry-appear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.turn-process-entry--entering {
+  animation: nextagent-process-entry-appear 200ms ease-out both;
+}
+
+@keyframes nextagent-process-node-breathe-light {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 16%, transparent);
+  }
+}
+
+@keyframes nextagent-process-node-breathe-dark {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 42%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 13%, transparent);
+  }
+}
+
+.turn-process-entry-icon-node--breathing[data-process-active-theme='light'] {
+  animation: nextagent-process-node-breathe-light 2s ease-in-out infinite;
+}
+
+.turn-process-entry-icon-node--breathing[data-process-active-theme='dark'] {
+  animation: nextagent-process-node-breathe-dark 2s ease-in-out infinite;
+}
+
+.turn-process-rag-retrieval {
+  display: grid;
+  gap: 10px;
+}
+
+.turn-process-rag-retrieval-item {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.turn-process-rag-retrieval-source-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.turn-process-rag-retrieval-index {
+  flex: 0 0 auto;
+}
+
+.turn-process-rag-retrieval-source {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 34%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.turn-process-rag-retrieval-source--clickable {
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.turn-process-rag-retrieval-source--clickable:hover,
+.turn-process-rag-retrieval-source--clickable:focus-visible {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
+  outline: none;
+}
+
+.turn-process-entry-detail {
+  font-family: 'HarmonyOS Sans SC';
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0;
+  text-align: left;
+  color: rgba(119, 119, 119, 1);
+}
+
+.turn-process-entry-detail p {
+  margin-bottom: 0;
+}
+
+.turn-process-entry-title {
+  font-family: 'HarmonyOS Sans SC';
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+@keyframes nextagent-thinking-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.turn-process-thinking-shimmer {
+  background-image: linear-gradient(90deg, rgba(32, 112, 243, 1) 0%, rgba(32, 112, 243, 0.5) 50%, rgba(32, 112, 243, 0.3) 100%);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+  animation: nextagent-thinking-shimmer 2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-process-thinking-shimmer {
+    -webkit-text-fill-color: rgba(32, 112, 243, 1);
+    text-fill-color: rgba(32, 112, 243, 1);
+    background-image: none;
+    animation: none;
+  }
+}
+
+.turn-process-entry-summary {
+  font-family: 'HarmonyOS Sans SC';
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0;
+  text-align: left;
+  color: var(--color-text-secondary);
+}
+
+:root[data-theme='dark'] .turn-process-entry-detail,
+:root[data-theme='evening'] .turn-process-entry-detail {
+  color: rgba(147, 147, 147, 1);
+}
+
+:root[data-theme='dark'] .turn-process-entry-summary,
+:root[data-theme='evening'] .turn-process-entry-summary {
+  color: var(--color-text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-process-entry--entering {
+    animation: none;
+  }
+
+  .turn-process-entry-icon-node--breathing {
+    animation: none;
+  }
+}

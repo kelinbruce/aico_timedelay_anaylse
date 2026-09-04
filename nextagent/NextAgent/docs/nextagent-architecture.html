@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NextAgent 当前架构评审：最小内核、后端扩展点、前端服务与服务化方式">
+    <title>NextAgent 系统架构评审</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --success: #059669;
+            --success-bg: #d1fae5;
+            --warning: #d97706;
+            --warning-bg: #fef3c7;
+            --danger: #dc2626;
+            --danger-bg: #fee2e2;
+            --purple: #7c3aed;
+            --purple-bg: #ede9fe;
+            --cyan: #0891b2;
+            --cyan-bg: #cffafe;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.7;
+            color: var(--gray-800);
+            background: var(--gray-50);
+        }
+        .header {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 48%, #0891b2 100%);
+            color: white;
+            padding: 3rem 1rem 2.7rem;
+            text-align: center;
+        }
+        .header .eyebrow { font-size: 0.82rem; letter-spacing: 0.12em; opacity: 0.85; margin-bottom: 0.45rem; }
+        .header h1 { font-size: 2.2rem; font-weight: 750; margin-bottom: 0.45rem; }
+        .header .subtitle { font-size: 1rem; opacity: 0.93; max-width: 820px; margin: 0 auto; }
+        .header .badges { display: flex; gap: 0.55rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+        .header .badge { background: rgba(255,255,255,0.18); padding: 0.32rem 0.9rem; border-radius: 9999px; font-size: 0.82rem; }
+        .nav-wrap { background: white; border-bottom: 1px solid var(--gray-200); position: sticky; top: 0; z-index: 10; }
+        .nav { max-width: 1140px; margin: 0 auto; padding: 0.65rem 1.25rem; display: flex; gap: 0.45rem; overflow-x: auto; }
+        .nav a {
+            color: var(--gray-600); text-decoration: none; white-space: nowrap; font-size: 0.83rem;
+            padding: 0.32rem 0.72rem; border-radius: 9999px;
+        }
+        .nav a:hover, .nav a:focus-visible { color: var(--primary-dark); background: #eff6ff; outline: none; }
+        .container { max-width: 1140px; margin: 0 auto; padding: 0 1.25rem; }
+        section { padding: 2.7rem 0; scroll-margin-top: 3.7rem; }
+        section + section { border-top: 1px solid var(--gray-200); }
+        h2 {
+            font-size: 1.5rem; font-weight: 700; color: var(--gray-900);
+            margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.65rem;
+        }
+        h2 .num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 1.9rem; height: 1.9rem; background: var(--primary); color: white;
+            border-radius: 50%; font-size: 0.9rem; flex-shrink: 0;
+        }
+        h3 { font-size: 1.08rem; font-weight: 650; color: var(--gray-800); margin: 1.45rem 0 0.55rem; }
+        p { margin-bottom: 0.72rem; }
+        .section-desc { color: var(--gray-600); margin-bottom: 1.45rem; max-width: 900px; }
+        code {
+            font-family: "SF Mono", Monaco, Consolas, monospace;
+            background: var(--gray-100); padding: 0.1rem 0.35rem; border-radius: 4px;
+            font-size: 0.86em; color: var(--primary-dark);
+        }
+        .diagram {
+            background: white; border: 1px solid var(--gray-200); border-radius: 12px;
+            padding: 1.45rem; margin-bottom: 1rem; overflow-x: auto; text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.035);
+        }
+        .diagram-title { font-weight: 650; color: var(--gray-700); margin-bottom: 1rem; font-size: 0.95rem; text-align: left; }
+        svg { max-width: 100%; height: auto; min-width: 780px; }
+        .callout { border-left: 4px solid; padding: 0.85rem 1.1rem; border-radius: 0 8px 8px 0; margin-bottom: 1rem; font-size: 0.92rem; }
+        .callout-info { border-color: var(--primary); background: #eff6ff; }
+        .callout-success { border-color: var(--success); background: var(--success-bg); }
+        .callout-warn { border-color: var(--warning); background: var(--warning-bg); }
+        .callout-danger { border-color: var(--danger); background: var(--danger-bg); }
+        .callout strong { display: block; margin-bottom: 0.2rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.88rem; background: white; }
+        .table-scroll { max-width: 100%; margin-bottom: 1rem; overflow-x: auto; border-radius: 8px; }
+        .table-scroll table { min-width: 720px; }
+        th, td { text-align: left; padding: 0.65rem 0.8rem; border-bottom: 1px solid var(--gray-200); vertical-align: top; }
+        th { background: var(--gray-100); font-weight: 650; color: var(--gray-700); font-size: 0.82rem; }
+        tbody tr:hover { background: #fafcff; }
+        .grid { display: grid; gap: 1rem; margin-bottom: 1rem; }
+        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .card {
+            background: white; border: 1px solid var(--gray-200); border-radius: 12px;
+            padding: 1.15rem 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.035);
+        }
+        .card h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+        .card p { color: var(--gray-600); font-size: 0.88rem; margin-bottom: 0; }
+        .card-accent-blue { border-top: 4px solid var(--primary); }
+        .card-accent-purple { border-top: 4px solid var(--purple); }
+        .card-accent-green { border-top: 4px solid var(--success); }
+        .card-accent-cyan { border-top: 4px solid var(--cyan); }
+        .pill { display: inline-block; padding: 0.16rem 0.58rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 550; }
+        .pill-blue { background: #dbeafe; color: var(--primary-dark); }
+        .pill-green { background: var(--success-bg); color: var(--success); }
+        .pill-purple { background: var(--purple-bg); color: var(--purple); }
+        .pill-amber { background: var(--warning-bg); color: var(--warning); }
+        .pill-cyan { background: var(--cyan-bg); color: var(--cyan); }
+        .pill-gray { background: var(--gray-100); color: var(--gray-600); }
+        .review-card {
+            background: white; border: 1px solid var(--gray-200); border-radius: 12px;
+            padding: 1.25rem 1.4rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .review-card .label { font-size: 0.76rem; font-weight: 650; color: var(--primary); letter-spacing: 0.04em; margin-bottom: 0.3rem; }
+        .review-card h3 { margin: 0 0 0.45rem; font-size: 1.04rem; color: var(--gray-900); }
+        .review-card p { font-size: 0.88rem; color: var(--gray-600); margin: 0; }
+        .boundary-list { list-style: none; display: grid; gap: 0.55rem; }
+        .boundary-list li { position: relative; padding-left: 1.25rem; color: var(--gray-700); font-size: 0.9rem; }
+        .boundary-list li::before { content: "✓"; position: absolute; left: 0; color: var(--success); font-weight: 700; }
+        .footer { background: var(--gray-900); color: var(--gray-500); text-align: center; padding: 1.7rem 1rem; font-size: 0.85rem; }
+        .footer code { background: var(--gray-800); color: var(--gray-300); }
+        @media (max-width: 900px) {
+            .grid-3 { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.8rem; }
+        }
+        @media print {
+            .nav-wrap { display: none; }
+            body { background: white; }
+            .header { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            section { break-inside: avoid; }
+            .diagram, .card, .review-card { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="eyebrow">NEXTAGENT · ARCHITECTURE REVIEW</div>
+    <h1>NextAgent 系统架构</h1>
+    <p class="subtitle">以最小内核保持运行语义稳定，以受治理扩展承载领域差异，以统一前端服务适配多种产品宿主</p>
+    <div class="badges">
+        <span class="badge">最小内核</span>
+        <span class="badge">后端可扩展点</span>
+        <span class="badge">前端服务</span>
+        <span class="badge">LOCAL / REMOTE</span>
+    </div>
+</header>
+
+<div class="nav-wrap" aria-label="页面导航">
+    <nav class="nav">
+        <a href="#review-focus">评审焦点</a>
+        <a href="#overview">总体架构</a>
+        <a href="#kernel">最小内核</a>
+        <a href="#extensions">后端扩展</a>
+        <a href="#frontend">前端服务</a>
+        <a href="#deployment">服务化</a>
+        <a href="#conclusion">评审结论</a>
+    </nav>
+</div>
+
+<main class="container">
+
+    <section id="review-focus">
+        <h2><span class="num">1</span> 评审焦点</h2>
+        <p class="section-desc">本页聚焦当前已实现架构的四个决策，不将规划能力或参考 adapter 推断为已交付能力。</p>
+        <div class="grid grid-2">
+            <article class="review-card">
+                <div class="label">CORE</div>
+                <h3>什么必须稳定？</h3>
+                <p>请求生命周期、会话事实、Agent 执行、上下文、模型与能力治理组成逻辑最小内核。</p>
+            </article>
+            <article class="review-card">
+                <div class="label">EXTENSION</div>
+                <h3>什么可以替换？</h3>
+                <p>Agent Assembly、Capability、Plugin、Channel、Gateway、Model 和观测 exporter 都通过明确边界装配。</p>
+            </article>
+            <article class="review-card">
+                <div class="label">FRONTEND</div>
+                <h3>前端如何交付？</h3>
+                <p>同一浏览器应用制品支持独立托管或一体化托管，三种宿主复用同一 Chat Workspace 和后端契约。</p>
+            </article>
+            <article class="review-card">
+                <div class="label">SERVICE</div>
+                <h3>如何服务化？</h3>
+                <p>内核 owner 保持进程内协作，北向由 Channel 服务化，南向平台能力通过 async port 本地或远端实现。</p>
+            </article>
+        </div>
+        <div class="callout callout-info">
+            <strong>一句话架构</strong>
+            Channel / Frontend → <code>agent-app</code> 启动装配 → 最小内核 → Gateway / Provider port → LOCAL adapter 或 REMOTE 平台服务。
+        </div>
+    </section>
+
+    <section id="overview">
+        <h2><span class="num">2</span> 总体架构</h2>
+        <p class="section-desc">入口、内核和平台实现之间只通过公开契约协作。Channel 不拥有生命周期，Gateway 不反推业务语义，前端不持有服务端事实。</p>
+        <div class="diagram">
+            <div class="diagram-title">NextAgent 当前架构全景</div>
+            <svg viewBox="0 0 1080 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NextAgent 总体架构图">
+                <defs>
+                    <marker id="overview-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                        <path d="M0,0 L8,3 L0,6 Z" fill="#6b7280"/>
+                    </marker>
+                    <linearGradient id="kernel-gradient" x1="0" x2="1">
+                        <stop offset="0" stop-color="#eff6ff"/>
+                        <stop offset="1" stop-color="#ecfeff"/>
+                    </linearGradient>
+                </defs>
+
+                <text x="40" y="32" font-size="12" font-weight="700" fill="#374151">北向入口与产品宿主</text>
+                <rect x="40" y="50" width="220" height="72" rx="11" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+                <text x="150" y="79" text-anchor="middle" font-size="13" font-weight="700" fill="#1d4ed8">frontend/agent-web</text>
+                <text x="150" y="99" text-anchor="middle" font-size="10" fill="#4b5563">浏览器投影 · local / immersive / collaborative</text>
+                <rect x="310" y="50" width="210" height="72" rx="11" fill="#cffafe" stroke="#0891b2" stroke-width="2"/>
+                <text x="415" y="79" text-anchor="middle" font-size="13" font-weight="700" fill="#0891b2">agent-channel-web</text>
+                <text x="415" y="99" text-anchor="middle" font-size="10" fill="#4b5563">REST · SSE · WebSocket · identity</text>
+                <rect x="570" y="50" width="210" height="72" rx="11" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+                <text x="675" y="79" text-anchor="middle" font-size="13" font-weight="700" fill="#7c3aed">agent-channel-task</text>
+                <text x="675" y="99" text-anchor="middle" font-size="10" fill="#4b5563">异步任务 · callback · 系统集成</text>
+                <rect x="830" y="50" width="210" height="72" rx="11" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
+                <text x="935" y="79" text-anchor="middle" font-size="13" font-weight="700" fill="#374151">Product Host</text>
+                <text x="935" y="99" text-anchor="middle" font-size="10" fill="#4b5563">认证 · 容器 · 客户系统壳</text>
+
+                <line x1="150" y1="122" x2="150" y2="163" stroke="#6b7280" stroke-width="2" marker-end="url(#overview-arrow)"/>
+                <line x1="415" y1="122" x2="415" y2="163" stroke="#6b7280" stroke-width="2" marker-end="url(#overview-arrow)"/>
+                <line x1="675" y1="122" x2="675" y2="163" stroke="#6b7280" stroke-width="2" marker-end="url(#overview-arrow)"/>
+                <line x1="935" y1="122" x2="935" y2="163" stroke="#6b7280" stroke-width="2" marker-end="url(#overview-arrow)"/>
+
+                <rect x="40" y="165" width="1000" height="70" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+                <text x="540" y="193" text-anchor="middle" font-size="14" font-weight="700" fill="#d97706">agent-app · 唯一 Composition Root</text>
+                <text x="540" y="215" text-anchor="middle" font-size="10.5" fill="#4b5563">配置校验与冻结 · Agent Assembly 编译 · Provider/Plugin 装配 · Ready Gate · Lifecycle Host</text>
+
+                <line x1="540" y1="235" x2="540" y2="274" stroke="#6b7280" stroke-width="2" marker-end="url(#overview-arrow)"/>
+
+                <rect x="40" y="276" width="1000" height="205" rx="15" fill="url(#kernel-gradient)" stroke="#2563eb" stroke-width="2.5"/>
+                <text x="540" y="306" text-anchor="middle" font-size="15" font-weight="700" fill="#1d4ed8">逻辑最小内核 · 稳定运行语义</text>
+
+                <rect x="70" y="330" width="175" height="105" rx="10" fill="#2563eb"/>
+                <text x="157" y="359" text-anchor="middle" font-size="12" font-weight="700" fill="white">Runtime + Session</text>
+                <text x="157" y="380" text-anchor="middle" font-size="9.5" fill="white">admission · lane · timeline</text>
+                <text x="157" y="397" text-anchor="middle" font-size="9.5" fill="white">history · recovery</text>
+                <text x="157" y="414" text-anchor="middle" font-size="9.5" fill="white">terminal commit</text>
+
+                <rect x="265" y="330" width="175" height="105" rx="10" fill="#7c3aed"/>
+                <text x="352" y="359" text-anchor="middle" font-size="12" font-weight="700" fill="white">Agent Core</text>
+                <text x="352" y="380" text-anchor="middle" font-size="9.5" fill="white">routing · orchestration</text>
+                <text x="352" y="397" text-anchor="middle" font-size="9.5" fill="white">model / tool loop</text>
+                <text x="352" y="414" text-anchor="middle" font-size="9.5" fill="white">safe result projection</text>
+
+                <rect x="460" y="330" width="175" height="105" rx="10" fill="#0891b2"/>
+                <text x="547" y="359" text-anchor="middle" font-size="12" font-weight="700" fill="white">Context + Model</text>
+                <text x="547" y="380" text-anchor="middle" font-size="9.5" fill="white">selection · budget · prompt</text>
+                <text x="547" y="397" text-anchor="middle" font-size="9.5" fill="white">provider isolation</text>
+                <text x="547" y="414" text-anchor="middle" font-size="9.5" fill="white">stream normalization</text>
+
+                <rect x="655" y="330" width="175" height="105" rx="10" fill="#059669"/>
+                <text x="742" y="359" text-anchor="middle" font-size="12" font-weight="700" fill="white">Capability</text>
+                <text x="742" y="380" text-anchor="middle" font-size="9.5" fill="white">Tool · Skill · Agent</text>
+                <text x="742" y="397" text-anchor="middle" font-size="9.5" fill="white">catalog · binding</text>
+                <text x="742" y="414" text-anchor="middle" font-size="9.5" fill="white">validation · invocation</text>
+
+                <rect x="850" y="330" width="160" height="105" rx="10" fill="#374151"/>
+                <text x="930" y="359" text-anchor="middle" font-size="12" font-weight="700" fill="white">Contracts</text>
+                <text x="930" y="380" text-anchor="middle" font-size="9.5" fill="white">agent-common</text>
+                <text x="930" y="397" text-anchor="middle" font-size="9.5" fill="white">agent-contracts</text>
+                <text x="930" y="414" text-anchor="middle" font-size="9.5" fill="white">public ports only</text>
+
+                <line x1="540" y1="481" x2="540" y2="520" stroke="#6b7280" stroke-width="2" marker-end="url(#overview-arrow)"/>
+
+                <text x="40" y="520" font-size="12" font-weight="700" fill="#374151">南向平台能力</text>
+                <rect x="40" y="540" width="475" height="78" rx="12" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+                <text x="277" y="570" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">LOCAL Adapters</text>
+                <text x="277" y="592" text-anchor="middle" font-size="10" fill="#4b5563">SQLite · files/blob · restricted sandbox · local RAG · Cron</text>
+                <rect x="565" y="540" width="475" height="78" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+                <text x="802" y="570" text-anchor="middle" font-size="13" font-weight="700" fill="#7c3aed">REMOTE Platform Services</text>
+                <text x="802" y="592" text-anchor="middle" font-size="10" fill="#4b5563">Model · RAG · Sandbox · Workflow · PaaS / customer systems</text>
+            </svg>
+        </div>
+        <div class="grid grid-3">
+            <div class="card card-accent-blue"><h3>唯一生命周期</h3><p><code>agent-runtime</code> 是 RequestRun 与 canonical timeline 的唯一 owner。</p></div>
+            <div class="card card-accent-purple"><h3>唯一装配路径</h3><p><code>agent-app</code> 在 ready 前完成配置、Plugin、Provider 与宿主装配。</p></div>
+            <div class="card card-accent-green"><h3>可替换实现</h3><p>入口、UI 和平台实现可替换，但不能改变内核 contract 与状态语义。</p></div>
+        </div>
+    </section>
+
+    <section id="kernel">
+        <h2><span class="num">3</span> 最小内核</h2>
+        <p class="section-desc">最小内核不是“最少 package 数量”，而是不可被 Channel、Plugin、Gateway 或 UI 复制的一组运行语义。</p>
+        <div class="callout callout-warn">
+            <strong>两个概念必须分开</strong>
+            <b>逻辑最小内核</b>保持核心语义；OpenSpec <code>ts-minimal-agent-kernel</code> 描述的是加入 Web Channel、SQLite Gateway、观测实现和 composition host 后的<b>最小可运行产品切片</b>。
+        </div>
+        <div class="table-scroll">
+        <table>
+            <thead><tr><th>内核职责</th><th>Owner</th><th>稳定不变量</th></tr></thead>
+            <tbody>
+                <tr><td><span class="pill pill-blue">请求与会话事实</span></td><td><code>agent-runtime</code><br><code>agent-session</code></td><td>Admission、same-session lane、RequestRun、canonical timeline、history、checkpoint、恢复与唯一 terminal commit</td></tr>
+                <tr><td><span class="pill pill-purple">Agent 执行</span></td><td><code>agent-core</code></td><td>Agent 内部 routing、模型/tool loop 与业务编排；不复制 Runtime 状态机</td></tr>
+                <tr><td><span class="pill pill-cyan">模型输入与调用</span></td><td><code>agent-context-engine</code><br><code>agent-model</code></td><td>上下文选择与预算、Prompt shaping、Provider SDK 隔离、stream/tool-use 归一化与安全错误</td></tr>
+                <tr><td><span class="pill pill-green">能力治理</span></td><td><code>agent-capability</code></td><td>Tool、Skill、Agent 的发现、绑定、授权、输入校验、调用与结果约束</td></tr>
+                <tr><td><span class="pill pill-gray">契约基础</span></td><td><code>agent-common</code><br><code>agent-contracts</code></td><td>跨模块只经 public contract 协作，禁止 private path 与隐藏实现耦合</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <div class="callout callout-success">
+            <strong>黑盒成功标准</strong>
+            在可信 Owner Scope 与 Agent Scope 下接受请求，使用 acceptance 时固化的 Agent Assembly 完成 context render、model/capability execution，产生 canonical timeline，并把唯一终态与可见 history 一致提交。
+        </div>
+        <h3>不属于逻辑内核、但组成产品路径的外壳</h3>
+        <div class="grid grid-3">
+            <div class="card"><h3><code>agent-app</code></h3><p>Composition root、配置冻结、ready gate 与 lifecycle host；装配 owner，不拥有业务语义。</p></div>
+            <div class="card"><h3>Channel / Gateway</h3><p>提供入口和平台实现；可替换，但不能获得 lifecycle 或 canonical truth。</p></div>
+            <div class="card"><h3>Frontend / Observability</h3><p>投影 UI 或既有运行事实；不能反向改变请求结果、权限与持久化。</p></div>
+        </div>
+    </section>
+
+    <section id="extensions">
+        <h2><span class="num">4</span> 后端可扩展点</h2>
+        <p class="section-desc">扩展遵循“先声明、后装配、再授权”。不同扩展面有唯一用途，不互相模拟。</p>
+        <div class="table-scroll">
+        <table>
+            <thead><tr><th>扩展点</th><th>适用场景</th><th>载体与接入方式</th><th>边界</th></tr></thead>
+            <tbody>
+                <tr><td><span class="pill pill-blue">Agent Assembly</span></td><td>Agent 身份、Prompt、模型授权、能力绑定、runtime settings、Hook/Policy 激活</td><td><code>agent.yaml</code>、<code>prompts/</code> 与资源，由 <code>agent-app</code> 编译</td><td>只声明与激活，不能携带可信身份、物理部署路径或运行期状态</td></tr>
+                <tr><td><span class="pill pill-green">Capability</span></td><td>新增领域 Tool、Skill、子 Agent 或 Recipe</td><td>Provider → <code>agent-capability</code> catalog；Recipe → <code>agent-workflow</code></td><td>必须经过 binding、schema、风险、Sandbox、审计与结果治理</td></tr>
+                <tr><td><span class="pill pill-purple">Startup Plugin</span></td><td>新增受信 TypeScript provider、routing policy 或 lifecycle hook</td><td><code>plugin.json</code> + 单文件 ESM bundle；<code>agent-plugin-sdk</code> authoring；启动期显式加载</td><td>不支持 request-time hot load、远端下载、自动安装或绕过 owner 执行</td></tr>
+                <tr><td><span class="pill pill-cyan">Channel</span></td><td>新增 Web、Task 或其他北向协议</td><td><code>agent-channel-web</code>、<code>agent-channel-task</code> 或后续同形 package</td><td>只拥有 transport、schema、可信身份接入与 DTO/stream projection</td></tr>
+                <tr><td><span class="pill pill-amber">Gateway / Model</span></td><td>替换持久化、RAG、Sandbox、Workflow、平台 API 或模型 Provider</td><td>Local/Remote provider 通过 public async port 注入</td><td>不能改变 DTO/Record、Scope、幂等、terminal commit 或 Runtime 状态机</td></tr>
+                <tr><td><span class="pill pill-gray">Auth / Observability</span></td><td>对接可信身份、日志、审计、指标、Trace 与 Health 后端</td><td>Channel auth contribution 与部署侧 exporter/sink</td><td>身份只能来自可信边界；观测失败不能改写业务结果</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <div class="diagram">
+            <div class="diagram-title">Startup Plugin：加载不等于授权</div>
+            <svg viewBox="0 0 1040 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Startup Plugin 权限链">
+                <defs>
+                    <marker id="plugin-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                        <path d="M0,0 L8,3 L0,6 Z" fill="#6b7280"/>
+                    </marker>
+                </defs>
+                <rect x="35" y="70" width="210" height="95" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+                <text x="140" y="102" text-anchor="middle" font-size="13" font-weight="700" fill="#7c3aed">① Artifact 加载</text>
+                <text x="140" y="125" text-anchor="middle" font-size="10" fill="#4b5563">manifest · API version · path</text>
+                <text x="140" y="143" text-anchor="middle" font-size="10" fill="#4b5563">single-file ESM · snapshot</text>
+                <line x1="245" y1="117" x2="300" y2="117" stroke="#6b7280" stroke-width="2" marker-end="url(#plugin-arrow)"/>
+                <text x="272" y="106" text-anchor="middle" font-size="9" fill="#6b7280">不授予权限</text>
+                <rect x="305" y="70" width="210" height="95" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+                <text x="410" y="102" text-anchor="middle" font-size="13" font-weight="700" fill="#1d4ed8">② Assembly 激活</text>
+                <text x="410" y="125" text-anchor="middle" font-size="10" fill="#4b5563">capabilityBindings</text>
+                <text x="410" y="143" text-anchor="middle" font-size="10" fill="#4b5563">policies · hooks</text>
+                <line x1="515" y1="117" x2="570" y2="117" stroke="#6b7280" stroke-width="2" marker-end="url(#plugin-arrow)"/>
+                <text x="542" y="106" text-anchor="middle" font-size="9" fill="#6b7280">Agent-scoped</text>
+                <rect x="575" y="70" width="210" height="95" rx="12" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+                <text x="680" y="102" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">③ Owner 治理</text>
+                <text x="680" y="125" text-anchor="middle" font-size="10" fill="#4b5563">Capability / Core / Runtime</text>
+                <text x="680" y="143" text-anchor="middle" font-size="10" fill="#4b5563">校验 · timeout · safe result</text>
+                <line x1="785" y1="117" x2="840" y2="117" stroke="#6b7280" stroke-width="2" marker-end="url(#plugin-arrow)"/>
+                <text x="812" y="106" text-anchor="middle" font-size="9" fill="#6b7280">受控执行</text>
+                <rect x="845" y="70" width="160" height="95" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+                <text x="925" y="102" text-anchor="middle" font-size="13" font-weight="700" fill="#d97706">④ 运行结果</text>
+                <text x="925" y="125" text-anchor="middle" font-size="10" fill="#4b5563">canonical event</text>
+                <text x="925" y="143" text-anchor="middle" font-size="10" fill="#4b5563">audit / safe error</text>
+                <text x="520" y="218" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">禁止：Plugin 直接获得请求权限、替换 Runtime/Core、绕过 Capability/Sandbox 治理</text>
+            </svg>
+        </div>
+        <div class="callout callout-info">
+            <strong>扩展选择原则</strong>
+            新增 Agent 行为优先使用 Agent package、Tool / Skill / Agent / Recipe；需要受信 TypeScript 代码贡献时使用 Startup Plugin；新增入口协议实现 Channel adapter；替换平台能力实现 Gateway / Model provider。
+        </div>
+    </section>
+
+    <section id="frontend">
+        <h2><span class="num">5</span> 前端服务</h2>
+        <p class="section-desc"><code>agent-channel-web</code> 是后端 Channel adapter，不是前端服务。前端服务由浏览器应用制品与可选静态托管组成。</p>
+        <div class="table-scroll">
+        <table>
+            <thead><tr><th>组成</th><th>Owner</th><th>职责</th></tr></thead>
+            <tbody>
+                <tr><td>前端源码</td><td><code>frontend/agent-web</code></td><td>React Chat Workspace、组件交互、local view state，以及 local / immersive / collaborative 三种宿主投影</td></tr>
+                <tr><td>正式前端制品</td><td><code>@nextagent/agent-web</code></td><td>构建后的 HTML、JavaScript、CSS、PIU assets 与 hosting manifest；版本与根产品版本一致</td></tr>
+                <tr><td>静态托管 adapter</td><td><code>agent-app-frontend-hosting</code></td><td>注册静态资源 route 与 SPA fallback；不定义 API 或前端业务状态</td></tr>
+                <tr><td>后端 API</td><td><code>agent-channel-web</code></td><td>REST、SSE、WebSocket、bootstrap 与 public DTO projection</td></tr>
+                <tr><td>一体化入口</td><td><code>agent-app/entrypoints/with-frontend</code></td><td>在 ready 前接入正式前端制品与静态托管 adapter</td></tr>
+            </tbody>
+        </table>
+        </div>
+
+        <div class="diagram">
+            <div class="diagram-title">前端服务的两种正式部署方式</div>
+            <svg viewBox="0 0 1040 410" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="前端服务部署方式">
+                <defs>
+                    <marker id="frontend-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                        <path d="M0,0 L8,3 L0,6 Z" fill="#6b7280"/>
+                    </marker>
+                </defs>
+                <rect x="30" y="35" width="470" height="330" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+                <text x="265" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="#1d4ed8">方式 A · 前后端分离</text>
+                <rect x="75" y="100" width="170" height="75" rx="10" fill="#2563eb"/>
+                <text x="160" y="130" text-anchor="middle" font-size="12" font-weight="700" fill="white">Web 容器 / 产品宿主</text>
+                <text x="160" y="151" text-anchor="middle" font-size="9.5" fill="white">@nextagent/agent-web</text>
+                <rect x="285" y="100" width="170" height="75" rx="10" fill="#0891b2"/>
+                <text x="370" y="130" text-anchor="middle" font-size="12" font-weight="700" fill="white">backend-only</text>
+                <text x="370" y="151" text-anchor="middle" font-size="9.5" fill="white">Web Channel + Kernel</text>
+                <line x1="245" y1="137" x2="285" y2="137" stroke="#6b7280" stroke-width="2" marker-end="url(#frontend-arrow)"/>
+                <text x="265" y="126" text-anchor="middle" font-size="8.5" fill="#6b7280">/api · SSE/WS</text>
+                <rect x="75" y="215" width="380" height="100" rx="10" fill="white" stroke="#d1d5db"/>
+                <text x="265" y="244" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">边界保持不变</text>
+                <text x="265" y="267" text-anchor="middle" font-size="9.5" fill="#4b5563">同一 API · 同一 identity / Scope</text>
+                <text x="265" y="286" text-anchor="middle" font-size="9.5" fill="#4b5563">同一 canonical stream / history</text>
+                <text x="265" y="305" text-anchor="middle" font-size="9.5" fill="#4b5563">托管位置不产生业务语义</text>
+
+                <rect x="540" y="35" width="470" height="330" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="2.5"/>
+                <text x="775" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="#059669">方式 B · 一体化托管</text>
+                <rect x="600" y="100" width="350" height="185" rx="12" fill="white" stroke="#059669" stroke-width="2"/>
+                <text x="775" y="128" text-anchor="middle" font-size="12" font-weight="700" fill="#059669">with-frontend · 同一 NextAgent 服务</text>
+                <rect x="625" y="150" width="135" height="88" rx="9" fill="#d1fae5" stroke="#059669"/>
+                <text x="692" y="181" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">静态托管</text>
+                <text x="692" y="200" text-anchor="middle" font-size="9" fill="#4b5563">assets</text>
+                <text x="692" y="216" text-anchor="middle" font-size="9" fill="#4b5563">SPA fallback</text>
+                <rect x="790" y="150" width="135" height="88" rx="9" fill="#cffafe" stroke="#0891b2"/>
+                <text x="857" y="181" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0891b2">标准后端</text>
+                <text x="857" y="200" text-anchor="middle" font-size="9" fill="#4b5563">Web Channel</text>
+                <text x="857" y="216" text-anchor="middle" font-size="9" fill="#4b5563">Kernel</text>
+                <text x="775" y="320" text-anchor="middle" font-size="9.5" fill="#4b5563">只增加静态资源交付，不形成第二套 API、Runtime 或会话状态</text>
+            </svg>
+        </div>
+        <div class="grid grid-2">
+            <div class="callout callout-info">
+                <strong>三种宿主，一套业务语义</strong>
+                local、immersive、collaborative 复用同一 Chat Workspace、后端 bootstrap/transport contract 与 canonical history；差异仅在容器、主题、语言、宿主上下文与布局。
+            </div>
+            <div class="callout callout-warn">
+                <strong>开发服务不是生产形态</strong>
+                <code>dev:watch</code> 的 Vite dev server + <code>backend-only</code> proxy 只服务源码开发，不构成第三种正式前端架构。
+            </div>
+        </div>
+        <ul class="boundary-list">
+            <li>前端拥有浏览器渲染、组件交互与临时 view state。</li>
+            <li>后端拥有 request lifecycle、trusted identity、Owner/Agent Scope、canonical stream/history、Capability authority 与 persistence。</li>
+            <li>URL、localStorage、浏览器环境变量与 UI 控件不能成为服务端事实的权威来源。</li>
+        </ul>
+    </section>
+
+    <section id="deployment">
+        <h2><span class="num">6</span> 服务化方式</h2>
+        <p class="section-desc">当前原则是“内核进程内模块化，平台能力端口服务化”，不是把每个 npm package 直接拆成微服务。</p>
+        <div class="grid grid-2">
+            <div class="card card-accent-blue">
+                <h3>北向：Channel 服务</h3>
+                <p>Web / Task Channel 暴露 HTTP、SSE、WebSocket、callback 等协议，并负责可信身份接入与 public projection。</p>
+            </div>
+            <div class="card card-accent-purple">
+                <h3>南向：平台服务</h3>
+                <p>Model、RAG、Sandbox、Workflow、Persistence 与客户系统通过 async Gateway / Provider port 接入。</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+        <table>
+            <thead><tr><th>形态</th><th>进程 / 制品边界</th><th>适用场景</th><th>保持不变</th></tr></thead>
+            <tbody>
+                <tr><td><span class="pill pill-blue">LOCAL backend</span></td><td><code>backend-only</code> 启动后端，前端独立托管</td><td>独立 API 服务、前后端分离、本地部署</td><td>Runtime lifecycle、Scope、timeline 与 terminal commit 在同一 composed app</td></tr>
+                <tr><td><span class="pill pill-green">LOCAL integrated</span></td><td><code>with-frontend</code> 增加正式静态资源托管</td><td>一体化安装包</td><td>与 backend-only 使用同一内核和 API</td></tr>
+                <tr><td><span class="pill pill-purple">REMOTE / hybrid</span></td><td><code>agent-remote-deployment</code> 装配远端 Gateway / Model client，当前仍组合部分本地 provider</td><td>PaaS、平台服务或客户系统集成</td><td>只替换 port 后实现，不改变 Channel contract、Assembly 与 Runtime 状态机</td></tr>
+                <tr><td><span class="pill pill-amber">Embedded host</span></td><td>产品宿主调用 <code>agent-app</code> public factory 并注入受信 contribution</td><td>产品内嵌、定制认证与平台壳集成</td><td><code>agent-app</code> 仍是唯一 composition root</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <div class="callout callout-danger">
+            <strong>REMOTE 不等于天然分布式</strong>
+            远端 adapter 只证明某些平台能力可移出进程，不证明全部持久化、scheduler、lease、same-session lane、terminal composite write、timeline 接续与 recovery 已具备多实例一致性。多实例交付必须提供独立规格与验证证据。
+        </div>
+        <div class="callout callout-info">
+            <strong>何时需要新的 OpenSpec</strong>
+            若要把 <code>agent-runtime</code>、<code>agent-core</code>、<code>agent-session</code> 或 <code>agent-context-engine</code> 独立成网络服务，必须重新定义网络失败、幂等、一致性、取消、恢复与安全语义，不能仅把 package 调用替换成 RPC。
+        </div>
+    </section>
+
+    <section id="conclusion">
+        <h2><span class="num">7</span> 评审结论</h2>
+        <p class="section-desc">当前架构以稳定内核承载通用运行语义，以明确扩展面承载领域与部署差异。</p>
+        <div class="grid grid-3">
+            <div class="card card-accent-blue"><h3>内核收敛</h3><p>Runtime、Session、Core、Context、Model、Capability 与公共契约形成唯一主路径，不存在平行 lifecycle owner。</p></div>
+            <div class="card card-accent-purple"><h3>扩展受控</h3><p>加载、激活和执行分层；Channel、Plugin 与 Gateway 各有唯一职责，不能越权替代。</p></div>
+            <div class="card card-accent-green"><h3>交付一致</h3><p>前端宿主与 LOCAL / REMOTE 部署复用同一 contract、Scope、timeline 与 terminal 语义。</p></div>
+        </div>
+        <div class="callout callout-success">
+            <strong>推荐评审基线</strong>
+            任何新增能力都先回答三个问题：谁是唯一 owner？通过哪个 public contract 接入？它是否改变 RequestRun、Scope、terminal commit 或 canonical history？若改变，先建立 OpenSpec；若不改变，选择现有扩展面。
+        </div>
+        <h3>边界检查清单</h3>
+        <ul class="boundary-list">
+            <li>Channel 只处理协议、可信身份和公开投影，不拥有请求生命周期。</li>
+            <li>Frontend 只处理浏览器投影和本地 view state，不拥有服务端事实。</li>
+            <li>Plugin 必须经过启动期校验、Agent Assembly 激活和 owner 治理。</li>
+            <li>Gateway / Model provider 只替换端口实现，不改变核心 contract。</li>
+            <li>LOCAL / REMOTE 与宿主差异不改变 Agent Scope、Owner Scope 和 terminal 一致性。</li>
+        </ul>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <p>NextAgent 系统架构评审 · 最小内核 + 后端扩展点 + 前端服务 + 服务化方式</p>
+    <p style="margin-top: 0.35rem;">架构导读：<code>docs/nextagent-architecture.md</code> · 行为与边界以 OpenSpec 和仓库实现为准</p>
+</footer>
+
+</body>
+</html>

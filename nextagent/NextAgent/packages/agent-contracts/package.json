@@ -1,0 +1,74 @@
+{
+  "name": "@nextagent/agent-contracts",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./agent-assembly": {
+      "types": "./dist/agent-assembly/index.d.ts",
+      "import": "./dist/agent-assembly/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js"
+    },
+    "./channel": {
+      "types": "./dist/channel/index.d.ts",
+      "import": "./dist/channel/index.js"
+    },
+    "./session": {
+      "types": "./dist/session/index.d.ts",
+      "import": "./dist/session/index.js"
+    },
+    "./attachment": {
+      "types": "./dist/attachment/index.d.ts",
+      "import": "./dist/attachment/index.js"
+    },
+    "./context": {
+      "types": "./dist/context/index.d.ts",
+      "import": "./dist/context/index.js"
+    },
+    "./model": {
+      "types": "./dist/model/index.d.ts",
+      "import": "./dist/model/index.js"
+    },
+    "./capability": {
+      "types": "./dist/capability/index.d.ts",
+      "import": "./dist/capability/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./gateway": {
+      "types": "./dist/gateway/index.d.ts",
+      "import": "./dist/gateway/index.js"
+    },
+    "./observability": {
+      "types": "./dist/observability/index.d.ts",
+      "import": "./dist/observability/index.js"
+    },
+    "./app": {
+      "types": "./dist/app/index.d.ts",
+      "import": "./dist/app/index.js"
+    },
+    "./system-reminder": {
+      "types": "./dist/system-reminder/index.d.ts",
+      "import": "./dist/system-reminder/index.js"
+    }
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@sinclair/typebox": "0.34.52"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  }
+}

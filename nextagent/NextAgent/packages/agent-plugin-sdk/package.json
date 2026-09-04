@@ -1,0 +1,45 @@
+{
+  "name": "@nextagent/agent-plugin-sdk",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./developer-hook-trace": {
+      "types": "./dist/developer-hook-trace.d.ts",
+      "import": "./dist/developer-hook-trace.js"
+    },
+    "./context-monitor": {
+      "types": "./dist/context-monitor.d.ts",
+      "import": "./dist/context-monitor.js"
+    },
+    "./agent-router-plugin": {
+      "types": "./dist/agent-router-plugin.d.ts",
+      "import": "./dist/agent-router-plugin.js"
+    },
+    "./northbound-output-normalization-hook": {
+      "types": "./dist/northbound-output-normalization-hook.d.ts",
+      "import": "./dist/northbound-output-normalization-hook.js"
+    },
+    "./scaffold": {
+      "types": "./dist/scaffold/index.d.ts",
+      "import": "./dist/scaffold/index.js"
+    }
+  },
+  "bin": {
+    "create-nextagent-plugin": "./dist/scaffold/cli.js"
+  },
+  "dependencies": {
+    "@nextagent/agent-common": "1.0.0",
+    "@nextagent/agent-contracts": "1.0.0"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  }
+}

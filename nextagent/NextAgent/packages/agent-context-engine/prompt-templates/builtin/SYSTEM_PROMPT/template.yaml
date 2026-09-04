@@ -1,0 +1,29 @@
+content:
+  - id: identity
+    file: identity.md
+  - id: system_behavior
+    file: system-behavior.md
+  - id: task_approach
+    file: task-approach.md
+  - id: communication_style
+    file: communication-style.md
+  - id: agent_delegation
+    file: agent-delegation.md
+  - id: tooling
+    file: tooling.md
+  - id: memory
+    file: memory.md
+  - id: skill_disclosure
+    file: skill-disclosure.md
+  - id: action_safety
+    file: action-safety.md
+  - id: context_management
+    file: context-management.md
+  - id: workspace
+    file: workspace.md
+  - id: runtime
+    inline: |
+      {{ runtime? }}
+  - id: environment
+    inline: |
+      {{ environment? }}

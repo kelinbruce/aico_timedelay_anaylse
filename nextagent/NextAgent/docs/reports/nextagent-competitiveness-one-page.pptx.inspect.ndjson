@@ -1,0 +1,159 @@
+{"kind":"deck","id":"pr/3nojyd","name":"Deck"}
+{"kind":"layout","layoutId":"76f897d3-2d5d-4454-a153-b6cd380e0d8c","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"d36459ef-ebe3-4f87-aee0-15c75c6fb1e7","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/gccfsx","slide":1,"title":"NextAgent","textShapes":68}
+{"kind":"shape","id":"sh/uxc3ylc7","slide":1,"bbox":[-40,110,210,2]}
+{"kind":"shape","id":"sh/1kre1w7m","slide":1,"bbox":[170,30,240,2]}
+{"kind":"shape","id":"sh/c3ylc7u5","slide":1,"bbox":[410,145,310,2]}
+{"kind":"shape","id":"sh/j6tovaho","slide":1,"bbox":[720,52,260,2]}
+{"kind":"shape","id":"sh/ulwval87","slide":1,"bbox":[980,138,280,2]}
+{"kind":"shape","id":"sh/1cfa9w3m","slide":1,"bbox":[-40,320,210,2]}
+{"kind":"shape","id":"sh/crmhk3q5","slide":1,"bbox":[170,240,240,2]}
+{"kind":"shape","id":"sh/j2t83itg","slide":1,"bbox":[410,355,310,2]}
+{"kind":"shape","id":"sh/qh0fepkz","slide":1,"bbox":[720,262,260,2]}
+{"kind":"shape","id":"sh/s36hcrmh","slide":1,"bbox":[980,348,280,2]}
+{"kind":"shape","id":"sh/hoza1gvy","slide":1,"bbox":[-40,540,210,2]}
+{"kind":"shape","id":"sh/a1gvy90j","slide":1,"bbox":[170,460,240,2]}
+{"kind":"shape","id":"sh/zidonyd0","slide":1,"bbox":[410,575,310,2]}
+{"kind":"shape","id":"sh/svu9knih","slide":1,"bbox":[720,482,260,2]}
+{"kind":"shape","id":"sh/hgn29gr2","slide":1,"bbox":[980,568,280,2]}
+{"kind":"shape","id":"sh/ap4r65wj","slide":1,"bbox":[-80,750,1760,180]}
+{"kind":"shape","id":"sh/za1gvy90","slide":1,"bbox":[-60,790,1720,160]}
+{"kind":"shape","id":"sh/sji5snel","slide":1,"bbox":[0,870,1600,30]}
+{"kind":"textbox","id":"sh/h4byhgn2","slide":1,"text":"NextAgent","textPreview":"NextAgent","textChars":9,"textLines":1,"bbox":[58,30,120,26]}
+{"kind":"textbox","id":"sh/psfil0rq","slide":1,"text":"网络智能体框架竞争力汇报","textPreview":"网络智能体框架竞争力汇报","textChars":12,"textLines":1,"bbox":[195,24,520,46]}
+{"kind":"textbox","id":"sh/w7mp0bi9","slide":1,"text":"COMPETITIVENESS","textPreview":"COMPETITIVENESS","textChars":15,"textLines":1,"bbox":[735,35,230,24]}
+{"kind":"textbox","id":"sh/7mp0bi9s","slide":1,"text":"电信级 · 可治理 · 可交付","textPreview":"电信级 · 可治理 · 可交付","textChars":15,"textLines":1,"bbox":[1250,34,270,24]}
+{"kind":"shape","id":"sh/e1w7mp0b","slide":1,"bbox":[1495,66,26,3]}
+{"kind":"shape","id":"sh/pg3ex0nu","slide":1,"bbox":[58,86,1484,112]}
+{"kind":"textbox","id":"sh/wval87ed","slide":1,"text":"WHY / 目标牵引","textPreview":"WHY / 目标牵引","textChars":10,"textLines":1,"bbox":[76,114,150,20]}
+{"kind":"textbox","id":"sh/7adsji5s","slide":1,"text":"核心目标","textPreview":"核心目标","textChars":4,"textLines":1,"bbox":[76,140,150,34]}
+{"kind":"shape","id":"sh/epkzupwb","slide":1,"bbox":[252,104,1,76]}
+{"kind":"shape","id":"sh/lc7u54zi","slide":1,"bbox":[282,108,4,20]}
+{"kind":"textbox","id":"sh/wra5gbq1","slide":1,"text":"匹配模型技术演进，建设 LAM 编排 Skill、Tool、SubAgent 的框架，提升网络智能体的泛化性和智能感。","textPreview":"匹配模型技术演进，建设 LAM 编排 Skill、Tool、SubAgent 的框架，提升网络智能体的泛化性和智能感。","textChars":59,"textLines":1,"bbox":[302,106,1180,24]}
+{"kind":"shape","id":"sh/al87ed8b","slide":1,"bbox":[282,136,4,20]}
+{"kind":"textbox","id":"sh/z61032ls","slide":1,"text":"实现电信级可靠性，支撑长时任务运行、人工接管、过程可观测、结论可解释和审计可追溯。","textPreview":"实现电信级可靠性，支撑长时任务运行、人工接管、过程可观测、结论可解释和审计可追溯。","textChars":41,"textLines":1,"bbox":[302,134,1180,24]}
+{"kind":"shape","id":"sh/orytsvu9","slide":1,"bbox":[282,164,4,20]}
+{"kind":"textbox","id":"sh/hcrmhk3q","slide":1,"text":"形成受治理的能力接入底座，让管控单元、客户系统和业界新技术快速纳入网络运维智能体生态。","textPreview":"形成受治理的能力接入底座，让管控单元、客户系统和业界新技术快速纳入网络运维智能体生态。","textChars":43,"textLines":1,"bbox":[302,162,1180,24]}
+{"kind":"shape","id":"sh/a9w3m94f","slide":1,"bbox":[58,214,462,330]}
+{"kind":"shape","id":"sh/zupwb2hw","slide":1,"bbox":[548,214,462,330]}
+{"kind":"shape","id":"sh/sfil0rqd","slide":1,"bbox":[1038,214,462,330]}
+{"kind":"shape","id":"sh/h0fepkzu","slide":1,"bbox":[548,214,462,5]}
+{"kind":"shape","id":"sh/65wjudg7","slide":1,"bbox":[1038,214,462,5]}
+{"kind":"textbox","id":"sh/zqtcj6to","slide":1,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[74,230,64,36]}
+{"kind":"shape","id":"sh/fmlkjm1c","slide":1,"bbox":[150,247,32,4]}
+{"kind":"textbox","id":"sh/q1orytsv","slide":1,"text":"业务诉求","textPreview":"业务诉求","textChars":4,"textLines":1,"bbox":[194,236,280,30]}
+{"kind":"shape","id":"sh/xs72x4na","slide":1,"bbox":[74,275,426,1]}
+{"kind":"shape","id":"sh/87ed8bat","slide":1,"bbox":[74,286,426,55]}
+{"kind":"shape","id":"sh/je9cvixc","slide":1,"bbox":[74,286,4,55]}
+{"kind":"shape","id":"sh/qtcj6tov","slide":1,"bbox":[78,286,90,55]}
+{"kind":"textbox","id":"sh/1gvy90je","slide":1,"text":"任务泛化","textPreview":"任务泛化","textChars":4,"textLines":1,"bbox":[82,298,84,32]}
+{"kind":"textbox","id":"sh/8z25kb6x","slide":1,"text":"网络任务形态复杂：需要模型能按场景组合 Skill、Tool、SubAgent、知识检索和客户 API。","textPreview":"网络任务形态复杂：需要模型能按场景组合 Skill、Tool、SubAgent、知识检索和客户 API。","textChars":52,"textLines":1,"bbox":[178,293,310,42]}
+{"kind":"shape","id":"sh/fa9w3m94","slide":1,"bbox":[74,346,426,55]}
+{"kind":"shape","id":"sh/qpg3ex0n","slide":1,"bbox":[74,346,4,55]}
+{"kind":"shape","id":"sh/kzupwb2h","slide":1,"bbox":[78,346,90,55]}
+{"kind":"textbox","id":"sh/9knih4by","slide":1,"text":"长时可靠","textPreview":"长时可靠","textChars":4,"textLines":1,"bbox":[82,358,84,32]}
+{"kind":"textbox","id":"sh/2t83itgf","slide":1,"text":"诊断不是一次问答：跨告警、KPI、拓扑、工单和工具执行时，需要可暂停、可恢复、终态一致。","textPreview":"诊断不是一次问答：跨告警、KPI、拓扑、工单和工具执行时，需要可暂停、可恢复、终态一致。","textChars":44,"textLines":1,"bbox":[178,353,310,42]}
+{"kind":"shape","id":"sh/re1w7mp0","slide":1,"bbox":[74,406,426,55]}
+{"kind":"shape","id":"sh/kb6xkf6d","slide":1,"bbox":[74,406,4,55]}
+{"kind":"shape","id":"sh/9w3m94fu","slide":1,"bbox":[78,406,90,55]}
+{"kind":"textbox","id":"sh/25kb6xkf","slide":1,"text":"人机协同","textPreview":"人机协同","textChars":4,"textLines":1,"bbox":[82,418,84,32]}
+{"kind":"textbox","id":"sh/rqd4vmtw","slide":1,"text":"高风险动作要可控：澄清、确认、授权、人工接管都要在同一运行生命周期内暂停、恢复和超时。","textPreview":"高风险动作要可控：澄清、确认、授权、人工接管都要在同一运行生命周期内暂停、恢复和超时。","textChars":43,"textLines":1,"bbox":[178,413,310,42]}
+{"kind":"shape","id":"sh/kjm1cfa9","slide":1,"bbox":[74,466,426,55]}
+{"kind":"shape","id":"sh/94fu18jq","slide":1,"bbox":[74,466,4,55]}
+{"kind":"shape","id":"sh/d0z61032","slide":1,"bbox":[78,466,90,55]}
+{"kind":"textbox","id":"sh/kf6dcbul","slide":1,"text":"生态接入","textPreview":"生态接入","textChars":4,"textLines":1,"bbox":[82,478,84,32]}
+{"kind":"textbox","id":"sh/vu9knih4","slide":1,"text":"能力来源持续变化：管控单元、客户系统、SOP、API 工具和业界新技术要快速接入且受治理。","textPreview":"能力来源持续变化：管控单元、客户系统、SOP、API 工具和业界新技术要快速接入且受治理。","textChars":45,"textLines":1,"bbox":[178,473,310,42]}
+{"kind":"textbox","id":"sh/29gr2p8n","slide":1,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[564,230,64,36]}
+{"kind":"shape","id":"sh/d8bat47y","slide":1,"bbox":[640,247,32,4]}
+{"kind":"textbox","id":"sh/knih4byh","slide":1,"text":"同类项目缺口","textPreview":"同类项目缺口","textChars":6,"textLines":1,"bbox":[684,236,280,30]}
+{"kind":"shape","id":"sh/v6psfil0","slide":1,"bbox":[564,275,426,1]}
+{"kind":"shape","id":"sh/2lszqtcj","slide":1,"bbox":[564,286,426,72]}
+{"kind":"textbox","id":"sh/dcbulwva","slide":1,"text":"C","textPreview":"C","textChars":1,"textLines":1,"bbox":[581,296,48,46]}
+{"kind":"textbox","id":"sh/kre1w7mp","slide":1,"text":"CODE","textPreview":"CODE","textChars":4,"textLines":1,"bbox":[576,337,58,12]}
+{"kind":"textbox","id":"sh/ytsvu9kn","slide":1,"text":"Claude Code","textPreview":"Claude Code","textChars":11,"textLines":1,"bbox":[646,295,310,18]}
+{"kind":"textbox","id":"sh/neloj2t8","slide":1,"text":"缺口：面向软件研发提效，不负责电信生产运维的工具治理、权限隔离、审计追溯和运行恢复。","textPreview":"缺口：面向软件研发提效，不负责电信生产运维的工具治理、权限隔离、审计追溯和运行恢复。","textChars":42,"textLines":1,"bbox":[646,317,320,34]}
+{"kind":"shape","id":"sh/czed8v6p","slide":1,"bbox":[564,366,426,72]}
+{"kind":"shape","id":"sh/5kb6xkf6","slide":1,"bbox":[586,412,38,5]}
+{"kind":"shape","id":"sh/u54zidon","slide":1,"bbox":[584,382,45,34]}
+{"kind":"textbox","id":"sh/nqxs72x4","slide":1,"text":"CLAW","textPreview":"CLAW","textChars":4,"textLines":1,"bbox":[576,417,58,12]}
+{"kind":"textbox","id":"sh/cbulwval","slide":1,"text":"OpenClaw","textPreview":"OpenClaw","textChars":8,"textLines":1,"bbox":[646,375,310,18]}
+{"kind":"textbox","id":"sh/5sneloj2","slide":1,"text":"缺口：通用入口、技能和多渠道有参考价值，但行业生产仍需重建权限、能力目录、审计和质量约束。","textPreview":"缺口：通用入口、技能和多渠道有参考价值，但行业生产仍需重建权限、能力目录、审计和质量约束。","textChars":45,"textLines":1,"bbox":[646,397,320,34]}
+{"kind":"shape","id":"sh/y90je9cv","slide":1,"bbox":[564,446,426,72]}
+{"kind":"textbox","id":"sh/nuxc3ylc","slide":1,"text":"H","textPreview":"H","textChars":1,"textLines":1,"bbox":[581,456,48,44]}
+{"kind":"shape","id":"sh/vu9knih4","slide":1,"bbox":[596,497,20,5]}
+{"kind":"textbox","id":"sh/29gr2p8n","slide":1,"text":"HERMES","textPreview":"HERMES","textChars":6,"textLines":1,"bbox":[576,505,58,10]}
+{"kind":"textbox","id":"sh/d0z61032","slide":1,"text":"Hermes Agent","textPreview":"Hermes Agent","textChars":12,"textLines":1,"bbox":[646,455,310,18]}
+{"kind":"textbox","id":"sh/kf6dcbul","slide":1,"text":"缺口：学习、记忆和 Skill 改进值得借鉴，但网络经验仍要结构化治理、授权隔离和可遗忘审计。","textPreview":"缺口：学习、记忆和 Skill 改进值得借鉴，但网络经验仍要结构化治理、授权隔离和可遗忘审计。","textChars":47,"textLines":1,"bbox":[646,477,320,34]}
+{"kind":"textbox","id":"sh/v6psfil0","slide":1,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1054,230,64,36]}
+{"kind":"shape","id":"sh/2lszqtcj","slide":1,"bbox":[1130,247,32,4]}
+{"kind":"textbox","id":"sh/d8bat47y","slide":1,"text":"策略与竞争力","textPreview":"策略与竞争力","textChars":6,"textLines":1,"bbox":[1174,236,280,30]}
+{"kind":"shape","id":"sh/knih4byh","slide":1,"bbox":[1054,275,426,1]}
+{"kind":"shape","id":"sh/val87ed8","slide":1,"bbox":[1054,280,426,30]}
+{"kind":"shape","id":"sh/6psfil0r","slide":1,"bbox":[1064,290,10,10]}
+{"kind":"textbox","id":"sh/gn29gr2p","slide":1,"text":"面向 LAM 演进，把 Tool、Skill、SubAgent、RAG、记忆和客户 API 统一纳入 Capability 编排。","textPreview":"面向 LAM 演进，把 Tool、Skill、SubAgent、RAG、记忆和客户 API 统一纳入 Capability 编排。","textChars":65,"textLines":1,"bbox":[1082,284,386,22]}
+{"kind":"shape","id":"sh/58z25kb6","slide":1,"bbox":[1054,314,426,30]}
+{"kind":"shape","id":"sh/yhgn29gr","slide":1,"bbox":[1064,324,10,10]}
+{"kind":"textbox","id":"sh/n29gr2p8","slide":1,"text":"面向生产运行，让 runtime 拥有长任务生命周期、暂停恢复、人工输入、终态提交和可观测事实。","textPreview":"面向生产运行，让 runtime 拥有长任务生命周期、暂停恢复、人工输入、终态提交和可观测事实。","textChars":48,"textLines":1,"bbox":[1082,318,386,22]}
+{"kind":"shape","id":"sh/gbq1oryt","slide":1,"bbox":[1054,348,426,30]}
+{"kind":"shape","id":"sh/5wjudg7a","slide":1,"bbox":[1064,358,10,10]}
+{"kind":"textbox","id":"sh/y90je9cv","slide":1,"text":"面向生态接入，以 OpenSpec、Gateway、Sandbox 和验收门禁约束管控单元与新技术快速接入。","textPreview":"面向生态接入，以 OpenSpec、Gateway、Sandbox 和验收门禁约束管控单元与新技术快速接入。","textChars":54,"textLines":1,"bbox":[1082,352,386,22]}
+{"kind":"shape","id":"sh/nuxc3ylc","slide":1,"bbox":[1054,384,426,22]}
+{"kind":"shape","id":"sh/cbulwval","slide":1,"bbox":[1054,384,82,22]}
+{"kind":"textbox","id":"sh/5sneloj2","slide":1,"text":"竞争力","textPreview":"竞争力","textChars":3,"textLines":1,"bbox":[1059,388,72,18]}
+{"kind":"textbox","id":"sh/qh0fepkz","slide":1,"text":"差异化规格 / 量化口径","textPreview":"差异化规格 / 量化口径","textChars":12,"textLines":1,"bbox":[1144,388,328,18]}
+{"kind":"shape","id":"sh/j2t83itg","slide":1,"bbox":[1054,406,426,22]}
+{"kind":"shape","id":"sh/8nqxs72x","slide":1,"bbox":[1054,406,82,22]}
+{"kind":"textbox","id":"sh/18jqh0fe","slide":1,"text":"LAM 编排","textPreview":"LAM 编排","textChars":6,"textLines":1,"bbox":[1059,410,72,18]}
+{"kind":"textbox","id":"sh/q5o7qpg3","slide":1,"text":"Tool / Skill / Agent 三类能力；SubAgent 受治理调用。","textPreview":"Tool / Skill / Agent 三类能力；SubAgent 受治理调用。","textChars":41,"textLines":1,"bbox":[1144,410,328,18]}
+{"kind":"shape","id":"sh/jqh0fepk","slide":1,"bbox":[1054,428,426,22]}
+{"kind":"shape","id":"sh/8bat47y1","slide":1,"bbox":[1054,428,82,22]}
+{"kind":"textbox","id":"sh/1w7mp0bi","slide":1,"text":"任务泛化","textPreview":"任务泛化","textChars":4,"textLines":1,"bbox":[1059,432,72,18]}
+{"kind":"textbox","id":"sh/uxc3ylc7","slide":1,"text":"告警 / KPI / 拓扑 / 工单 / CLI/API / RAG / 记忆统一输入。","textPreview":"告警 / KPI / 拓扑 / 工单 / CLI/API / RAG / 记忆统一输入。","textChars":44,"textLines":1,"bbox":[1144,432,328,18]}
+{"kind":"shape","id":"sh/ji5snelo","slide":1,"bbox":[1054,450,426,22]}
+{"kind":"shape","id":"sh/p4r65wju","slide":1,"bbox":[1054,450,82,22]}
+{"kind":"textbox","id":"sh/wjudg7ad","slide":1,"text":"长时可靠","textPreview":"长时可靠","textChars":4,"textLines":1,"bbox":[1059,454,72,18]}
+{"kind":"textbox","id":"sh/7y1kre1w","slide":1,"text":"lane 调度；cancel / retry / edit；terminal commit；stream replay。","textPreview":"lane 调度；cancel / retry / edit；terminal commit；stream replay。","textChars":60,"textLines":1,"bbox":[1144,454,328,18]}
+{"kind":"shape","id":"sh/ed8v6psf","slide":1,"bbox":[1054,472,426,22]}
+{"kind":"shape","id":"sh/pwb2hwfy","slide":1,"bbox":[1054,472,82,22]}
+{"kind":"textbox","id":"sh/0bi9s36h","slide":1,"text":"人机接管","textPreview":"人机接管","textChars":4,"textLines":1,"bbox":[1059,476,72,18]}
+{"kind":"textbox","id":"sh/7qpg3ex0","slide":1,"text":"3 类 PendingInput：QUESTION / CONFIRMATION / AUTHORIZATION。","textPreview":"3 类 PendingInput：QUESTION / CONFIRMATION / AUTHORIZATION。","textChars":57,"textLines":1,"bbox":[1144,476,328,18]}
+{"kind":"shape","id":"sh/i5sneloj","slide":1,"bbox":[1054,494,426,22]}
+{"kind":"shape","id":"sh/pkzupwb2","slide":1,"bbox":[1054,494,82,22]}
+{"kind":"textbox","id":"sh/0z61032l","slide":1,"text":"隔离审计","textPreview":"隔离审计","textChars":4,"textLines":1,"bbox":[1059,498,72,18]}
+{"kind":"textbox","id":"sh/w7mp0bi9","slide":1,"text":"2 层 Scope：Agent + Owner；Session/Run 固化 Agent。","textPreview":"2 层 Scope：Agent + Owner；Session/Run 固化 Agent。","textChars":45,"textLines":1,"bbox":[1144,498,328,18]}
+{"kind":"shape","id":"sh/psfil0rq","slide":1,"bbox":[1054,516,426,22]}
+{"kind":"shape","id":"sh/e1w7mp0b","slide":1,"bbox":[1054,516,82,22]}
+{"kind":"textbox","id":"sh/7mp0bi9s","slide":1,"text":"快速接入","textPreview":"快速接入","textChars":4,"textLines":1,"bbox":[1059,520,72,18]}
+{"kind":"textbox","id":"sh/wval87ed","slide":1,"text":"4 道门禁：OpenSpec / Gateway / Sandbox / schema+architecture。","textPreview":"4 道门禁：OpenSpec / Gateway / Sandbox / schema+architecture。","textChars":57,"textLines":1,"bbox":[1144,520,328,18]}
+{"kind":"shape","id":"sh/pg3ex0nu","slide":1,"bbox":[58,560,1484,190]}
+{"kind":"textbox","id":"sh/epkzupwb","slide":1,"text":"当前进展","textPreview":"当前进展","textChars":4,"textLines":1,"bbox":[76,578,180,28]}
+{"kind":"textbox","id":"sh/7adsji5s","slide":1,"text":"NOW","textPreview":"NOW","textChars":3,"textLines":1,"bbox":[676,585,70,16]}
+{"kind":"shape","id":"sh/wra5gbq1","slide":1,"bbox":[76,614,680,1]}
+{"kind":"shape","id":"sh/lc7u54zi","slide":1,"bbox":[76,630,214,88]}
+{"kind":"shape","id":"sh/bat47y1k","slide":1,"bbox":[76,630,214,5]}
+{"kind":"textbox","id":"sh/mp0bi9s3","slide":1,"text":"主链路成型","textPreview":"主链路成型","textChars":5,"textLines":1,"bbox":[84,642,198,22]}
+{"kind":"textbox","id":"sh/tgfmlkjm","slide":1,"text":"会话、提交、SSE/WS、历史、取消、重试、编辑、live-tail 和终态提交已进入稳定基线。","textPreview":"会话、提交、SSE/WS、历史、取消、重试、编辑、live-tail 和终态提交已进入稳定基线。","textChars":48,"textLines":1,"bbox":[84,670,198,42]}
+{"kind":"shape","id":"sh/4vmtwra5","slide":1,"bbox":[302,630,214,88]}
+{"kind":"shape","id":"sh/bm58z25k","slide":1,"bbox":[302,630,214,5]}
+{"kind":"textbox","id":"sh/m1cfa9w3","slide":1,"text":"平台能力铺底","textPreview":"平台能力铺底","textChars":6,"textLines":1,"bbox":[310,642,198,22]}
+{"kind":"textbox","id":"sh/tsvu9kni","slide":1,"text":"Capability、RAG、长期记忆、风险治理、可观测、分享/标注/推荐问题和本地运行包已落地。","textPreview":"Capability、RAG、长期记忆、风险治理、可观测、分享/标注/推荐问题和本地运行包已落地。","textChars":49,"textLines":1,"bbox":[310,670,198,42]}
+{"kind":"shape","id":"sh/47y1kre1","slide":1,"bbox":[528,630,214,88]}
+{"kind":"shape","id":"sh/bq1oryts","slide":1,"bbox":[528,630,214,5]}
+{"kind":"textbox","id":"sh/m58z25kb","slide":1,"text":"验证体系建立","textPreview":"验证体系建立","textChars":6,"textLines":1,"bbox":[536,642,198,22]}
+{"kind":"textbox","id":"sh/idonyd0z","slide":1,"text":"contract、architecture、release package、security、resilience、P1/P2 场景门禁支撑可重复验收。","textPreview":"contract、architecture、release package、security、resilience、P1/P2 场景门禁支撑可重复验收。","textChars":76,"textLines":1,"bbox":[536,670,198,42]}
+{"kind":"shape","id":"sh/byhgn29g","slide":1,"bbox":[792,578,1,154]}
+{"kind":"textbox","id":"sh/0je9cvix","slide":1,"text":"下一步计划","textPreview":"下一步计划","textChars":5,"textLines":1,"bbox":[824,578,190,28]}
+{"kind":"textbox","id":"sh/t47y1kre","slide":1,"text":"NEXT","textPreview":"NEXT","textChars":4,"textLines":1,"bbox":[1424,585,70,16]}
+{"kind":"shape","id":"sh/il0rqd4v","slide":1,"bbox":[824,614,680,1]}
+{"kind":"shape","id":"sh/b6xkf6dc","slide":1,"bbox":[824,630,24,24]}
+{"kind":"textbox","id":"sh/0rqd4vmt","slide":1,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[824,633,24,16]}
+{"kind":"textbox","id":"sh/tcj6tova","slide":1,"text":"围绕网络诊断样板场景，补齐告警/KPI/拓扑/工单/工具链的端到端演示和客户系统适配。","textPreview":"围绕网络诊断样板场景，补齐告警/KPI/拓扑/工单/工具链的端到端演示和客户系统适配。","textChars":43,"textLines":1,"bbox":[862,631,625,28]}
+{"kind":"shape","id":"sh/ixczed8v","slide":1,"bbox":[824,664,24,24]}
+{"kind":"textbox","id":"sh/bi9s36hc","slide":1,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[824,667,24,16]}
+{"kind":"textbox","id":"sh/h0fepkzu","slide":1,"text":"继续强化长期记忆、经验抽取、Skill 沉淀和领域知识治理，让专家经验形成可复用资产。","textPreview":"继续强化长期记忆、经验抽取、Skill 沉淀和领域知识治理，让专家经验形成可复用资产。","textChars":43,"textLines":1,"bbox":[862,665,625,28]}
+{"kind":"shape","id":"sh/sfil0rqd","slide":1,"bbox":[824,698,24,24]}
+{"kind":"textbox","id":"sh/zupwb2hw","slide":1,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[824,701,24,16]}
+{"kind":"textbox","id":"sh/a9w3m94f","slide":1,"text":"把安全、容量、恢复、审计和可观测门禁沉淀成发布准入标准，支撑行业交付和二次开发生态。","textPreview":"把安全、容量、恢复、审计和可观测门禁沉淀成发布准入标准，支撑行业交付和二次开发生态。","textChars":42,"textLines":1,"bbox":[862,699,625,28]}
+{"kind":"textbox","id":"sh/hcrmhk3q","slide":1,"text":"参考：agentframework-tech-selection-decision-v7.html / observability-progress-one-page.html / NextAgent v2.0 Release Doc","textPreview":"参考：agentframework-tech-selection-decision-v7.html / observability-progress-one-page.html / NextAgent v2.0 Release Doc","textChars":117,"textLines":1,"bbox":[940,880,590,12]}
+{"kind":"notes","id":"nt/gccfsx","slide":1,"text":""}

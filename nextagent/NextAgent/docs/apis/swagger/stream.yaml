@@ -1,0 +1,137 @@
+swagger: '2.0'
+info:
+  title: Stream API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/sessions/{sessionId}/stream:
+    get:
+      operationId: streamSessionSSE
+      summary: SSE stream of session events
+      tags:
+        - Stream
+      produces:
+        - text/event-stream
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: lastSeenSequence
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 7
+          pattern: ^\d+$
+        - name: requestId
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: runId
+          in: query
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 256
+      responses:
+        '200':
+          description: SSE stream of envelope events
+          schema:
+            type: string
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  StreamQuery:
+    type: object
+    properties:
+      lastSeenSequence:
+        type: string
+        minLength: 1
+        maxLength: 7
+        pattern: ^\d+$
+      requestId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      runId:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  StreamEnvelope:
+    type: object
+    required:
+      - eventId
+      - sessionId
+      - requestId
+      - sequence
+      - eventType
+      - transportHints
+      - payload
+      - createdAt
+    properties:
+      eventId:
+        type: string
+        minLength: 1
+      sessionId:
+        type: string
+        minLength: 1
+      requestId:
+        type: string
+        minLength: 1
+      runId:
+        type: string
+        minLength: 1
+      requestContextId:
+        type: string
+        minLength: 1
+      sequence:
+        type: integer
+        minimum: 0
+      eventType:
+        type: string
+        minLength: 1
+      timelineEventRef:
+        type: string
+        minLength: 1
+      transportHints:
+        type: array
+        items:
+          type: string
+      payload:
+        type: object
+        additionalProperties: true
+      createdAt:
+        type: number
+        minimum: 0
+    additionalProperties: false

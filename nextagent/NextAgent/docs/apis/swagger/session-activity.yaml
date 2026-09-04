@@ -1,0 +1,85 @@
+swagger: '2.0'
+info:
+  title: Session Activity API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/session-activities/stream:
+    get:
+      operationId: streamSessionActivities
+      summary: Server-sent events stream for cross-session activity awareness
+      tags:
+        - SessionActivity
+      produces:
+        - text/event-stream
+        - application/json
+      responses:
+        '200':
+          description: SSE stream of session activity messages
+          schema:
+            type: string
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/sessions/{sessionId}/activity/consume:
+    post:
+      operationId: consumeSessionActivity
+      summary: Mark a session activity as consumed
+      tags:
+        - SessionActivity
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 256
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SessionActivityConsumeBody'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  SessionActivityConsumeBody:
+    type: object
+    required:
+      - activityId
+      - observedRunId
+    properties:
+      activityId:
+        type: string
+        minLength: 1
+      observedRunId:
+        type: string
+        minLength: 1
+    additionalProperties: false

@@ -1,0 +1,16 @@
+type: recipe
+recipeName: numeric-version-demo
+version: 1.0
+displayName: Numeric Version Demo
+description: Recipe with numeric version for 1.0 compat testing
+domain: ops
+scene: test
+lang: zh
+flowGraph:
+  nodes:
+    start_node:
+      type: START
+      next:
+        end_node: {}
+    end_node:
+      type: END

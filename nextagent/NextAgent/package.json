@@ -1,0 +1,81 @@
+{
+  "name": "nextagent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "NextAgent TS backend workspace for telecom network agents.",
+  "scripts": {
+    "build": "npm run typecheck && npm run build:runtime && node scripts/copy-builtin-skill-assets.mjs && npm run build:web --workspace @nextagent/agent-dev-workbench",
+    "build:runtime": "node scripts/rebuild-runtime-workspace-dists.mjs",
+    "typecheck": "node --max-old-space-size=2048 node_modules/typescript/bin/tsc -b --pretty false",
+    "test": "npm run build:web --workspace @nextagent/agent-dev-workbench && vitest run --maxWorkers=8",
+    "test:smoke": "vitest run --config vitest.config.smoke.ts --maxWorkers=1",
+    "test:release": "npm run build && npm test && npm run test:contract && vitest run --config vitest.config.release.ts --maxWorkers=2 && npm run lint",
+    "test:contract": "vitest run --config vitest.config.contract.ts",
+    "test:e2e:alpha": "vitest run --config vitest.config.release.ts tests/e2e/alpha-kernel-gate",
+    "test:e2e:alpha-kernel": "node scripts/run-alpha-kernel-gate.mjs",
+    "test:e2e:p1-p2-scenario-gate": "node scripts/run-p1-p2-scenario-gate.mjs",
+    "test:e2e:release-package": "node scripts/run-release-package-gate.mjs",
+    "test:e2e:product-journey": "node scripts/run-product-journey-gate.mjs",
+    "test:e2e:release": "npm run test:e2e:product-journey && vitest run --config vitest.config.release.ts tests/e2e/skill-tool-search-multi-round-context.test.ts tests/e2e/security/security-gate.test.ts tests/e2e/resilience/resilience-gate.test.ts && npm run test:e2e:p1-p2-scenario-gate && npm run test:e2e:release-package",
+    "dev:watch": "node scripts/dev-watch.mjs",
+    "dev:fullstack": "node scripts/dev-fullstack.mjs",
+    "dev:workflow-demo": "node scripts/dev-workflow-demo.mjs",
+    "build:testclaw-host-artifact": "node scripts/assemble-agent-web-test-host-artifact.mjs",
+    "fullstack:validate": "node scripts/validate-fullstack-packaging.mjs",
+    "pack": "node scripts/pack-local-runtime.mjs",
+    "pack:front": "node scripts/pack-local-runtime.mjs dist/pack nextagent-local-frontend frontend-only",
+    "pack:release": "node scripts/pack-local-runtime.mjs dist/pack nextagent-local with-frontend --stage-default-agent",
+    "pack:backend": "node scripts/pack-local-runtime.mjs dist/pack nextagent-local-backend backend-only",
+    "pack:release:model-gateway-only": "node scripts/pack-local-runtime.mjs dist/pack nextagent-local with-frontend --stage-default-agent --model-gateway-only",
+    "pack:backend:model-gateway-only": "node scripts/pack-local-runtime.mjs dist/pack nextagent-local-backend backend-only --model-gateway-only",
+    "pack:testclaw": "node scripts/pack-testclaw.mjs",
+    "release:qualify": "node scripts/release-qualify.mjs",
+    "lint": "npm run lint:code && npm run lint:architecture && npm run lint:openspec",
+    "lint:code": "eslint . --cache --cache-strategy content --cache-location .cache/eslint/.eslintcache",
+    "lint:architecture": "depcruise --config dependency-cruiser.config.cjs packages src tests --output-type err && node tests/architecture/package-manifest-policy.cjs && vitest run --config vitest.config.architecture.ts --maxWorkers=4",
+    "lint:openspec": "openspec validate --all --strict",
+    "format": "prettier . --write --ignore-unknown --ignore-path .prettierignore",
+    "prepare": "node scripts/prepare-husky.mjs"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs,json,css,scss,less,yaml,yml,html}": "prettier --write --ignore-path .prettierignore --config prettier.config.mjs"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "@opentelemetry/api": "1.9.1",
+    "@sinclair/typebox": "0.34.52",
+    "@types/js-yaml": "^4.0.9",
+    "ajv": "8.18.0",
+    "fastify": "5.10.0",
+    "js-yaml": "^5.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@fission-ai/openspec": "1.8.0",
+    "@types/json-schema": "^7.0.15",
+    "@types/node": "24.10.1",
+    "dependency-cruiser": "^17.3.1",
+    "eslint": "10.8.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.8.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.3.0",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.65.0",
+    "vitest": "^4.0.14"
+  },
+  "engines": {
+    "node": "22.22.0"
+  },
+  "x-nextagent": {
+    "sharedDependencyLockstep": [
+      "@sinclair/typebox",
+      "ajv",
+      "fastify"
+    ]
+  }
+}

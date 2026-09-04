@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw 与 Recipe 规范收敛评审稿</title>
+  <style>
+    :root {
+      --navy: #0f172a;
+      --slate: #334155;
+      --muted: #64748b;
+      --line: #dbe2ea;
+      --paper: #ffffff;
+      --bg: #f4f7fb;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --green: #047857;
+      --green-soft: #d1fae5;
+      --amber: #b45309;
+      --amber-soft: #fef3c7;
+      --red: #b91c1c;
+      --red-soft: #fee2e2;
+      --shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      color: var(--slate);
+      line-height: 1.7;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    .hero {
+      padding: 56px 24px 28px;
+      background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+      color: #fff;
+    }
+
+    .hero-inner,
+    .content,
+    .footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 999px;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(34px, 5vw, 52px);
+      line-height: 1.12;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 920px;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .meta {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .meta span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .review-meta {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .review-meta .meta-card {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .review-meta .meta-card b {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.76);
+      font-weight: 700;
+    }
+
+    .review-meta .meta-card span {
+      display: block;
+      font-size: 15px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(219, 226, 234, 0.9);
+    }
+
+    .nav-inner {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 0;
+    }
+
+    .nav a {
+      padding: 8px 12px;
+      border-radius: 10px;
+      color: var(--slate);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .nav a:hover {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .content {
+      padding: 28px 0 56px;
+    }
+
+    .section {
+      margin-top: 24px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .section:first-child {
+      margin-top: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 28px;
+      line-height: 1.2;
+      color: var(--navy);
+    }
+
+    h3 {
+      margin: 28px 0 10px;
+      font-size: 20px;
+      color: var(--navy);
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    ul,
+    ol {
+      margin: 12px 0;
+      padding-left: 22px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--navy);
+      font-size: 16px;
+    }
+
+    .highlight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .highlight-card {
+      padding: 18px;
+      border: 1px solid #bfdbfe;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%);
+    }
+
+    .highlight-card h3 {
+      margin: 10px 0 6px;
+      font-size: 18px;
+    }
+
+    .highlight-card p {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .callout {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1px solid;
+    }
+
+    .callout.info {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+    }
+
+    .callout.success {
+      border-color: #a7f3d0;
+      background: #ecfdf5;
+    }
+
+    .callout.warn {
+      border-color: #fde68a;
+      background: #fffbeb;
+    }
+
+    .callout.danger {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--navy);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #eff6ff;
+      color: var(--navy);
+      font-weight: 700;
+    }
+
+    code,
+    pre {
+      font-family: Consolas, "SFMono-Regular", monospace;
+    }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: #eef2ff;
+      color: #312e81;
+      font-size: 0.95em;
+    }
+
+    pre {
+      margin: 14px 0;
+      padding: 18px;
+      overflow-x: auto;
+      border: 1px solid #d9e2f2;
+      border-radius: 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pill.blue {
+      background: var(--blue-soft);
+      color: #1d4ed8;
+    }
+
+    .pill.outline {
+      border: 1px solid #93c5fd;
+      background: #f8fbff;
+      color: #1d4ed8;
+    }
+
+    .pill.green {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .pill.amber {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .pill.red {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .decision-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .decision-item {
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .decision-item b {
+      color: var(--navy);
+    }
+
+    .mini-table {
+      width: 100%;
+      margin-top: 12px;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .mini-table td {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .mini-table td:first-child {
+      width: 180px;
+      font-weight: 700;
+      color: var(--navy);
+      background: #f8fbff;
+    }
+
+    .badge-openclaw {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 8px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 800;
+      vertical-align: middle;
+      letter-spacing: 0.02em;
+    }
+
+    .footer {
+      padding: 0 0 56px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        padding-top: 42px;
+      }
+
+      .section {
+        padding: 22px 18px;
+      }
+
+      th,
+      td {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">Review Draft</span>
+      <h1>OpenClaw 与 Recipe 规范收敛评审稿</h1>
+      <p>本文作为正式评审材料，用于支撑“是否合并、如何分层、DSL 如何收敛、节点能力如何补齐”的评审讨论。建议采用 <strong>Recipe Core DSL + Runtime Profile</strong> 分层方案，而不是将 OpenClaw 全量直接并入 Recipe。</p>
+      <div class="meta">
+        <span>文档类型：正式评审稿</span>
+        <span>适用对象：架构/平台/Agent 编排规范评审</span>
+        <span>生成日期：2026-07-01</span>
+        <span>结论倾向：分层收敛，不做整体吞并</span>
+      </div>
+      <div class="review-meta">
+        <div class="meta-card">
+          <b>评审主题</b>
+          <span>OpenClaw 与 Recipe 规范收敛</span>
+        </div>
+        <div class="meta-card">
+          <b>建议结论</b>
+          <span>双层规范，不直接合并</span>
+        </div>
+        <div class="meta-card">
+          <b>主要产出</b>
+          <span>DSL 草案、节点补齐范围、迁移策略</span>
+        </div>
+        <div class="meta-card">
+          <b>评审输出期待</b>
+          <span>确认方向、边界和后续起草范围</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#background">背景</a>
+      <a href="#summary">评审摘要</a>
+      <a href="#scope">范围</a>
+      <a href="#conclusion">结论</a>
+      <a href="#comparison">对比</a>
+      <a href="#dsl">DSL 草案</a>
+      <a href="#nodes">节点补齐</a>
+      <a href="#runtime">运行时分层</a>
+      <a href="#migration">迁移策略</a>
+      <a href="#recipe-upgrade">1.0→2.0</a>
+      <a href="#decisions">评审决策项</a>
+    </div>
+  </nav>
+
+  <main class="content">
+    <section class="section" id="background">
+      <h2>1. 背景与目标</h2>
+      <p>当前存在两类规范来源：</p>
+      <ul>
+        <li><strong>OpenClaw Workflow / TaskFlow</strong>：偏通用工作流编排，强调串行、并行、DAG、审批、断点续跑、批处理和资源治理。</li>
+        <li><strong>Recipe specification</strong>：偏对话式 Agent 领域 DSL，强调 RAG、意图识别、问题改写、API/Recipe 选择、Guardrail、PIU 展示与推荐问题。</li>
+      </ul>
+      <p>本次评审目标不是给出最终实现，而是帮助团队先达成规范层的共识：</p>
+      <div class="grid">
+        <div class="card">
+          <strong>目标一</strong>
+          明确 OpenClaw 与 Recipe 是否属于同一层规范。
+        </div>
+        <div class="card">
+          <strong>目标二</strong>
+          给出 DSL 格式收敛方向，避免未来继续分叉。
+        </div>
+        <div class="card">
+          <strong>目标三</strong>
+          明确 Recipe 需要补哪些节点能力，哪些不该纳入核心 DSL。
+        </div>
+        <div class="card">
+          <strong>目标四</strong>
+          给出可落地的分层草案，支撑后续规范和实现演进。
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="summary">
+      <h2>2. 评审摘要</h2>
+      <table class="mini-table">
+        <tbody>
+          <tr>
+            <td>评审问题</td>
+            <td>OpenClaw 与 Recipe 是否应收敛为单一规范，以及 Recipe 是否需要吸收 TaskFlow 风格的编排能力。</td>
+          </tr>
+          <tr>
+            <td>核心判断</td>
+            <td>两者不属于同一抽象层。OpenClaw 更偏通用编排引擎，Recipe 更偏对话式 Agent 领域 DSL。</td>
+          </tr>
+          <tr>
+            <td>推荐方向</td>
+            <td>建立 <code>Recipe Core DSL + Runtime Profile</code> 双层规范，先统一 DSL 格式，再补最小必要节点能力。</td>
+          </tr>
+          <tr>
+            <td>本稿定位</td>
+            <td>评审讨论材料，用于做方向决策，不等同于最终规范定稿或实现设计。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout info">
+        <strong>本次评审期待结论</strong>
+        重点不是逐字段定稿，而是先确认是否采用分层模型、DSL 收敛原则和节点补齐边界。方向一旦确认，后续再进入字段和 schema 级细化。
+      </div>
+      <h3>2.1 本次基于 OpenClaw 新引入的重点 <span class="badge-openclaw">NEW FROM OPENCLAW</span></h3>
+      <div class="highlight-grid">
+        <div class="highlight-card">
+          <span class="pill outline">DSL 补强</span>
+          <h3><code>runtime</code> 分层</h3>
+          <p>将执行器能力从 Recipe 核心节点定义中剥离，避免资源治理和业务 DSL 混杂。</p>
+        </div>
+        <div class="highlight-card">
+          <span class="pill outline">控制流补强</span>
+          <h3><code>dependsOn</code></h3>
+          <p>引入 DAG 依赖表达，支持复杂诊断流和并发取数流，不再只靠 <code>next</code> 跳转。</p>
+        </div>
+        <div class="highlight-card">
+          <span class="pill outline">人工介入补强</span>
+          <h3><code>approval</code> / <code>suspend</code></h3>
+          <p>把流程审批和挂起恢复提升为一等能力，不再仅用 <code>user-check</code> 或 <code>interrupt</code> 近似表达。</p>
+        </div>
+        <div class="highlight-card">
+          <span class="pill outline">批处理补强</span>
+          <h3><code>fan-out</code></h3>
+          <p>引入批量展开与受控并发能力，更适合批量告警、批量网元、批量工单类场景。</p>
+        </div>
+        <div class="highlight-card">
+          <span class="pill outline">执行控制补强</span>
+          <h3>通用 <code>retry</code> / <code>timeout</code></h3>
+          <p>把执行控制提升为节点通用语义，避免各节点私有化重复定义。</p>
+        </div>
+      </div>
+      <div class="callout success">
+        <strong>本稿收敛原则</strong>
+        以当前 Recipe 为基础，不引入整套 OpenClaw DSL，只吸收少量高价值、低侵入、可统一复用的通用编排能力，整体收敛满足 KISS。
+      </div>
+    </section>
+
+    <section class="section" id="scope">
+      <h2>3. 评审范围与非目标</h2>
+      <h3>3.1 本次评审范围</h3>
+      <ul>
+        <li>规范分层边界：OpenClaw、Recipe、Runtime Profile 各自承载什么。</li>
+        <li>Recipe vNext 的 DSL 顶层结构、节点通用骨架和变量/条件语法。</li>
+        <li>Recipe 需要补齐的最小必要编排能力及节点范围。</li>
+        <li>兼容性与迁移的大方向。</li>
+      </ul>
+      <h3>3.2 本次评审非目标</h3>
+      <ul>
+        <li>不在本次评审中细化到每个节点的最终 schema 字段枚举。</li>
+        <li>不在本次评审中绑定某个唯一执行器实现细节。</li>
+        <li>不在本次评审中讨论具体代码实现计划、排期或发布节奏。</li>
+        <li>不将本稿直接视为 OpenSpec 或正式规范发布文本。</li>
+      </ul>
+      <div class="callout warn">
+        <strong>边界提醒</strong>
+        如果在方向未达成一致前就进入实现级讨论，容易把“规范收敛问题”提前变成“具体执行器实现问题”，导致评审发散。
+      </div>
+    </section>
+
+    <section class="section" id="conclusion">
+      <h2>4. 建议结论</h2>
+      <div class="callout success">
+        <strong>推荐结论</strong>
+        不建议将 OpenClaw 直接整体并入 Recipe。建议建立 <code>Recipe Core DSL + Runtime Profile</code> 双层规范：前者定义领域编排，后者定义执行器能力。
+      </div>
+      <div class="pill-row">
+        <span class="pill green">保留 Recipe 的领域价值</span>
+        <span class="pill blue">吸收最小必要编排能力</span>
+        <span class="pill amber">执行器能力不污染核心 DSL</span>
+        <span class="pill red">避免一次性破坏式合并</span>
+      </div>
+      <h3>为什么不建议直接合并</h3>
+      <ul>
+        <li>两者抽象层级不同。OpenClaw 更像通用编排引擎，Recipe 更像 Agent 领域 DSL。</li>
+        <li>OpenClaw 的优势主要在调度、持久化、审批、资源治理；Recipe 的优势主要在对话编排、RAG、Guardrail 和展示投影。</li>
+        <li>如果直接合并，规范会同时承载“业务语义、会话语义、执行器细节、资源治理”，很快失控。</li>
+      </ul>
+      <h3>建议的收敛方式</h3>
+      <ol>
+        <li>先统一 DSL 骨架和变量/条件写法。</li>
+        <li>只补齐 Recipe 缺失但明显属于通用编排的最小能力。</li>
+        <li>将资源规格、空闲休眠、后台运行等执行器特性下沉到 runtime profile。</li>
+      </ol>
+    </section>
+
+    <section class="section" id="comparison">
+      <h2>5. OpenClaw 与 Recipe 能力对比</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>OpenClaw</th>
+            <th>Recipe</th>
+            <th>判断</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>核心定位</td>
+            <td>通用工作流 / 任务流编排</td>
+            <td>对话式 Agent 领域 DSL</td>
+            <td>不是同一层规范</td>
+          </tr>
+          <tr>
+            <td>编排模型</td>
+            <td>串行、并行组、DAG、状态机</td>
+            <td>节点图、条件跳转、局部 loop</td>
+            <td>OpenClaw 更工程化</td>
+          </tr>
+          <tr>
+            <td>对话与 RAG</td>
+            <td>偏通用，依赖 tool/skill 组合</td>
+            <td>原生支持意图、改写、RAG、API 选择、Guardrail</td>
+            <td>Recipe 更领域化</td>
+          </tr>
+          <tr>
+            <td>审批 / 长任务</td>
+            <td>支持审批、挂起、断点续跑</td>
+            <td>有 user-check / interrupt，但语义不完整</td>
+            <td>Recipe 需要补齐</td>
+          </tr>
+          <tr>
+            <td>批量并发</td>
+            <td>支持 fan-out、DAG 并发</td>
+            <td>loop 能力局部、批量表达弱</td>
+            <td>Recipe 需要补齐</td>
+          </tr>
+          <tr>
+            <td>展示投影</td>
+            <td>弱</td>
+            <td>强，具备 output_parser / recommends / REJECT</td>
+            <td>Recipe 应继续保留</td>
+          </tr>
+          <tr>
+            <td>资源治理</td>
+            <td>强，含 resource_spec / idle_sleep / incremental</td>
+            <td>弱</td>
+            <td>建议下沉到 runtime profile</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="dsl">
+      <h2>6. Recipe vNext DSL 格式草案 <span class="badge-openclaw">OpenClaw 引入点已标识</span></h2>
+      <p>核心思路：保留 Recipe 的节点图模型，但统一顶层结构、节点骨架和变量/条件语法。</p>
+
+      <h3>6.1 顶层结构建议</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>字段</th>
+            <th>建议状态</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>name</code> / <code>description</code> / <code>domain</code> / <code>scene</code> / <code>version</code></td>
+            <td>保留</td>
+            <td>继续作为核心元数据。</td>
+          </tr>
+          <tr>
+            <td><code>inputs</code></td>
+            <td>新增/强化</td>
+            <td>显式声明输入契约，方便静态校验。</td>
+          </tr>
+          <tr>
+            <td><code>runtime</code> <span class="badge-openclaw">OpenClaw</span></td>
+            <td>新增</td>
+            <td>承载执行器相关策略，避免污染节点定义。</td>
+          </tr>
+          <tr>
+            <td><code>presentation</code></td>
+            <td>新增</td>
+            <td>承载全局展示配置，与执行逻辑分层。</td>
+          </tr>
+          <tr>
+            <td><code>schema_version</code></td>
+            <td>逐步废弃</td>
+            <td>保留兼容位，但不再作为主建模字段。</td>
+          </tr>
+          <tr>
+            <td><code>expandFields</code></td>
+            <td>替换为 <code>metadata</code></td>
+            <td>避免无限制扩张。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>6.2 节点通用骨架建议</h3>
+      <pre><code>node_id:
+  type: llm-router
+  description: 节点说明
+  when: ${input.enabled == true}
+  dependsOn: [node-a, node-b]   # OpenClaw-style DAG dependency
+  inputs: {}
+  outputs: {}
+  retry:
+    max_attempts: 2
+    backoff: fixed
+    delay_seconds: 3
+  timeout: 30
+  next:
+    next-node: true
+  presentation: {}</code></pre>
+
+      <h3>6.3 变量与条件语法建议</h3>
+      <ul>
+        <li>统一只保留 <code>${...}</code> 作为正式引用语法。</li>
+        <li>普通字段、Prompt 插值、条件表达式都使用同一套引用方式。</li>
+        <li>建议废弃 <code>{{...}}</code> 与 <code>global_vars.xxx</code> 这类运行时泄漏式写法。</li>
+      </ul>
+      <div class="callout info">
+        <strong>建议写法</strong>
+        输入引用使用 <code>${input.input_question}</code>，节点结果使用 <code>${search-knowledge.knowledge_hits}</code>，当前节点输出映射使用 <code>${node.result.xxx}</code>。
+      </div>
+
+      <h3>6.4 顶层示例</h3>
+      <pre><code>name: alarm-root-cause-analysis
+description: Analyze alarm root cause and generate remediation guidance
+domain: telecom
+scene: alarm-diagnosis
+version: 2.0.0
+lang: zh
+type: recipe
+
+inputs:
+  input_question:
+    type: string
+    required: true
+  alarm_ids:
+    type: array
+    required: false
+
+runtime:
+  profile: taskflow
+  timeout: 3600
+  incremental: true
+  default_retry:
+    max_attempts: 2
+    backoff: fixed
+    delay_seconds: 3
+
+presentation:
+  recommends:
+    enabled: true
+
+nodes:
+  start:
+    type: start-event
+    next:
+      rewrite-question: true
+
+  rewrite-question:
+    type: question-rewriting
+    inputs:
+      source: ${input.input_question}
+      context_round: 4
+    outputs:
+      rewritten_question: ${node.result.rewritten_question}
+    next:
+      route-intent: true
+
+  route-intent:
+    type: intent-recognition
+    inputs:
+      query: ${rewrite-question.rewritten_question}
+    outputs:
+      intent_type: ${node.result.intent_type}
+    next:
+      reject: ${route-intent.intent_type == "HandleUnsupportedIntent"}
+      search-knowledge: ${route-intent.intent_type != "HandleUnsupportedIntent"}
+
+  search-knowledge:
+    type: knowledge-search
+    inputs:
+      query: ${rewrite-question.rewritten_question}
+      rag_index:
+        - index_name: telecom_alarm_knowledge
+          priority: 1
+    outputs:
+      knowledge_hits: ${node.result.knowledge_search_result}
+    next:
+      summarize: true
+
+  summarize:
+    type: llm-router
+    inputs:
+      prompt_template: |
+        请基于以下知识生成根因分析与处置建议：
+        ${search-knowledge.knowledge_hits}
+    outputs:
+      answer: ${node.result.llm_completion}
+    presentation:
+      output_parser:
+        type: TEXT
+        message_level: ANSWER
+    next:
+      end: true
+
+  reject:
+    type: display-content
+    outputs:
+      message: 当前问题不在能力范围内
+    presentation:
+      tag: REJECT
+    next:
+      end: true
+
+  end:
+    type: end-event</code></pre>
+    </section>
+
+    <section class="section" id="nodes">
+      <h2>7. 节点范围补齐建议</h2>
+
+      <h3>7.1 应保留为 Recipe 核心特色的领域节点</h3>
+      <div class="pill-row">
+        <span class="pill blue">llm-router</span>
+        <span class="pill blue">question-rewriting</span>
+        <span class="pill blue">intent-recognition</span>
+        <span class="pill blue">guardrail-check</span>
+        <span class="pill blue">knowledge-search</span>
+        <span class="pill blue">knowledge-qa</span>
+        <span class="pill blue">api-choice</span>
+        <span class="pill blue">recipe-choice</span>
+        <span class="pill blue">tool-choice</span>
+        <span class="pill blue">display-content</span>
+        <span class="pill blue">sub-recipe</span>
+        <span class="pill blue">agent</span>
+        <span class="pill blue">translation</span>
+      </div>
+      <p>这些节点代表 Recipe 的核心领域价值，不建议被过度抽象成通用 workflow 原语。</p>
+
+      <h3>7.2 建议从 OpenClaw 吸收的最小必要能力 <span class="badge-openclaw">重点评审</span></h3>
+      <table>
+        <thead>
+          <tr>
+            <th>能力</th>
+            <th>建议状态</th>
+            <th>原因</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>dependsOn</code> <span class="badge-openclaw">OpenClaw</span></td>
+            <td>建议新增</td>
+            <td>增强复杂诊断流、并发取数流的表达力。</td>
+          </tr>
+          <tr>
+            <td><code>approval</code> <span class="badge-openclaw">OpenClaw</span></td>
+            <td>建议新增节点</td>
+            <td><code>user-check</code> 偏对话输入，不等于流程审批。</td>
+          </tr>
+          <tr>
+            <td><code>fan-out</code> <span class="badge-openclaw">OpenClaw</span></td>
+            <td>建议新增节点</td>
+            <td>适合批量网元、批量告警、批量工单处理。</td>
+          </tr>
+          <tr>
+            <td>通用 <code>retry</code> / <code>timeout</code> <span class="badge-openclaw">OpenClaw</span></td>
+            <td>建议提升为通用字段</td>
+            <td>避免每个节点私有化定义执行控制。</td>
+          </tr>
+          <tr>
+            <td><code>suspend/resume</code> <span class="badge-openclaw">OpenClaw</span></td>
+            <td>建议标准化</td>
+            <td>比现有 <code>interrupt-gateway</code> 语义更完整。</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>7.2.1 整体收敛建议：以当前 Recipe 为基础</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>类别</th>
+            <th>建议引入</th>
+            <th>暂不引入</th>
+            <th>原因</th>
+            <th>KISS 判断</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>DSL 结构</td>
+            <td><code>runtime</code>、统一 <code>${...}</code>、通用 <code>retry</code> / <code>timeout</code></td>
+            <td>执行器内部缓存/资源调度 DSL</td>
+            <td>前者解决结构混杂和重复定义，后者属于运行时实现细节。</td>
+            <td>引入少量统一原语，收益高且侵入低。</td>
+          </tr>
+          <tr>
+            <td>控制流</td>
+            <td><code>dependsOn</code></td>
+            <td>优先新增显式 <code>parallel</code> 节点</td>
+            <td><code>dependsOn</code> 已可覆盖大部分 DAG 并发依赖场景，原语更少。</td>
+            <td>先用最少新增能力补足表达力。</td>
+          </tr>
+          <tr>
+            <td>人工介入</td>
+            <td><code>approval</code>、<code>suspend</code></td>
+            <td>继续扩张 <code>user-check</code> 语义</td>
+            <td><code>user-check</code> 更像交互输入，不适合作为流程审批的唯一承载。</td>
+            <td>语义边界更清楚，避免一个节点承载多种责任。</td>
+          </tr>
+          <tr>
+            <td>批处理</td>
+            <td><code>fan-out</code></td>
+            <td>继续用局部 <code>loop</code> 承担所有批量场景</td>
+            <td><code>fan-out</code> 更适合批量网元、批量告警、批量工单。</td>
+            <td>新增一个稳定批处理原语，替代复杂 loop 变体。</td>
+          </tr>
+          <tr>
+            <td>资源治理</td>
+            <td>下沉到 <code>runtime profile</code></td>
+            <td><code>resource_spec</code>、<code>idle_sleep</code>、后台降权直接进入 Core DSL</td>
+            <td>这些能力属于执行器，不应污染领域 DSL。</td>
+            <td>保留边界，避免 DSL 快速膨胀。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>7.3 建议新增节点示例</h3>
+      <pre><code>approve-remediation:
+  type: approval
+  description: Wait for operator approval
+  inputs:
+    message: 请确认是否执行处置建议
+    approvers:
+      - ops-owner
+    expire_seconds: 86400
+  outputs:
+    approved: ${node.result.approved}
+    comment: ${node.result.comment}
+  next:
+    execute-remediation: ${approve-remediation.approved == true}
+    reject-remediation: ${approve-remediation.approved == false}
+
+analyze-each-alarm:
+  type: fan-out
+  description: Batch process alarms
+  inputs:
+    source: ${input.alarm_ids}
+    item_name: alarm_id
+    max_concurrent: 4
+    body:
+      type: knowledge-search
+      inputs:
+        query: 分析告警 ${alarm_id} 的根因
+        rag_index:
+          - index_name: telecom_alarm_knowledge
+  outputs:
+    results: ${node.result.items}
+  next:
+    aggregate-results: true
+
+wait-external-callback:
+  type: suspend
+  description: Wait for external callback
+  inputs:
+    reason: 等待外部系统回调
+    resume_token: remediation_callback
+    timeout_seconds: 7200
+  outputs:
+    resumed: ${node.result.resumed}</code></pre>
+
+      <h3>7.4 不建议直接放进 Core DSL 的能力</h3>
+      <div class="callout warn">
+        <strong>建议放入 Runtime Profile，而非 Core DSL</strong>
+        <p><code>resource_spec</code>、<code>idle_sleep</code>、后台降权、引擎缓存策略、模型实例复用、显存回收策略等，属于执行器实现或 runtime contract，不建议直接扩进领域节点定义。</p>
+      </div>
+    </section>
+
+    <section class="section" id="runtime">
+      <h2>8. Runtime Profile 分层建议 <span class="badge-openclaw">OpenClaw 核心借鉴</span></h2>
+      <p>建议把执行器相关能力从 Recipe 核心规范中剥离，形成独立的 runtime profile。这样 Recipe 负责表达业务和编排意图，执行器负责解释和承载运行时策略。</p>
+
+      <h3>8.1 建议分层</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>层级</th>
+            <th>职责</th>
+            <th>示例</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Recipe Core DSL</td>
+            <td>定义节点图、领域节点、变量引用、条件跳转、最小控制流。</td>
+            <td><code>llm-router</code>、<code>knowledge-search</code>、<code>approval</code>、<code>fan-out</code></td>
+          </tr>
+          <tr>
+            <td>Runtime Profile</td>
+            <td>定义调度、重试、超时、持久化、挂起恢复、资源规格、增量执行等。</td>
+            <td><code>profile: taskflow</code>、<code>incremental: true</code>、<code>default_retry</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>8.2 示例</h3>
+      <pre><code>runtime:
+  profile: taskflow
+  timeout: 3600
+  incremental: true
+  persistence:
+    checkpoint: true
+  default_retry:
+    max_attempts: 2
+    backoff: fixed
+    delay_seconds: 3
+  resource_policy:
+    class: standard</code></pre>
+
+      <div class="callout info">
+        <strong>收益</strong>
+        同一份 Recipe Core DSL 可以运行在不同执行器上；未来如果有轻量执行器与持久化执行器，也可以通过 profile 做能力分级，而不是复制整套 DSL。
+      </div>
+    </section>
+
+    <section class="section" id="migration">
+      <h2>9. 兼容性与迁移策略</h2>
+      <h3>9.1 迁移原则</h3>
+      <ol>
+        <li>先兼容新增，不做一次性破坏式切换。</li>
+        <li>先统一格式，再补运行能力。</li>
+        <li>旧节点名和旧字段先保留映射，再逐步废弃。</li>
+      </ol>
+
+      <h3>9.2 迁移阶段建议</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>阶段</th>
+            <th>动作</th>
+            <th>目标</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Phase 1</td>
+            <td>引入 <code>runtime</code>、<code>presentation</code>、统一节点骨架、统一 <code>${...}</code> 写法</td>
+            <td>新旧 DSL 共存</td>
+          </tr>
+          <tr>
+            <td>Phase 2</td>
+            <td>新增 <code>dependsOn</code>、<code>approval</code>、<code>fan-out</code>、通用 <code>retry/timeout</code></td>
+            <td>补齐最小必要编排能力</td>
+          </tr>
+          <tr>
+            <td>Phase 3</td>
+            <td>将 <code>schema_version</code>、<code>expandFields</code>、<code>{{...}}</code> 标记为 deprecated</td>
+            <td>清理历史包袱</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>9.3 建议兼容映射</h3>
+      <ul>
+        <li><code>interrupt-gateway</code> 可映射为 <code>suspend</code>。</li>
+        <li><code>user-check</code> 保留为用户输入型节点，不替代审批节点。</li>
+        <li>历史 <code>loop</code> 继续保留，复杂批量场景推荐迁移到 <code>fan-out</code>。</li>
+      </ul>
+      <div class="callout danger">
+        <strong>风险提示</strong>
+        如果在没有先统一 DSL 骨架的前提下直接引入大量 TaskFlow 能力，最终很可能得到一套同时支持多种变量语法、多种节点骨架、多种控制流入口的混合 DSL，维护成本会显著上升。
+      </div>
+    </section>
+
+    <section class="section" id="recipe-upgrade">
+      <h2>10. Recipe 1.0 → 2.0 切换策略</h2>
+      <p>切换策略应遵循“先兼容、再引导、后收敛”的原则，不做一次性整体重写。目标是在不打断现有 Recipe 生产使用的前提下，逐步把 1.0 引导到 2.0。</p>
+
+      <h3>10.1 版本定位</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>版本</th>
+            <th>定位</th>
+            <th>特点</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Recipe 1.0</td>
+            <td>现有生产基线</td>
+            <td>保留历史字段、双变量语法、现有节点图模型。</td>
+          </tr>
+          <tr>
+            <td>Recipe 2.0</td>
+            <td>收敛后的目标态</td>
+            <td>保留领域节点体系，新增最小必要编排原语和 runtime 分层。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>10.2 切换原则</h3>
+      <ol>
+        <li>老 Recipe 不强制立即迁移，2.0 先作为推荐新写法。</li>
+        <li>同一时期允许 1.0 与 2.0 共存，但新建/大改场景优先使用 2.0。</li>
+        <li>迁移优先改“格式收敛项”，后改“控制流增强项”，最后再清理历史兼容字段。</li>
+      </ol>
+
+      <h3>10.3 分阶段切换</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>阶段</th>
+            <th>目标</th>
+            <th>主要动作</th>
+            <th>对业务影响</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Phase A：兼容引入</td>
+            <td>2.0 能被解析，但不破坏 1.0</td>
+            <td>引入 <code>runtime</code>、通用 <code>retry/timeout</code>、<code>dependsOn</code>、<code>approval</code>、<code>fan-out</code>、<code>suspend</code></td>
+            <td>低，旧 Recipe 无需修改</td>
+          </tr>
+          <tr>
+            <td>Phase B：新写法优先</td>
+            <td>新增和大改 Recipe 默认采用 2.0</td>
+            <td>规范、模板、样例、校验器全部以 2.0 写法为主</td>
+            <td>中，新增需求开始按新写法落地</td>
+          </tr>
+          <tr>
+            <td>Phase C：定向迁移</td>
+            <td>把高价值老 Recipe 迁到 2.0</td>
+            <td>优先迁移复杂诊断流、长周期流、批量处理流</td>
+            <td>中，按收益逐步推进</td>
+          </tr>
+          <tr>
+            <td>Phase D：兼容清理</td>
+            <td>减少历史包袱</td>
+            <td>将 <code>{{...}}</code>、<code>schema_version</code>、<code>expandFields</code> 等标记废弃并逐步下线</td>
+            <td>可控，需要提前公告和校验兜底</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>10.4 单个 Recipe 的推荐迁移顺序</h3>
+      <ol>
+        <li>先保持业务语义不变，只做格式收敛：统一变量引用、补 <code>runtime</code>、把节点展示能力收进 <code>presentation</code>。</li>
+        <li>再识别是否真的需要新增原语：复杂依赖流引入 <code>dependsOn</code>，审批流引入 <code>approval</code>，批量流引入 <code>fan-out</code>。</li>
+        <li>最后才替换历史近似能力：如将部分 <code>interrupt-gateway</code> 演进为 <code>suspend</code>。</li>
+      </ol>
+
+      <h3>10.5 兼容策略建议</h3>
+      <ul>
+        <li><code>{{...}}</code> 与 <code>${...}</code> 在过渡期可并存，但规范推荐只写 <code>${...}</code>。</li>
+        <li><code>user-check</code> 继续保留，但定位为“用户交互节点”，不再承担审批语义。</li>
+        <li><code>loop</code> 继续保留，但批量并发类新场景优先使用 <code>fan-out</code>。</li>
+        <li><code>interrupt-gateway</code> 可通过兼容层映射到 <code>suspend</code>。</li>
+      </ul>
+
+      <div class="callout success">
+        <strong>推荐切换结论</strong>
+        Recipe 2.0 不是对 1.0 的推倒重来，而是在保持领域节点体系稳定的前提下，做一次“结构收敛 + 最小编排补强 + 执行器分层”的平滑升级。
+      </div>
+    </section>
+
+    <section class="section" id="decisions">
+      <h2>11. 建议带入评审会的决策项</h2>
+      <div class="decision-list">
+        <div class="decision-item">
+          <b>决策 1：</b> 是否接受 <code>OpenClaw</code> 与 <code>Recipe</code> 不属于同一层规范，而采用 <code>Core DSL + Runtime Profile</code> 双层模型。
+        </div>
+        <div class="decision-item">
+          <b>决策 2：</b> 是否接受先统一 DSL 格式，再补节点能力，而不是直接扩充节点集合。
+        </div>
+        <div class="decision-item">
+          <b>决策 3：</b> 是否接受变量引用统一为 <code>${...}</code>，并逐步废弃 <code>{{...}}</code> 与历史运行时泄漏写法。
+        </div>
+        <div class="decision-item">
+          <b>决策 4：</b> 是否接受只将 <code>dependsOn</code>、<code>approval</code>、<code>fan-out</code>、通用 <code>retry/timeout</code> 作为最小必要补齐能力纳入 Recipe。
+        </div>
+        <div class="decision-item">
+          <b>决策 5：</b> 是否接受将资源治理、空闲休眠、后台降权等能力放入 runtime profile，而不是进入核心节点 DSL。
+        </div>
+      </div>
+
+      <div class="callout success">
+        <strong>推荐会后动作</strong>
+        如果以上 5 个决策项达成一致，下一步建议产出正式规范初稿，包括：字段定义表、节点 schema、兼容矩阵、迁移指引以及实现承接建议。
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>本评审稿基于仓内文档对比整理：<code>docs/OpenClaw Workflow 与 TaskFlow YAML 编写规范及节点能力手册.md</code> 与 <code>docs/Recipe specification.md</code>。当前定位为正式评审材料，用于方向决策与后续规范起草，不等同于最终实现设计或 OpenSpec 变更稿。</p>
+  </footer>
+</body>
+</html>

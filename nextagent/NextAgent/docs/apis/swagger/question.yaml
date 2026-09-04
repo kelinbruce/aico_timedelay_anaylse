@@ -1,0 +1,354 @@
+swagger: '2.0'
+info:
+  title: Question API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/category-questions:
+    get:
+      operationId: getCategoryQuestions
+      summary: Get categorized questions
+      tags:
+        - Question
+      produces:
+        - application/json
+      parameters:
+        - name: locale
+          in: query
+          required: false
+          type: string
+          minLength: 2
+          maxLength: 35
+          pattern: ^[a-zA-Z][a-zA-Z-]*[a-zA-Z]$|^[a-zA-Z]$
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CategoryQuestionResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/frequent-questions:
+    get:
+      operationId: getFrequentQuestions
+      summary: Get frequent questions
+      tags:
+        - Question
+      produces:
+        - application/json
+      parameters:
+        - name: locale
+          in: query
+          required: false
+          type: string
+          minLength: 2
+          maxLength: 35
+          pattern: ^[a-zA-Z][a-zA-Z-]*[a-zA-Z]$|^[a-zA-Z]$
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/FrequentQuestionResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/question-association:
+    get:
+      operationId: getQuestionAssociation
+      summary: Get associated questions by keyword
+      tags:
+        - Question
+      produces:
+        - application/json
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          type: string
+          minLength: 1
+          maxLength: 512
+        - name: locale
+          in: query
+          required: false
+          type: string
+          minLength: 2
+          maxLength: 35
+          pattern: ^[a-zA-Z][a-zA-Z-]*[a-zA-Z]$|^[a-zA-Z]$
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/QuestionAssociationResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/user-questions/pin:
+    post:
+      operationId: pinUserQuestion
+      summary: Pin a user question
+      tags:
+        - Question
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserQuestionPinBody'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  CategoryQuestionQuery:
+    type: object
+    properties:
+      locale:
+        type: string
+        enum:
+          - zh-CN
+          - en-US
+    additionalProperties: false
+  CategoryQuestionResponse:
+    type: object
+    required:
+      - locale
+      - categories
+    properties:
+      locale:
+        type: string
+        minLength: 1
+      categories:
+        type: array
+        items:
+          type: object
+          required:
+            - name
+            - hasSubCategories
+          properties:
+            name:
+              type: string
+              minLength: 1
+            hasSubCategories:
+              type: boolean
+            questions:
+              type: array
+              items:
+                type: object
+                required:
+                  - text
+                  - fixed
+                properties:
+                  text:
+                    type: string
+                    minLength: 1
+                  fixed:
+                    type: boolean
+                additionalProperties: false
+            subCategories:
+              type: array
+              items:
+                type: object
+                required:
+                  - name
+                  - questions
+                properties:
+                  name:
+                    type: string
+                    minLength: 1
+                  questions:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - text
+                        - fixed
+                      properties:
+                        text:
+                          type: string
+                          minLength: 1
+                        fixed:
+                          type: boolean
+                      additionalProperties: false
+                additionalProperties: false
+          additionalProperties: false
+    additionalProperties: false
+  FrequentQuestionQuery:
+    type: object
+    properties:
+      locale:
+        type: string
+        enum:
+          - zh-CN
+          - en-US
+    additionalProperties: false
+  FrequentQuestionResponse:
+    type: object
+    required:
+      - locale
+      - questions
+    properties:
+      locale:
+        type: string
+        minLength: 1
+      questions:
+        type: array
+        items:
+          type: object
+          required:
+            - text
+          properties:
+            text:
+              type: string
+              minLength: 1
+          additionalProperties: false
+    additionalProperties: false
+  QuestionAssociationQuery:
+    type: object
+    required:
+      - keyword
+    properties:
+      keyword:
+        type: string
+        minLength: 1
+        maxLength: 512
+      locale:
+        type: string
+        enum:
+          - zh-CN
+          - en-US
+    additionalProperties: false
+  QuestionAssociationResponse:
+    type: object
+    required:
+      - locale
+      - questions
+    properties:
+      locale:
+        type: string
+        minLength: 1
+        maxLength: 35
+      questions:
+        type: array
+        items:
+          type: object
+          required:
+            - text
+            - source
+          properties:
+            text:
+              type: string
+              minLength: 1
+              maxLength: 512
+            source:
+              type: string
+              enum:
+                - pinned
+                - high-frequency
+                - static
+          additionalProperties: false
+    additionalProperties: false
+  UserQuestionPinBody:
+    type: object
+    required:
+      - sessionId
+      - runId
+    properties:
+      sessionId:
+        type: string
+        minLength: 1
+        maxLength: 256
+      runId:
+        type: string
+        minLength: 1
+        maxLength: 256
+    additionalProperties: false
+  SuggestedQuestionsResponse:
+    type: object
+    required:
+      - questions
+    properties:
+      questions:
+        type: array
+        items:
+          type: string
+    additionalProperties: false

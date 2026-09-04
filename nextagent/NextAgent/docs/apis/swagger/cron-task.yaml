@@ -1,0 +1,432 @@
+swagger: '2.0'
+info:
+  title: Cron Task API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/cron-tasks:
+    get:
+      operationId: listCronTasks
+      summary: List cron tasks
+      tags:
+        - CronTask
+      produces:
+        - application/json
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          type: string
+          minLength: 1
+        - name: limit
+          in: query
+          required: false
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CronTaskManagementListResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+    post:
+      operationId: createCronTask
+      summary: Create a cron task
+      tags:
+        - CronTask
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CronTaskManagementCreateBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CronTaskManagementResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/cron-tasks/{taskId}:
+    put:
+      operationId: updateCronTask
+      summary: Update a cron task
+      tags:
+        - CronTask
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CronTaskManagementUpdateBody'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CronTaskManagementResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+    delete:
+      operationId: deleteCronTask
+      summary: Delete a cron task
+      tags:
+        - CronTask
+      produces:
+        - application/json
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CronTaskManagementResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /api/v1/cron-tasks/{taskId}/runs:
+    get:
+      operationId: listCronTaskExecutions
+      summary: List executions of a cron task
+      tags:
+        - CronTask
+      produces:
+        - application/json
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+        - name: offset
+          in: query
+          required: false
+          type: string
+          minLength: 1
+        - name: limit
+          in: query
+          required: false
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CronTaskExecutionListResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+    post:
+      operationId: executeCronTask
+      summary: Manually trigger a cron task execution
+      tags:
+        - CronTask
+      produces:
+        - application/json
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/CronTaskExecutionResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  CronTaskTarget:
+    type: object
+    description: Target capability for a cron task
+    required:
+      - kind
+      - name
+    properties:
+      kind:
+        type: string
+        enum:
+          - SKILL
+          - WORKFLOW
+      name:
+        type: string
+        minLength: 1
+        maxLength: 128
+        pattern: ^[A-Za-z0-9._:-]+$
+    additionalProperties: false
+  CronTaskManagementCreateBody:
+    type: object
+    required:
+      - cron
+      - prompt
+    properties:
+      cron:
+        type: string
+        minLength: 1
+        maxLength: 256
+      prompt:
+        type: string
+        minLength: 1
+        maxLength: 10000
+      target:
+        $ref: '#/definitions/CronTaskTarget'
+      recurring:
+        type: boolean
+    additionalProperties: false
+  CronTaskManagementUpdateBody:
+    type: object
+    properties:
+      cron:
+        type: string
+        minLength: 1
+        maxLength: 256
+      prompt:
+        type: string
+        minLength: 1
+        maxLength: 10000
+      target:
+        allOf:
+          - $ref: '#/definitions/CronTaskTarget'
+        x-nullable: true
+      recurring:
+        type: boolean
+    additionalProperties: false
+    x-minProperties: 1
+  CronTaskManagementResponse:
+    type: object
+    required:
+      - taskId
+      - cron
+      - humanSchedule
+      - prompt
+      - recurring
+      - status
+      - createdAt
+      - updatedAt
+      - nextRunAt
+      - createdByName
+    properties:
+      taskId:
+        type: string
+        minLength: 1
+      cron:
+        type: string
+        minLength: 1
+      humanSchedule:
+        type: string
+        minLength: 1
+      prompt:
+        type: string
+        minLength: 1
+      target:
+        $ref: '#/definitions/CronTaskTarget'
+      recurring:
+        type: boolean
+      status:
+        type: string
+        enum:
+          - ACTIVE
+          - COMPLETED
+      createdAt:
+        type: number
+        minimum: 0
+      updatedAt:
+        type: number
+        minimum: 0
+      nextRunAt:
+        type: number
+        minimum: 0
+      createdByName:
+        type: string
+        x-nullable: true
+    additionalProperties: false
+  CronTaskManagementListResponse:
+    type: object
+    required:
+      - tasks
+      - total
+    properties:
+      tasks:
+        type: array
+        items:
+          $ref: '#/definitions/CronTaskManagementResponse'
+      total:
+        type: number
+        minimum: 0
+    additionalProperties: false
+  CronTaskExecutionResponse:
+    type: object
+    required:
+      - triggerId
+      - taskId
+      - scheduledAt
+      - triggerStatus
+      - createdAt
+      - updatedAt
+    properties:
+      triggerId:
+        type: string
+        minLength: 1
+      taskId:
+        type: string
+        minLength: 1
+      scheduledAt:
+        type: number
+        minimum: 0
+      triggerStatus:
+        type: string
+        enum:
+          - CLAIMED
+          - ACCEPTED
+      createdAt:
+        type: number
+        minimum: 0
+      updatedAt:
+        type: number
+        minimum: 0
+      sessionId:
+        type: string
+        minLength: 1
+      requestRunId:
+        type: string
+        minLength: 1
+      runStatus:
+        type: string
+        enum:
+          - ACCEPTED
+          - QUEUED
+          - PLANNING
+          - EXECUTING
+          - COMPLETED
+          - FAILED
+          - CANCELED
+          - SUPERSEDED
+      terminalCommitState:
+        type: string
+        enum:
+          - NOT_STARTED
+          - PENDING
+          - RETRYING
+          - COMMITTED
+          - FAILED
+      resultEventType:
+        type: string
+        enum:
+          - REQUEST_COMPLETED
+          - REQUEST_FAILED
+          - REQUEST_CANCELED
+          - REQUEST_SUPERSEDED
+      resultContent:
+        type: string
+      resultAt:
+        type: number
+        minimum: 0
+    additionalProperties: false
+  CronTaskExecutionListResponse:
+    type: object
+    required:
+      - executions
+      - total
+    properties:
+      executions:
+        type: array
+        items:
+          $ref: '#/definitions/CronTaskExecutionResponse'
+      total:
+        type: number
+        minimum: 0
+    additionalProperties: false

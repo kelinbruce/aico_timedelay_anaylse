@@ -1,0 +1,4 @@
+### Available skills
+{{ skillDisclosureList }}
+
+{{ skillDisclosureBody }}

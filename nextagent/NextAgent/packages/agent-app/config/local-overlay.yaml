@@ -1,0 +1,13 @@
+﻿modelProfiles:
+  - providerId: openai-compatible
+    baseUrl: https://open.bigmodel.cn/api/paas/v4
+    credentialRef: env:YOUR_MODEL_API_KEY
+    models:
+      - modelId: glm-4-flash
+        displayName: GLM-4-Flash
+        contextWindowTokens: 128000
+        fallbackEligible: false
+        temperature: 0.2
+        maxOutputTokens: 4096
+        topP: 1
+        timeoutMs: 120000

@@ -1,0 +1,175 @@
+swagger: '2.0'
+info:
+  title: Runtime API
+  version: 1.0.0
+  description: >-
+    NextAgent Web Channel API. All endpoints are served under the /api/v1 prefix unless noted otherwise (health
+    endpoints use root paths). Authentication uses a cookie-based local auth flow for loopback deployments.
+host: localhost:3000
+basePath: /
+schemes:
+  - https
+paths:
+  /api/v1/runtime/bootstrap:
+    get:
+      operationId: getRuntimeBootstrap
+      summary: Get runtime bootstrap configuration
+      tags:
+        - Runtime
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/RuntimeBootstrapResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /health:
+    get:
+      operationId: getHealth
+      summary: Shallow health check
+      tags:
+        - Runtime
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/HealthResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+  /health/deep:
+    get:
+      operationId: getHealthDeep
+      summary: Deep health check with component status
+      tags:
+        - Runtime
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/HealthResponse'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '401':
+          description: Authentication required
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '404':
+          description: Not found
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '409':
+          description: Conflict
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+        '500':
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/SafeErrorResponse'
+definitions:
+  RuntimeBootstrapResponse:
+    type: object
+    required:
+      - transportKind
+    properties:
+      transportKind:
+        type: string
+        enum:
+          - SSE
+          - WEBSOCKET
+      chatUploadFileConfig:
+        type: object
+        required:
+          - chatUploadFileType
+          - chatUploadMaxFileNumber
+          - chatUploadMaxFileSize
+          - uploadFileIdleExpireTime
+          - uploadFileMaxExpireTime
+        properties:
+          chatUploadFileType:
+            type: array
+            items:
+              type: string
+              minLength: 1
+          chatUploadMaxFileNumber:
+            type: integer
+            minimum: 1
+          chatUploadMaxFileSize:
+            type: integer
+            minimum: 1
+          uploadFileIdleExpireTime:
+            type: integer
+            minimum: 1
+          uploadFileMaxExpireTime:
+            type: integer
+            minimum: 1
+        additionalProperties: false
+      guardrail:
+        type: object
+        required:
+          - enabled
+        properties:
+          enabled:
+            type: boolean
+        additionalProperties: false
+    additionalProperties: false
+  HealthResponse:
+    type: object
+    required:
+      - status
+      - components
+      - timestamp
+    properties:
+      status:
+        type: string
+        enum:
+          - UP
+          - DOWN
+          - DEGRADED
+      timestamp:
+        type: number
+        minimum: 0
+    additionalProperties: false

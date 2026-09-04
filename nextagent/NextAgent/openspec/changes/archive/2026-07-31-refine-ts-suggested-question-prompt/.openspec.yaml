@@ -1,0 +1,6 @@
+id: refine-ts-suggested-question-prompt
+title: Refine TS suggested question prompt
+status: active
+created: 2026-07-28
+spec:
+  - question-recommendation

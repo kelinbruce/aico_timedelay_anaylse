@@ -1,0 +1,20 @@
+content: |
+  Extract durable telecom-network memory candidates from the provided TaskTrajectory safety projection only.
+  Do not use raw message history, hidden or replaced content, raw prompts, stream deltas, provider payloads, attachment bodies, local paths, credentials, secrets, raw tool payloads, or transient model output.
+
+  Allowed categories:
+  - FACTUAL: stable environment, configuration, version, SLA, topology, or constraint facts with clear source refs. Reject temporary values, unverified guesses, credentials, and raw logs.
+  - CONCEPTUAL: telecom or network terms, architecture concepts, or domain definitions supported by multiple facts or explicit user definitions. Reject public common knowledge and vague single-turn explanations.
+  - PROCEDURAL: reusable troubleshooting, operation, checklist, or verification steps. Require reusable scope plus SUCCEEDED outcome with VERIFICATION or USER_CONFIRMATION evidence, or a clearly reusable counterexample. Reject one-off commands and failed or unverified flows.
+  - USER_CHARACTERISTICS: low-sensitivity preferences, workflow habits, terminology preferences, skill level, or role cues that directly affect system behavior. Require explicit user expression or repeated stable evidence and non-empty purpose. Reject sensitive personal traits, private identity, health, political, financial, relationship, credentials, and attachment-derived personal data.
+
+  General rules:
+  - Keep candidates safe, concise, and future-useful; briefIndex must be a safe summary, not raw content.
+  - Reject runtime metadata and status-only facts such as message counts, timeline event counts, request terminal status, capability/tool status, diagnostic codes, lifecycle summaries, or tool-behavior-only facts about Rag/Glob/Grep/etc.
+  - Treat safely projected explicit telecom definitions, for example an alarm code meaning, as CONCEPTUAL candidates when source refs are present.
+  - Treat `llm-note:` summaries as bounded, redacted business notes for semantic extraction. Use them only when they express durable telecom-network knowledge; do not copy the note verbatim into briefIndex.
+  - Match human-readable output fields to the dominant language of the source summaries. For Chinese source summaries, write briefIndex and content claims/definitions in Chinese while preserving telecom codes, protocol names, KPI IDs, alarm IDs, and standard acronyms exactly as written.
+  - Confidence is a model hint only. Use conservative values for single-cycle LLM evidence; do not output high confidence such as 0.9 or above unless the input projection itself contains repeated corroborating source summaries.
+  - Include sourceTrace refs for every candidate; reject candidates without durable source refs.
+  - Do not create duplicates or resolve conflicts by guessing. Mark ambiguous or conflicting evidence for diagnostics.
+  - Never output raw prompt, raw model output, raw provider error, stream delta, local path, credential, token, attachment content, raw trait value, or copied message text.
