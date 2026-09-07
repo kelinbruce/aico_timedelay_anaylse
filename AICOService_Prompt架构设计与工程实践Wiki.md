@@ -126,11 +126,23 @@
 
 ### 2.3 编译期固化机制（Frozen Template Facts）
 
-为了极致的运行效率，NextAgent 并没有在每次接收到用户请求时都去磁盘实时读取这些 Markdown 文件或解析 YAML：
+为了极致的运行效率与确定性，NextAgent 并没有在每次接收到用户请求时都去磁盘实时读取这些 Markdown 文件或解析 YAML，而是通过**装配期固化**与**两层存储桶架构**实现零 I/O 开销与稳定的缓存复用：
 
-* **初始化编译**：在 Agent Assembly 装配初始化阶段，Prompt 编译器就一次性读取所有段落文件，完成校验，并编译为内存中只读的**冻结事实集（Frozen Template Facts）**；
-* **零 I/O 运行**：实际请求处理路径直接引用内存中已冻结的装配结构，完全消除文件读取和模板解析的运行时开销；
-* **版本一致性**：当前运行的 Agent 版本与其依赖的 Prompt 模板深度绑定，杜绝运行时发生配置漂移。
+#### 2.3.1 两层只读存储桶架构（Two-Tier Storage Buckets）
+在底座注册中心（`DefaultPromptTemplateRegistry`）中，Prompt 事实被严格划分为两级不可变存储桶：
+* **进程级内置桶（Process-scoped Builtin Bucket）**：由 NextAgent 框架底座全局提供（位于 `@nextagent/agent-context-engine/dist/prompt-templates/builtin/`）。在进程初始化启动时编译一次并常驻内存，包含通用的 `SYSTEM_PROMPT`、用于长会话压缩的 `SUMMARY_GENERATION` 以及提取长期记忆的 `MEMORY_EXTRACTION`。全进程单例共享，绝不为每个 Agent 冗余复制；
+* **智能体业务桶（Agent-scoped Bucket）**：位于各业务智能体（如 `aico-agent-m` 网优意图座舱、`aico-agent-cn` 核心网智能体）包内的 `prompts/` 目录中。在同步 Agent Assembly 装配阶段被独立解析编译，并强绑定其受信的 `agentId` 与 `agentVersion`。
+
+#### 2.3.2 分层覆盖与兜底机制（`agent > builtin`）
+运行时的模板组装器（`PromptTemplateAssembler`）在两桶逻辑并集中按 **`agent > builtin`** 优先级与 `mergeSections` 算法完成拼装：
+* **业务段落显式重写与覆盖**：针对电信垂直领域的严苛要求，`aico-agent-m` 在自身 `template.yaml` 中主动声明并完全重写了 `identity`（统一意图座舱 RAN Agent 角色）、`task_approach`（56KB 巨型两阶段路由硬门控规则）、`action_safety` 等业务段落，直接覆盖掉内置桶中的通用版本；
+* **通用治理能力直接复用**：对于非业务类的系统治理功能（如多轮对话超长触发小模型压缩时的 `SUMMARY_GENERATION`、用户偏好抽取的 `MEMORY_EXTRACTION`），AICOService 无需重复编写模板，直接复用 Builtin 桶中的通用 Prompt；
+* **段落级兜底（Section-level Fallback）**：若业务 Agent 在模板中未显式声明某一系统基础段落，框架会自动从 Builtin 模板中提取该段落作为兜底补充，防止系统级能力缺失。
+
+#### 2.3.3 编译期安全门控与零 I/O 运行
+* **启动期强类型校验（Fail-Closed）**：Prompt 编译器在装配时推断所有 `{{ variableName }}` 变量，仅允许受治理的合法系统变量（如 `enabledSkills`、`environment`、`workspaceDir`）。若包含未知或拼写错误的变量，在编译期直接报错拦截，杜绝将故障遗留到线上；
+* **运行时零 I/O 与禁止 Lazy Compile**：在线请求处理路径（如 A2A-T 接口收到查数请求）严禁读取磁盘、严禁解析 YAML、严禁触发延迟编译。所有模板匹配直接通过内存指针查询已冻结的 Facts，实现接近 0ms 的 Prompt 组装时延；
+* **字节级一致性保障 KV-Cache 稳定命中**：冻结事实消除了文件读写并发冲突、操作系统的换行符差异或动态格式化波动，确保稳定区文本字节级完全一致，使底层大模型（如 DSV4）的 Prefix KV-Cache 命中率达到极致。
 
 ### 2.4 稳定区段落功能分工概览
 
