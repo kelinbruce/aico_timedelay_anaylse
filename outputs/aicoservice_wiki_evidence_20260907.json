@@ -1,0 +1,471 @@
+{
+  "purpose": "Two Wiki articles: local static verification and bounded raw-log evidence; no live calls; sources are distinct baselines.",
+  "createdDate": "2026-09-07",
+  "localTemplateRender": {
+    "note": "Controlled local render; model, disclosure and enabled memory are explicit example inputs, not captured production state. Host environment fields are local.",
+    "input": {
+      "purpose": "SYSTEM_PROMPT",
+      "agentId": "AICOServiceAgent",
+      "agentVersion": "v1",
+      "locale": "zh-CN",
+      "flowVariables": {},
+      "selectedModel": {
+        "modelId": "example-model"
+      },
+      "memoryEnabled": true,
+      "skillDisclosure": {
+        "mode": "list",
+        "skills": [
+          {
+            "capabilityId": "wireless-search-net-fast-4-4",
+            "description": "无线网络问数"
+          }
+        ],
+        "body": "示例披露说明"
+      }
+    },
+    "templateRef": "agent:AICOServiceAgent:v1:SYSTEM_PROMPT:5e394ecfcc0343d6",
+    "sections": [
+      {
+        "id": "identity",
+        "charCount": 2247
+      },
+      {
+        "id": "system_behavior",
+        "charCount": 1510
+      },
+      {
+        "id": "task_approach",
+        "charCount": 26042
+      },
+      {
+        "id": "communication_style",
+        "charCount": 45
+      },
+      {
+        "id": "agent_delegation",
+        "charCount": 61
+      },
+      {
+        "id": "tooling",
+        "charCount": 240
+      },
+      {
+        "id": "memory",
+        "charCount": 3802
+      },
+      {
+        "id": "skill_disclosure",
+        "charCount": 76
+      },
+      {
+        "id": "action_safety",
+        "charCount": 106
+      },
+      {
+        "id": "context_management",
+        "charCount": 117
+      },
+      {
+        "id": "workspace",
+        "charCount": 102
+      },
+      {
+        "id": "runtime",
+        "charCount": 38
+      },
+      {
+        "id": "environment",
+        "charCount": 43
+      }
+    ]
+  },
+  "recipeStructure": {
+    "name": "WATT_PLEX",
+    "nodeCount": 31,
+    "nodes": [
+      {
+        "id": "start_node",
+        "type": "start-event",
+        "next": [
+          "preprocess"
+        ]
+      },
+      {
+        "id": "preprocess",
+        "type": "python",
+        "next": [
+          "parallel_search"
+        ]
+      },
+      {
+        "id": "parallel_search",
+        "type": "parallel-gateway",
+        "next": [
+          "search_feature",
+          "search_ep",
+          "search_cell",
+          "search_site",
+          "search_region",
+          "search_grid",
+          "search_poi"
+        ]
+      },
+      {
+        "id": "search_feature",
+        "type": "restful",
+        "next": [
+          "parallel_search_join"
+        ],
+        "apiName": "search_dim_feature"
+      },
+      {
+        "id": "search_ep",
+        "type": "restful",
+        "next": [
+          "parallel_search_join"
+        ],
+        "apiName": "search_dim_feature"
+      },
+      {
+        "id": "search_cell",
+        "type": "restful",
+        "next": [
+          "parallel_search_join"
+        ],
+        "apiName": "search_dim_cell"
+      },
+      {
+        "id": "search_site",
+        "type": "restful",
+        "next": [
+          "parallel_search_join"
+        ],
+        "apiName": "search_dim_cell"
+      },
+      {
+        "id": "search_region",
+        "type": "restful",
+        "next": [
+          "parallel_search_join"
+        ],
+        "apiName": "search_dim_region"
+      },
+      {
+        "id": "search_grid",
+        "type": "restful",
+        "next": [
+          "parallel_search_join"
+        ],
+        "apiName": "search_dim_region"
+      },
+      {
+        "id": "search_poi",
+        "type": "restful",
+        "next": [
+          "parallel_search_join"
+        ],
+        "apiName": "search_dim_region"
+      },
+      {
+        "id": "parallel_search_join",
+        "type": "inclusive-gateway",
+        "next": [
+          "postprocess"
+        ]
+      },
+      {
+        "id": "postprocess",
+        "type": "python",
+        "next": [
+          "build_nego_plan_messages"
+        ]
+      },
+      {
+        "id": "build_nego_plan_messages",
+        "type": "python",
+        "next": [
+          "call_nego_plan_llm"
+        ]
+      },
+      {
+        "id": "call_nego_plan_llm",
+        "type": "restful",
+        "next": [
+          "parse_nego_planner"
+        ],
+        "apiName": "chat_completions"
+      },
+      {
+        "id": "parse_nego_planner",
+        "type": "python",
+        "next": [
+          "display_nego",
+          "init_tool_history"
+        ]
+      },
+      {
+        "id": "display_nego",
+        "type": "display-content",
+        "next": [
+          "end_node"
+        ]
+      },
+      {
+        "id": "init_tool_history",
+        "type": "python",
+        "next": [
+          "build_exec_messages"
+        ]
+      },
+      {
+        "id": "build_exec_messages",
+        "type": "python",
+        "next": [
+          "call_exec_llm"
+        ]
+      },
+      {
+        "id": "call_exec_llm",
+        "type": "restful",
+        "next": [
+          "parse_exec_response"
+        ],
+        "apiName": "chat_completions"
+      },
+      {
+        "id": "parse_exec_response",
+        "type": "python",
+        "next": [
+          "display_exec_direct_answer",
+          "route_tool"
+        ]
+      },
+      {
+        "id": "display_exec_direct_answer",
+        "type": "display-content",
+        "next": [
+          "display_final_result"
+        ]
+      },
+      {
+        "id": "route_tool",
+        "type": "display-content",
+        "next": [
+          "call_pm",
+          "call_param",
+          "call_alarm",
+          "call_gain"
+        ]
+      },
+      {
+        "id": "call_pm",
+        "type": "restful",
+        "next": [
+          "extract_tool_csv"
+        ],
+        "apiName": "queryPerformanceData"
+      },
+      {
+        "id": "call_param",
+        "type": "restful",
+        "next": [
+          "extract_tool_csv"
+        ],
+        "apiName": "queryEngineerParam"
+      },
+      {
+        "id": "call_alarm",
+        "type": "restful",
+        "next": [
+          "extract_tool_csv"
+        ],
+        "apiName": "queryAlarms"
+      },
+      {
+        "id": "call_gain",
+        "type": "python",
+        "next": [
+          "extract_tool_csv"
+        ]
+      },
+      {
+        "id": "extract_tool_csv",
+        "type": "python",
+        "next": [
+          "update_tool_history",
+          "show_csv"
+        ]
+      },
+      {
+        "id": "show_csv",
+        "type": "display-content",
+        "next": [
+          "update_tool_history"
+        ]
+      },
+      {
+        "id": "update_tool_history",
+        "type": "python",
+        "next": [
+          "build_exec_messages"
+        ]
+      },
+      {
+        "id": "display_final_result",
+        "type": "display-content",
+        "next": [
+          "end_node"
+        ]
+      },
+      {
+        "id": "end_node",
+        "type": "end-event",
+        "next": []
+      }
+    ],
+    "missingEdges": []
+  },
+  "earlyOuterModelInputs": {
+    "path": "/Users/zhangfan/project/aico_timedelay_report/e2e_delay/1/nextagent-operational.log.1.jsonl",
+    "records": [
+      {
+        "line": 522,
+        "timestamp": "2026-08-26T14:00:41.198+08:00",
+        "sessionId": "session-aaf79022-ebcc-48c9-9e28-18092744d6b4",
+        "runId": "run-adadcc73-774e-45b1-b09a-92fd2507bbfe",
+        "stepId": "turn-1",
+        "roles": [
+          "USER"
+        ],
+        "toolResults": []
+      },
+      {
+        "line": 612,
+        "timestamp": "2026-08-26T14:00:44.301+08:00",
+        "sessionId": "session-aaf79022-ebcc-48c9-9e28-18092744d6b4",
+        "runId": "run-adadcc73-774e-45b1-b09a-92fd2507bbfe",
+        "stepId": "turn-2",
+        "roles": [
+          "USER",
+          "ASSISTANT",
+          "TOOL"
+        ],
+        "toolResults": [
+          {
+            "toolName": "Skill",
+            "payloadKeys": [
+              "name",
+              "status",
+              "body",
+              "capabilityResult"
+            ]
+          }
+        ]
+      },
+      {
+        "line": 2905,
+        "timestamp": "2026-08-26T14:02:23.957+08:00",
+        "sessionId": "session-aaf79022-ebcc-48c9-9e28-18092744d6b4",
+        "runId": "run-adadcc73-774e-45b1-b09a-92fd2507bbfe",
+        "stepId": "turn-3",
+        "roles": [
+          "USER",
+          "ASSISTANT",
+          "TOOL",
+          "ASSISTANT",
+          "TOOL"
+        ],
+        "toolResults": [
+          {
+            "toolName": "Skill",
+            "payloadKeys": [
+              "name",
+              "status",
+              "body",
+              "capabilityResult"
+            ]
+          },
+          {
+            "toolName": "Workflow",
+            "payloadKeys": [
+              "status",
+              "result",
+              "safeError"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "earlyPlannerRequest": {
+    "path": "/Users/zhangfan/project/aico_timedelay_report/e2e_delay/1/recipe-model-request-recorder.jsonl",
+    "line": 16,
+    "timestamp": "2026-08-26T06:01:46.020+00:00",
+    "model": "ds-v4-flash-w8a8-code",
+    "roles": [
+      "user"
+    ],
+    "toolsCount": 0,
+    "bodyKeys": [
+      "verify_ssl",
+      "timeout",
+      "model",
+      "messages",
+      "max_tokens",
+      "temperature",
+      "top_p",
+      "chat_template_kwargs",
+      "enable_thinking"
+    ],
+    "contentStart": "# 任务\n你是无线网络问数系统的意图协商与任务规划智能体。请结合用户问题、精确匹配结果和候选列表，判断feature和object两个维度是否完备，并生成后续工具执行计划。任一必要维度不完备时，只输出一次性追问，不生成计划；全部完备时，输出确认信息和总体计划。禁止输出分析过程或虚构数据。\n\n# 一、协商维度\n",
+    "note": "2026-08-26 raw HTTP recorder example; not the 2026-09-04 sample; not a proof of present deployment model mapping."
+  },
+  "sources": [
+    {
+      "path": "/Users/zhangfan/project/aico_timedelay_report/aico_struct_code/aicoservice@27.68.169/agents/aico-agent-m/zh_CN/recipes/WATT_PLEX.yaml",
+      "sha256": "5688ae6545529cb5e33689907e4e6e2394cdbb46546e61b51504689d664635c7"
+    },
+    {
+      "path": "/Users/zhangfan/project/aico_timedelay_report/aico_struct_code/aicoservice@27.68.169/agents/aico-agent-m/zh_CN/prompts/SYSTEM_PROMPT/template.yaml",
+      "sha256": "f9f6d63f0525adead25f44de95c895183747e063f63ce2ea8dae0ac73359a166"
+    },
+    {
+      "path": "/Users/zhangfan/project/aico_timedelay_report/aico_struct_code/aicoservice@27.68.169/agents/aico-agent-m/zh_CN/prompts/SYSTEM_PROMPT/task-approach.md",
+      "sha256": "a50154d31cd2ca06293b6b6262245565d7bd145e88aa7b25d9e66854b2d36088"
+    },
+    {
+      "path": "/Users/zhangfan/project/aico_timedelay_report/e2e_delay/1/nextagent-operational.log.1.jsonl",
+      "sha256": "d3d82f52b5a82d74eb522c5f76fbd7bf139dd917d3cad5b8974138247366887e"
+    },
+    {
+      "path": "/Users/zhangfan/project/aico_timedelay_report/e2e_delay/1/recipe-model-request-recorder.jsonl",
+      "sha256": "b19d0f512d48cd6bd5c01865cf288b7d71fd363ed6c21421ac5a063ef20281ce"
+    },
+    {
+      "path": "/Users/zhangfan/project/aico_timedelay_report/outputs/aico_request_sample_20260904.json",
+      "sha256": "3f7a409788caf52eaa2be342d48a4cc12d1f41d3e299999c0f8917c2f8a128e0"
+    }
+  ],
+  "documentValidation": {
+    "checks": "Source link existence and line ranges; JSON/YAML example parsing; code fence balance checked separately. Mermaid diagrams manually reviewed, not rendered. No service startup, production API calls, or repository tests.",
+    "documents": [
+      {
+        "path": "/Users/zhangfan/project/aico_timedelay_report/aico_struct_code/aicoservice_prompt_wiki.md",
+        "sha256": "b6552bd96f3b89b034811ff7b221121e6246c3cee7c6e8b499fa1b1ba81711ee",
+        "sourceLinksChecked": 26,
+        "jsonExamplesChecked": 1,
+        "yamlExamplesChecked": 1,
+        "mermaidDiagrams": 1
+      },
+      {
+        "path": "/Users/zhangfan/project/aico_timedelay_report/aico_struct_code/aicoservice_workflow_wiki.md",
+        "sha256": "3fc02266704e85fca2340c44eecf81af84a9c419c29507ee0c62455c032d20c7",
+        "sourceLinksChecked": 29,
+        "jsonExamplesChecked": 3,
+        "yamlExamplesChecked": 2,
+        "mermaidDiagrams": 1
+      }
+    ]
+  }
+}

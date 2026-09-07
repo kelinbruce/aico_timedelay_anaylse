@@ -1,0 +1,247 @@
+{
+  "purpose": "阶段分析证据摘录，非正式说明文档；不等同原始容器日志",
+  "sources": [
+    {
+      "path": "/Users/zhangfan/project/aico_timedelay_report/e2e_delay/4_9.4/查数_150.csv",
+      "logical_record_row_including_header": 2,
+      "sha256": "77743c4d23ab750c944302ebb985d890215e207d071fb3b8d18ac2f937f7c772"
+    },
+    {
+      "path": "/Users/zhangfan/project/aico_timedelay_report/e2e_delay/4_9.4/all_operational_logs_knowledge-qa性能分析_无线.xlsx",
+      "sheet": "会话明细",
+      "range": "A1637:AE1637",
+      "sha256": "c062e8a2fb368ee0e6161ae9794fb0d2b268be3023cb118bf837dc0558305d27"
+    }
+  ],
+  "question": "获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？",
+  "sessionId": "session-b357b3d1-7cc8-42ce-a48d-e8418b63a0eb",
+  "requestId": "request-9850aa55-00bc-4428-bb31-3f079fb5dd75",
+  "runId": "run-d395669d-ec3c-4638-9831-3d200fedc672",
+  "requestStartTime": "2026-09-04T04:17:19.347Z",
+  "test_e2e": "0:00:59.671000",
+  "reference_answer": "apo_test区域内机械下倾角为2°的5G小区共有 1 个，小区名称为：南宁江南区南国花园5G-H5H-2611。",
+  "test_answer": "```json\\n{\\n  \"sub_questions\": [\\n    {\\n      \"sub_question\": \"获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？\",\\n      \"type\": \"基础数据查询\",\\n      \"strategy_intent\": \"指标与运行数据查询\",\\n      \"scene\": \"\"\\n    }\\n  ]\\n}\\n```\\n任务处理结果：在apo_test区域内未查询到任何5G小区（该区域下无关联小区），因此机械下倾角为2°的5G小区数量为0个。\\n",
+  "exported_agent_trace": [
+    {
+      "output": "[说明]右侧部分为完整轨迹信息，从AF容器日志中获取。记录了完整的 agentloop 信息",
+      "reference": "无预期输出",
+      "result": 10,
+      "input": "[说明]左侧 step_x 为旧版轨迹信息，从AF后台接口获取。信息量不全，例如轨迹缺少了模型调用节点、缺少了工具调用的输入内容",
+      "extendAnswer": [],
+      "remark": "只展示",
+      "type": "完整轨迹信息"
+    },
+    {
+      "output": {
+        "modelId": "netmo-deepseek-v4-flash",
+        "firstContentLatencyMs": 6701,
+        "modelE2ELatencyMs": 6966,
+        "stepId": "turn-1",
+        "toolCalls": [
+          {
+            "toolCallId": "func_1788495443874_6569",
+            "arguments": {
+              "args": {
+                "question": "获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？"
+              },
+              "name": "wireless-search-net-fast-4-4"
+            },
+            "toolName": "Skill"
+          }
+        ],
+        "content": "",
+        "providerResponseId": "1788495439.6453872_5784",
+        "safeAssistantOutputSummary": "visible-text chars=0 toolCalls=1",
+        "toolCallCount": 1
+      },
+      "reference": "无预期输出",
+      "result": 10,
+      "input": "日志中未记录 大模型调用节点 的输入信息，原因：内容过长",
+      "extendAnswer": [],
+      "remark": "只展示",
+      "type": "模型调用"
+    },
+    {
+      "output": {
+        "generatedMessages": [],
+        "generatedMessageCount": 0,
+        "structuredPayload": {
+          "name": "wireless-search-net-fast-4-4",
+          "body": "<skill_content name=\"wireless-search-net-fast-4-4\">\n# wireless-search-net-fast\n\n你是无线网络数据查询智能体。\n\n所有需要访问无线网络数据的请求，统一调用 Workflow recipe：\n\n```text\nWATT_PLEX\n```\n\n`WATT_PLEX` 负责完整业务流程，包括意图协商、任务规划、数据查询、数据处理和异常处理。画图功能由外层 Skill 调用 smartcanvas 处理。\n\n外层 Skill 负责：\n\n1. 根据对话上下文补全用户当前问题；\n2. 调用 `WATT_PLEX`；\n3. 判断是否有画图意图，若有则调用 smartcanvas 画图；\n4. 根据 Workflow 返回结果（及画图结果）进行响应。\n\n原则：\n\n```text\n上下文补全 → 调用 WATT_PLEX → 判断画图意图 → (可选)调用smartcanvas → 返回结果\n```\n\n禁止在外层自行执行任何无线网络业务逻辑（画图除外）。\n\n---\n\n## 1. 上下文补全\n\nWorkflow 每次只接收一个完整的用户问题，因此调用前需要结合当前对话生成：\n\n```text\ncontext_completed_query\n```\n\n该问题应当脱离历史对话后仍可以独立理解。\n\n可以继承当前问数链路中已经明确的信息，例如：\n\n* 查询对象；\n* 指标、工参、配置、能耗等查询内容；\n* 时间范围；\n* 上下行方向；\n* 统计口径；\n* 排序、TopN 和筛选条件；\n* 上一步查询得到的对象；\n* 图表或展示要求。\n\n例如：\n\n```text\n上一轮：\n查询昨天上行 PRB 利用率最高的 3 个小区。\n\n上一轮回复：\n昨天上行 PRB 利用率最高的 3 个小区为x1,x2,x3。\n\n本轮：\n看看它们的下行吞吐率。\n\n补全后：\n查询x1,x2,x3这些小区昨天的下行吞吐率。\n```\n\n上下文处理规则：\n\n```text\n本轮用户表达 > 历史上下文\n```\n\n用户本轮明确修改的条件必须覆盖之前条件。\n\n只补全能够从上下文明确确定的信息，不得自行猜测。\n\n如果存在无法确定的歧义，也不要在外层协商，保留已有信息后交给 `WATT_PLEX` 处理。\n\n---\n\n## 2. Workflow 调用\n\n对于新的无线网络数据请求，调用：\n\n```text\nrecipeName: WATT_PLEX\ninputText: <context_completed_query>\ninputVariables: {}\n```\n\n正常情况下每轮只调用一次 Workflow。\n\n不得自行调用其他业务工具、接口或数据源（画图除外）。\n\n---\n\n## 3. Smartcanvas 画图调用\n\nWorkflow 返回执行完成的结果后，判断用户是否有画图意图。\n\n### 3.1 判断画图意图\n\n仅当用户明确要求以下类型时才调用 smartcanvas：\n\n* 折线图\n* 柱状图\n* 饼图\n* 仪表盘\n\n用户仅要求查数据、列表、表格等，**不调用** smartcanvas，直接返回 Workflow 结果。\n\n### 3.2 调用方式\n\n使用本地 clipc 命令调用 smartcanvas：\n\n```bash\nclipc subscribe sseGenerateUI /smartcanvas/v1/sse/action/generate/ui \\\n  --body '{\"response\":{\"data\": [\"data1\",\"data2\"]}}' \\\n  --timeout-ms 5000 \\\n  --max-events 1000\n```\n\n把需要渲染的数据放到 `response.data` 字段内。\n\n### 3.3 画图结果处理\n\n* 如果 smartcanvas 调用成功，则直接告知用户任务已完成，不需要额外输出数据，因为画图已经呈现；\n* 如果 smartcanvas 调用失败，仍然返回 Workflow 的数据结果，附注画图失败。\n\n---\n\n## 4. Workflow 返回处理\n\nWorkflow 返回后分为三类处理。\n\n### 4.1 需要协商\n\n如果 Workflow 明确要求用户补充、选择或确认信息，例如返回：\n\n```text\nwaiting\nneed_input\nnegotiating\nneed_negotiation=true\nclarification\nquestion\n```\n\n或返回内容本身明显是在向用户提问：\n\n* 直接将 Workflow 的协商内容返回给用户；\n* 不自行回答协商问题；\n* 不再次调用 Workflow。\n\n可清理重复包装、转义字符或重复的 `<Finished>`，但不得修改原始业务含义。\n\n如果系统要求协商结果使用结束标记，则最终只保留一个：\n\n```text\n<Finished>\n```\n\n---\n\n### 4.2 执行完成\n\n如果 Workflow 已返回能够回答用户问题的查询、统计、文件、图表或其他最终结果：\n\n* 判断是否有画图意图（参见第3节），若有则调用 smartcanvas；\n* 直接基于 Workflow 返回内容（及画图结果）回答用户；\n* 以 Markdown 格式直接返回 Workflow 的内容；\n* 尽可能避免对 Workflow 返回内容做任何修改；\n* 不改变数值、对象、时间、单位或统计口径；\n* 不自行计算、补充或推导 Workflow 未返回的信息；\n* 不输出 Workflow 内部计划、工具调用过程或日志；\n* 不再次查询或重新生成结果；\n* 未查到数据时，整个回复仅允许为\"未查到信息\"这五个字，不得在其前后追加任何文字。\n\n---\n\n### 4.3 Workflow 失败\n\n如果 Workflow 返回失败、异常、无法解析或没有得到有效结果：\n\n先判断失败原因。\n\n#### 可以重试\n\n仅当失败明显属于临时性或调用层问题时，可以重试一次，例如：\n\n* 网络瞬时异常；\n* HTTP 临时错误；\n* 服务暂时不可用；\n* Workflow 调用超时；\n* Workflow 返回明显损坏或不完整；\n* 调用参数封装错误，可以直接修正。\n\n重试时：\n\n```text\n保持原始 context_completed_query 不变\n```\n\n除修正调用格式外，不得修改用户查询意图。\n\n最多重试一次。\n\n#### 不应重试\n\n以下情况直接告知用户，不重复调用：\n\n* Workflow 明确判断业务查询失败；\n* 数据不存在或为空；\n* 用户条件无法满足；\n* Workflow 已给出确定的失败原因；\n* 权限、能力或数据范围不支持；\n* 同样的错误已经重试过一次。\n\n返回时整个回复仅允许为\"未查到信息\"这五个字，不得在其前后追加任何文字。\n\n如果没有得到可靠业务结果，不得自行推测或编造答案。\n\n---\n\n## 5. 无需调用 Workflow 的情况\n\n如果用户只是处理已经获得的结果，则直接处理，不重新查询，例如：\n\n* 解释上一轮结果；\n* 总结已有数据；\n* 修改结果表达方式；\n* 转换成 Markdown、表格或文本；\n* 解释已有图表。\n\n判断原则：\n\n```text\n需要新的无线网络数据 → 调用 WATT_PLEX\n\n只处理已经获得的结果 → 不调用 WATT_PLEX\n```\n\n---\n\n## 6. 禁止事项\n\n外层 Skill 禁止：\n\n* 自行进行业务意图识别或业务规划；\n* 自行进行业务协商；\n* 调用任何无线网络业务 API 或工具（smartcanvas 画图除外）；\n* 绕过 `WATT_PLEX` 查询数据；\n* 自行计算或聚合无线网络数据；\n* 自行生成 Workflow 未返回的业务结果；\n* 为验证结果额外查询；\n* 输出 Workflow 内部执行过程。\n\n最终执行原则：\n\n```text\n新的无线网络数据请求：\n\n当前问题\n→ 结合上下文补全\n→ WATT_PLEX\n→ 协商 / 成功 / 失败\n→ (若成功且有画图意图) 调用 smartcanvas\n→ 返回用户\n\n\n已有结果处理：\n\n直接处理\n→ 不调用 WATT_PLEX\n```\n\n\n</skill_content>",
+          "status": "loaded"
+        },
+        "capabilityId": "Skill",
+        "capabilityInvocationId": "run-d395669d-ec3c-4638-9831-3d200fedc672:func_1788495443874_6569",
+        "arguments": {
+          "args": {
+            "question": "获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？"
+          },
+          "name": "wireless-search-net-fast-4-4"
+        },
+        "artifactCount": 0,
+        "safeResultSummary": "skill result target=wireless-search-net-fast-4-4",
+        "status": "SUCCEEDED"
+      },
+      "reference": "无预期输出",
+      "result": 10,
+      "input": {
+        "providerKind": "BUNDLED",
+        "toolCallId": "func_1788495443874_6569",
+        "capabilityId": "Skill",
+        "timeoutMs": 600000,
+        "capabilityKind": "TOOL",
+        "arguments": {
+          "args": {
+            "question": "获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？"
+          },
+          "name": "wireless-search-net-fast-4-4"
+        },
+        "safeInputSummary": "name=wireless-search-net-fast-4-4"
+      },
+      "extendAnswer": [],
+      "remark": "只展示",
+      "type": "工具调用[Skill]"
+    },
+    {
+      "output": {
+        "modelId": "netmo-deepseek-v4-flash",
+        "firstContentLatencyMs": 9277,
+        "modelE2ELatencyMs": 9585,
+        "stepId": "turn-2",
+        "toolCalls": [
+          {
+            "toolCallId": "func_1788495450443_2750",
+            "arguments": {
+              "recipeName": "WATT_PLEX",
+              "inputText": "获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？",
+              "inputVariables": {}
+            },
+            "toolName": "Workflow"
+          }
+        ],
+        "content": "",
+        "providerResponseId": "1788495446.7372885_5778",
+        "safeAssistantOutputSummary": "visible-text chars=0 toolCalls=1",
+        "toolCallCount": 1
+      },
+      "reference": "无预期输出",
+      "result": 10,
+      "input": "日志中未记录 大模型调用节点 的输入信息，原因：内容过长",
+      "extendAnswer": [],
+      "remark": "只展示",
+      "type": "模型调用"
+    },
+    {
+      "output": {
+        "generatedMessages": [],
+        "generatedMessageCount": 0,
+        "structuredPayload": {
+          "recipeName": "WATT_PLEX",
+          "answerPreviews": [
+            "任务处理结果：在apo_test区域内未查询到任何5G小区（该区域下无关联小区），因此机械下倾角为2°的5G小区数量为0个。"
+          ],
+          "outputVariables": {
+            "display_content_result": {
+              "projected": true,
+              "type": "HTML",
+              "content": "任务处理结果：在apo_test区域内未查询到任何5G小区（该区域下无关联小区），因此机械下倾角为2°的5G小区数量为0个。"
+            },
+            "fmsg": "任务处理结果：在apo_test区域内未查询到任何5G小区（该区域下无关联小区），因此机械下倾角为2°的5G小区数量为0个。",
+            "display_content": "任务处理结果：在apo_test区域内未查询到任何5G小区（该区域下无关联小区），因此机械下倾角为2°的5G小区数量为0个。"
+          },
+          "status": "succeeded"
+        },
+        "capabilityId": "Workflow",
+        "capabilityInvocationId": "run-d395669d-ec3c-4638-9831-3d200fedc672:func_1788495450443_2750",
+        "arguments": {
+          "recipeName": "WATT_PLEX",
+          "inputText": "获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？",
+          "inputVariables": {}
+        },
+        "artifactCount": 0,
+        "safeResultSummary": "result fields=4",
+        "status": "SUCCEEDED"
+      },
+      "reference": "无预期输出",
+      "result": 10,
+      "input": {
+        "providerKind": "BUNDLED",
+        "toolCallId": "func_1788495450443_2750",
+        "capabilityId": "Workflow",
+        "timeoutMs": 600000,
+        "capabilityKind": "TOOL",
+        "arguments": {
+          "recipeName": "WATT_PLEX",
+          "inputText": "获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？",
+          "inputVariables": {}
+        },
+        "safeInputSummary": "WATT_PLEX 获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？"
+      },
+      "extendAnswer": [],
+      "remark": "只展示",
+      "type": "工具调用[Workflow]"
+    },
+    {
+      "output": {
+        "modelId": "netmo-deepseek-v4-flash",
+        "firstContentLatencyMs": 1602,
+        "modelE2ELatencyMs": 5258,
+        "stepId": "turn-3",
+        "content": "```json\n{\n  \"sub_questions\": [\n    {\n      \"sub_question\": \"获取apo_test区域内机械下倾角是2°的5G小区一共有多少个？\",\n      \"type\": \"基础数据查询\",\n      \"strategy_intent\": \"指标与运行数据查询\",\n      \"scene\": \"\"\n    }\n  ]\n}\n```\n任务处理结果：在apo_test区域内未查询到任何5G小区（该区域下无关联小区），因此机械下倾角为2°的5G小区数量为0个。",
+        "providerResponseId": "1788495493.9626698_6850",
+        "safeAssistantOutputSummary": "visible-text chars=254 toolCalls=0",
+        "toolCallCount": 0
+      },
+      "reference": "无预期输出",
+      "result": 10,
+      "input": "日志中未记录 大模型调用节点 的输入信息，原因：内容过长",
+      "extendAnswer": [],
+      "remark": "只展示",
+      "type": "模型调用"
+    }
+  ],
+  "session_summary": {
+    "会话ID": "session-b357b3d1-7cc8-42ce-a48d-e8418b63a0eb",
+    "路由策略": null,
+    "kq调用次数": 1,
+    "会话开始时间": "2026-09-04T04:17:19",
+    "会话结束时间": "2026-09-04T04:18:19",
+    "会话总耗时(秒)": 59.87,
+    "kq开始时间": "2026-09-04T04:17:26",
+    "kq结束时间": "2026-09-04T04:17:26",
+    "kq耗时(秒)": 0.029,
+    "Model总耗时(秒)": 21.98,
+    "Model调用次数": 3,
+    "能力调用总耗时(秒)": 73.18,
+    "能力调用次数": 22,
+    "Rag耗时(秒)": 0,
+    "Rag调用次数": 0,
+    "Rag索引总数": 0,
+    "Bash耗时(秒)": 0,
+    "Bash调用次数": 0,
+    "Read耗时(秒)": 0,
+    "Read调用次数": 0,
+    "Write耗时(秒)": 0,
+    "Write调用次数": 0,
+    "Python耗时(秒)": 0,
+    "Python调用次数": 0,
+    "其他耗时(秒)": 0,
+    "步骤详情(每步操作)": "Model(6.984s) → 调用 Skill\nSkill(wireless-search-net-fast-4-4)(0.029s)\nModel(9.699s) → 调用 Workflow\npreprocess(0.48s)\nparallel_search(0.008s)\nparallel_search_join(0.008s)\npostprocess(1.013s)\nbuild_nego_plan_messages(0.187s)\ncall_nego_plan_llm(10.969s)\nparse_nego_planner(0.099s)\ninit_tool_history(0.789s)\nbuild_exec_messages(0.103s)\ncall_exec_llm(5.949s)\nparse_exec_response(0.093s)\nroute_tool(0.017s)\ncall_param(0.146s)\nextract_tool_csv(0.092s)\nupdate_tool_history(0.094s)\nbuild_exec_messages(0.88s)\ncall_exec_llm(14.674s)\nparse_exec_response(0.512s)\ndisplay_exec_direct_answer(0.012s)\ndisplay_final_result(0.013s)\nWorkflow(WATT_PLEX)(37.016s)\nModel(5.301s) → 生成回答",
+    "阶段耗时明细": "Model(6.984s) → 调用 Skill\nSkill(wireless-search-net-fast-4-4)(0.029s)\nModel(9.699s) → 调用 Workflow\npreprocess(0.48s)\nparallel_search(0.008s)\nparallel_search_join(0.008s)\npostprocess(1.013s)\nbuild_nego_plan_messages(0.187s)\ncall_nego_plan_llm(10.969s)\nparse_nego_planner(0.099s)\ninit_tool_history(0.789s)\nbuild_exec_messages(0.103s)\ncall_exec_llm(5.949s)\nparse_exec_response(0.093s)\nroute_tool(0.017s)\ncall_param(0.146s)\nextract_tool_csv(0.092s)\nupdate_tool_history(0.094s)\nbuild_exec_messages(0.88s)\ncall_exec_llm(14.674s)\nparse_exec_response(0.512s)\ndisplay_exec_direct_answer(0.012s)\ndisplay_final_result(0.013s)\nWorkflow(WATT_PLEX)(37.016s)\nModel(5.301s) → 生成回答",
+    "查询问题(inputTextPreview)": null,
+    "难度等级": null,
+    "Rag索引明细": null,
+    "会话标题": null
+  },
+  "timing_reconciliation": {
+    "outer_serial_steps_seconds": 59.029,
+    "session_minus_outer_serial_steps_seconds": 0.841,
+    "note": "Workflow时长已经包含内部节点，不得把两层耗时再相加；差值不能直接命名为排队或网络耗时。"
+  },
+  "skill_comparison": {
+    "local_path": "/Users/zhangfan/project/aico_timedelay_report/aico_struct_code/aicoservice@27.68.169/agents/aico-agent-m/zh_CN/skills/wireless-search-net-fast-4-4/SKILL.md",
+    "local_file_sha256": "1660733e57d9a722fa34a7d7143a7c48077348b9afe8028c995241eaa7de567f",
+    "body_equal": false,
+    "diff": "--- local_package\n\n+++ sample_loaded_skill\n\n@@ -116,18 +116,10 @@\n\n ```bash\n clipc subscribe sseGenerateUI /smartcanvas/v1/sse/action/generate/ui \\\n-  --body '{\"userInput\":\"\",\"scenario\":\"LUI\",\"response\":{\"services\":[]},\"hofsPaths\":[]}' --timeout-ms 5000 --max-events 100\n-```\n-\n-字段说明：\n-\n-* `userInput`：文字描述的数据，包含用户的原始意图和查询结果描述；\n-* `scenario`：固定为 `\"LUI\"`；\n-* `response`：固定为 `{\"services\":[]}`；\n-* `hofsPaths`：文件路径数组，最多 3 个文件路径。\n-\n-`userInput` 与 `hofsPaths` 必须二选一，一个有值时另一个必须为空：\n-\n-* 当查询结果为文字可描述的数据时，填入 `userInput`，`hofsPaths` 留空；\n-* 当查询结果已生成为文件时，填入 `hofsPaths`，`userInput` 留空。\n+  --body '{\"response\":{\"data\": [\"data1\",\"data2\"]}}' \\\n+  --timeout-ms 5000 \\\n+  --max-events 1000\n+```\n+\n+把需要渲染的数据放到 `response.data` 字段内。\n \n ### 3.3 画图结果处理\n@@ -182,5 +174,6 @@\n\n * 不自行计算、补充或推导 Workflow 未返回的信息；\n * 不输出 Workflow 内部计划、工具调用过程或日志；\n-* 不再次查询或重新生成结果。\n+* 不再次查询或重新生成结果；\n+* 未查到数据时，整个回复仅允许为\"未查到信息\"这五个字，不得在其前后追加任何文字。\n \n ---\n@@ -224,5 +217,5 @@\n\n * 同样的错误已经重试过一次。\n \n-返回时简要说明 Workflow 提供的失败原因。\n+返回时整个回复仅允许为\"未查到信息\"这五个字，不得在其前后追加任何文字。\n \n 如果没有得到可靠业务结果，不得自行推测或编造答案。"
+  }
+}
