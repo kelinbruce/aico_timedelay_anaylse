@@ -112,6 +112,49 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual(summary["spec_acc_pct"], 50)
         self.assertIsNone(replay.summarize_benchmark([])["tpot_ms"])
 
+    def test_tools_reasoning_and_mixed_events_enter_overall_metrics(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+        variants = [
+            [{"tool_calls": [{"index": 0, "function": {"name": "查询", "arguments": ""}}]},
+             {"tool_calls": [{"index": 0, "function": {"arguments": "{}"}}]}],
+            [{"reasoning": "思考"}, {"reasoning_content": "继续"}],
+            [{"content": "正文", "reasoning": "推理", "tool_calls": [{"index": 0}]},
+             {"content": "结束"}],
+        ]
+        results = []
+        for deltas in variants:
+            with self.subTest(deltas=deltas):
+                events = [{"choices": [{"delta": {"role": "assistant"}}]}]
+                events += [{"choices": [{"delta": delta}]} for delta in deltas]
+                events += [{"choices": [{"delta": {}, "finish_reason": "tool_calls"}]},
+                           {"choices": [], "usage": {"prompt_tokens": 100, "completion_tokens": 10}}]
+                wire = "".join("data: " + json.dumps(e, ensure_ascii=False) + "\n\n" for e in events)
+                result = self.run_response(Response((wire + "data: [DONE]\n\n").encode()))
+                self.assertTrue(result["success"])
+                self.assertEqual(len(result["output_chunks"]), 2)
+                self.assertEqual(result["output_chunk_count"], 2)
+                self.assertEqual(result["ttft_ms"], result["output_chunks"][0]["latency_ms"])
+                self.assertEqual(result["finish_reason"], "tool_calls")
+                expected_tools = "".join(json.dumps(d["tool_calls"], ensure_ascii=False) for d in deltas if d.get("tool_calls"))
+                self.assertEqual(result["accumulated_tool_call"], expected_tools)
+                self.assertEqual(result["accumulated_reasoning"], "".join(d.get("reasoning", "") + d.get("reasoning_content", "") for d in deltas))
+                analyzer = replay.BenchmarkMetrics.__new__(replay.BenchmarkMetrics)
+                analyzer.args = SimpleNamespace(spec_step_num=3, concurrency=1)
+                analyzer.tokenizer = object()
+                meta = Mock(prefill_latency=.1, decode_raw_latency=[.02])
+                meta.get_decode_token_num_list.return_value = [2]
+                meta.get_acc_per_position.return_value = [1, 0, 0]
+                analyzer.metadata_type = Mock(return_value=meta)
+                result["benchmark_metrics"] = analyzer.analyze(result)
+                self.assertIsNotNone(result["benchmark_metrics"])
+                self.assertEqual(meta.put_prefill.call_args.args[0], result["output_chunks"][0]["content"])
+                self.assertEqual(meta.put_new_decode.call_args.args[0], result["output_chunks"][1]["content"])
+                results.append(result)
+        summary = replay.summarize_results(results, 1, 3)
+        for key in ("ttft_ms", "tpot_ms", "avg_spec_len", "per_position_acceptance_rate"):
+            self.assertEqual(summary["sample_counts"][key], 3)
+
     def test_benchmark_adapter_reuses_original_metadata_methods(self):
         from types import SimpleNamespace
         from unittest.mock import Mock

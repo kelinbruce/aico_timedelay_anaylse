@@ -29,7 +29,7 @@ class BenchmarkMetrics:
         self.args = args
 
     def analyze(self, result):
-        chunks = result["content_chunks"]
+        chunks = result.get("output_chunks", result.get("content_chunks", []))
         if not result["success"] or not chunks:
             return None
         meta = self.metadata_type(
@@ -47,6 +47,8 @@ class BenchmarkMetrics:
         decode_ms = sum(meta.decode_raw_latency) * 1000
         return {
             "source": "original_ReqMetadata",
+            "output_scope": "content+reasoning+reasoning_content+tool_calls+function_call",
+            "ttft_ms": meta.prefill_latency * 1000,
             "spec_step_num": self.args.spec_step_num,
             "content_ttft_ms": meta.prefill_latency * 1000,
             "decode_token_num_list": token_nums,
@@ -94,7 +96,8 @@ def summarize_results(results, wall_time_s, spec_step_num=0):
         "token_length_source": "server_usage", "sample_counts": {},
     })
     values = {
-        "ttft_ms": [r["content_chunks"][0]["latency_ms"] for r in successful if r.get("content_chunks")],
+        "ttft_ms": [chunks[0]["latency_ms"] for r in successful
+                    if (chunks := r.get("output_chunks", r.get("content_chunks", [])))],
         "avg_task_duration_ms": [r["total_duration_ms"] for r in successful],
         "avg_prefill_tokens": [(r.get("usage") or {}).get("prompt_tokens") for r in successful],
         "avg_output_tokens": [(r.get("usage") or {}).get("completion_tokens") for r in successful],
@@ -136,7 +139,8 @@ def print_summary(summary):
         print("  N/A")
     if summary["spec_acc_pct"] is not None:
         print(f"各位置平均接受率 SpecAcc: {summary['spec_acc_pct']:.2f}%")
-    print("口径: 首字/投机/TPOT 仅统计正文增量；token 长度取服务 usage。")
+    print("口径: 首字/投机/TPOT 包含正文、推理、工具调用；token 长度取服务 usage。")
+    print("投机指标按序列化增量分词估算，工具 JSON 包含结构字符，不等于引擎真实接受率。")
     print("N/A 表示未启用对应统计或没有有效样本，缺失值不按 0 计算。")
 
 
@@ -187,14 +191,6 @@ def sse_events(response):
         yield "\n".join(data)
 
 
-def has_output(event):
-    for choice in event.get("choices", []):
-        delta = choice.get("delta") or {}
-        if any(delta.get(key) for key in ("content", "reasoning_content", "reasoning", "tool_calls", "function_call")):
-            return True
-    return False
-
-
 def execute(task, url, timeout, api_key):
     record, body = task["record"], task["body"]
     result = {
@@ -214,6 +210,12 @@ def execute(task, url, timeout, api_key):
         "usage": None,
         "response_events": [],
         "content_chunks": [],
+        "output_chunks": [],
+        "accumulated_content": "",
+        "accumulated_reasoning": "",
+        "accumulated_tool_call": "",
+        "accumulated_function_call": "",
+        "finish_reason": None,
         "response_body": None,
         "extracted_answer": {},
         "error": None,
@@ -250,16 +252,36 @@ def execute(task, url, timeout, api_key):
                         raise ValueError(json.dumps(event["error"], ensure_ascii=False))
                     if event.get("usage") is not None:
                         result["usage"] = event["usage"]
-                    if has_output(event):
-                        output_times.append((time.perf_counter() - started) * 1000)
-                    # Match llm_benchmark: only choices[0].delta.content enters
-                    # its prefill/decode measurements, excluding reasoning/tools.
                     choices = event.get("choices") or []
-                    text = (choices[0].get("delta") or {}).get("content") if choices else None
-                    if text:
+                    first_choice = choices[0] if choices else {}
+                    delta = first_choice.get("delta") or {}
+                    if first_choice.get("finish_reason") is not None:
+                        result["finish_reason"] = first_choice["finish_reason"]
+                    parts = []
+                    for field, target in (
+                        ("content", "accumulated_content"),
+                        ("reasoning", "accumulated_reasoning"),
+                        ("reasoning_content", "accumulated_reasoning"),
+                        ("tool_calls", "accumulated_tool_call"),
+                        ("function_call", "accumulated_function_call"),
+                    ):
+                        value = delta.get(field)
+                        if value:
+                            text = json.dumps(value, ensure_ascii=False) if field in ("tool_calls", "function_call") else value
+                            result[target] += text
+                            parts.append(text)
+                    # One SSE event counts as one increment, even when it has
+                    # several output fields. Role/usage/finish-only events do not.
+                    if parts:
+                        output_times.append(arrived_ms)
+                        chunks = result["output_chunks"]
+                        previous_ms = chunks[-1]["arrival_ms"] if chunks else 0
+                        chunks.append({"content": "".join(parts), "arrival_ms": arrived_ms,
+                                       "latency_ms": arrived_ms - previous_ms})
+                    if delta.get("content"):
                         chunks = result["content_chunks"]
                         previous_ms = chunks[-1]["arrival_ms"] if chunks else 0
-                        chunks.append({"content": text, "arrival_ms": arrived_ms,
+                        chunks.append({"content": delta["content"], "arrival_ms": arrived_ms,
                                        "latency_ms": arrived_ms - previous_ms})
                     for choice in event.get("choices", []):
                         content = (choice.get("delta") or {}).get("content")
@@ -375,9 +397,10 @@ def main(argv=None):
             result_samples.append({key: result.get(key) for key in (
                 "success", "total_duration_ms", "usage", "benchmark_metrics", "benchmark_metrics_error")})
             # Retain timing only, not full response texts, for overall averages.
-            result_samples[-1]["content_chunks"] = [
-                {"latency_ms": result["content_chunks"][0]["latency_ms"]}
-            ] if result["content_chunks"] else []
+            chunks = result.get("output_chunks", result.get("content_chunks", []))
+            result_samples[-1]["output_chunks"] = [
+                {"latency_ms": chunks[0]["latency_ms"]}
+            ] if chunks else []
             writer.write(json.dumps(result, ensure_ascii=False) + "\n")
             writer.flush()
             state = "OK" if result["success"] else result["error"]
