@@ -1,0 +1,1 @@
+python -c "from pathlib import Path; import gzip,shutil; s=Path('.'); d=s/'all_operational_logs'; d.mkdir(exist_ok=True); [shutil.copy2(p,d/p.name) for p in s.glob('nextagent-operational*.jsonl')]; [(d/p.name[:-3]).write_bytes(gzip.decompress(p.read_bytes())) for p in s.glob('nextagent-operational*.jsonl.gz')]"
