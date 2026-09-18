@@ -66,7 +66,7 @@ python3 -m unittest discover -s aico_timedelay_test_report -p 'test_replay_vllm_
 
 ## 原 benchmark 的增量与投机统计
 
-每条结果的 `output_chunks` 记录 `choices[0].delta` 中的 content、reasoning、reasoning_content、tool_calls 和旧式 function_call。工具字段按 `json.dumps(value, ensure_ascii=False)` 转为文本，同一 SSE 事件的所有非空输出合并为一段。每段记录抵达时间 `arrival_ms` 和与上一有效段的间隔 `latency_ms`，第一段 latency 为 TTFT。角色、usage 和 finish_reason 单独出现时不计作输出段。`content_chunks` 继续保留纯正文用于排查，统计使用 `output_chunks`。
+每条结果的 `output_chunks` 记录 `choices[0].delta` 中的 content、reasoning、reasoning_content、tool_calls 和旧式 function_call。工具字段仅提取 function.name 和 function.arguments 的新增字符串，排除 index、id、type 和外层 JSON 包装。同一 SSE 事件的所有非空输出文本合并为一段。每段记录抵达时间 `arrival_ms` 和与上一有效段的间隔 `latency_ms`，第一段 latency 为 TTFT。角色、usage 和 finish_reason 单独出现时不计作输出段。`content_chunks` 继续保留纯正文用于排查，统计使用 `output_chunks`。
 
 `accumulated_content`、`accumulated_reasoning`、`accumulated_tool_call`、`accumulated_function_call` 分别保存第一 choice 的累计输出，`finish_reason` 保存其最后一个非 null 结束原因。累计工具文本为各段 JSON 串直接拼接，不是合并后的完整工具调用对象；原始事件保存在 `response_events`。
 
@@ -106,7 +106,7 @@ python3 replay_vllm_requests.py \
 - 例如 decode 增量长度为 `[4, 2, 1]`、K=3，则 AvgSpecLen=2.333，逐位置接受率为 `[66.67%, 33.33%, 33.33%]`，SpecAcc=44.44%。
 - 当 K=0 时，原实现直接把每段 decode 增量计作 1 token，不执行分词计数；重放脚本保留此口径。
 
-结束后终端输出总体指标，并写入 `results_spec3.jsonl.summary.json`。TTFT、AvgSpecLen、各位置接受率采用逐请求均值，TPOT 按 decode token 数加权，与原分析器总体聚合方式一致。失败或没有任何有效输出增量的请求不纳入统计；汇总中的 `analyzed_requests` 为实际纳入数。工具调用 JSON 的结构字符也进入增量分词，因此 TPOT、投机步长和接受率是序列化输出上的估算，并非引擎真实计数，不宜与此前纯正文版本直接比较。`benchmark_metrics.content_ttft_ms` 为兼容旧字段保留，现在与新增的 `benchmark_metrics.ttft_ms` 一样表示首个有效输出延迟。
+结束后终端输出总体指标，并写入 `results_spec3.jsonl.summary.json`。TTFT、AvgSpecLen、各位置接受率采用逐请求均值，TPOT 按 decode token 数加权，与原分析器总体聚合方式一致。失败或没有任何有效输出增量的请求不纳入统计；汇总中的 `analyzed_requests` 为实际纳入数。TPOT、投机步长和接受率按提取出的文本增量估算，不是引擎真实计数。参数字符串自身的 JSON 字符属于模型输出，会保留；协议外层包装不会参与分词。`benchmark_metrics.content_ttft_ms` 为兼容旧字段保留，现在与新增的 `benchmark_metrics.ttft_ms` 一样表示首个可分词文本增量延迟；顶层及总体 ttft_ms 记录首个有效事件，包含仅有工具元数据的事件。
 
 当前测试已执行真实 `ReqMetadata` 算法，使用可控 tokenizer 验证逐位置接受率、平均步长、TPOT、K=0 和仅 prefill 的边界情况。本地未安装 transformers，测试仅替换其导入和 tokenizer，不替换原统计算法；尚未验证真实模型 tokenizer 和容器端数值。
 
@@ -127,3 +127,5 @@ python3 replay_vllm_requests.py \
 输入数据已经有 `stream_options.include_usage=true`。如果服务仍未返回 usage，token 长度显示 N/A，不使用可能遗漏 tools、chat template 或推理输出的本地估算替代。纯工具调用和纯推理请求也参与 TTFT、TPOT 和投机统计；只有首段而没有后续有效增量时，参与 TTFT，但 TPOT 和投机指标没有样本。开启全部指标请使用上方含 `--benchmark-metrics --tokenizer-path ... --spec-step-num ...` 的命令。
 
 汇总还保存成功数、失败数、整批实际耗时 `wall_time_s`、统计错误数和各指标 `sample_counts`。整批耗时包含客户端写入、分析等开销；请求延迟在客户端 tokenizer 分析前已经结束计时。
+
+投机有效性检查：若一条请求任意 decode 增量分词长度超过 K+1，该请求的 avg_spec_len、spec_acc_pct 为 null，逐位置接受率为空，不纳入投机汇总；不截断 token 数。仍保留 decode_token_num_list、avg_increment_tokens、估算 TPOT 和其他耗时。汇总显示 spec_invalid_requests 与 oversized_decode_chunks，便于识别流式分段不满足单轮假设的请求。过滤后的投机平均值仅代表剩余样本，即使没有超限，也不能证明 SSE 事件对应引擎的一轮投机。

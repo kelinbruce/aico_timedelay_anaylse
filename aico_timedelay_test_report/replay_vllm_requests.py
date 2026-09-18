@@ -17,6 +17,20 @@ from pathlib import Path
 DEFAULT_INPUT = Path(__file__).parent / "dsv_modify_0814/dsv4_3_aico.jsonl"
 
 
+def delta_text(delta):
+    """Extract generated text, never JSON-serialize protocol wrappers."""
+    parts = [delta[key] for key in ("content", "reasoning", "reasoning_content")
+             if isinstance(delta.get(key), str) and delta[key]]
+    functions = [call.get("function") or {} for call in delta.get("tool_calls") or []]
+    if delta.get("function_call"):
+        functions.append(delta["function_call"])
+    for function in functions:
+        for key in ("name", "arguments"):
+            if isinstance(function.get(key), str) and function[key]:
+                parts.append(function[key])
+    return "".join(parts)
+
+
 class BenchmarkMetrics:
     """Reuse the original benchmark's tokenization and acceptance definitions."""
 
@@ -43,10 +57,15 @@ class BenchmarkMetrics:
             meta.put_new_decode(chunk["content"], chunk["latency_ms"] / 1000)
         token_nums = list(meta.get_decode_token_num_list(self.tokenizer))
         token_sum = sum(token_nums)
-        positions = list(meta.get_acc_per_position(self.tokenizer)) if self.args.spec_step_num > 0 and token_nums else []
+        oversized = sum(n > self.args.spec_step_num + 1 for n in token_nums) if self.args.spec_step_num > 0 else 0
+        spec_valid = self.args.spec_step_num > 0 and bool(token_nums) and not oversized
+        positions = list(meta.get_acc_per_position(self.tokenizer)) if spec_valid else []
         decode_ms = sum(meta.decode_raw_latency) * 1000
         return {
             "source": "original_ReqMetadata",
+            "estimation_method": "text_fragments_without_protocol_wrapper",
+            "oversized_decode_chunks": oversized,
+            "spec_metrics_warning": "增量长度超过 K+1，不能视为单轮投机；本请求投机指标不纳入汇总" if oversized else None,
             "output_scope": "content+reasoning+reasoning_content+tool_calls+function_call",
             "ttft_ms": meta.prefill_latency * 1000,
             "spec_step_num": self.args.spec_step_num,
@@ -55,7 +74,8 @@ class BenchmarkMetrics:
             "decode_token_count": token_sum,
             "decode_latency_ms": decode_ms,
             "tpot_ms": decode_ms / token_sum if token_sum else None,
-            "avg_spec_len": token_sum / len(token_nums) if self.args.spec_step_num > 0 and token_nums else None,
+            "avg_spec_len": token_sum / len(token_nums) if spec_valid else None,
+            "avg_increment_tokens": token_sum / len(token_nums) if token_nums else None,
             "per_position_acceptance_rate": positions,
             "spec_acc_pct": 100 * sum(positions) / len(positions) if positions else None,
         }
@@ -73,6 +93,8 @@ def summarize_benchmark(metrics):
     latency = sum(m["decode_latency_ms"] for m in valid if m["decode_token_count"] > 0)
     return {
         "analyzed_requests": len(valid),
+        "spec_invalid_requests": sum(bool(m.get("oversized_decode_chunks")) for m in valid),
+        "oversized_decode_chunks": sum(m.get("oversized_decode_chunks", 0) for m in valid),
         "ttft_ms": sum(ttfts) / len(ttfts) if ttfts else None,
         "tpot_ms": latency / count if count else None,
         "avg_spec_len": sum(lens) / len(lens) if lens else None,
@@ -96,8 +118,9 @@ def summarize_results(results, wall_time_s, spec_step_num=0):
         "token_length_source": "server_usage", "sample_counts": {},
     })
     values = {
-        "ttft_ms": [chunks[0]["latency_ms"] for r in successful
-                    if (chunks := r.get("output_chunks", r.get("content_chunks", [])))],
+        "ttft_ms": [r.get("ttft_ms", chunks[0]["latency_ms"] if chunks else None)
+                    for r in successful
+                    for chunks in [r.get("output_chunks", r.get("content_chunks", []))]],
         "avg_task_duration_ms": [r["total_duration_ms"] for r in successful],
         "avg_prefill_tokens": [(r.get("usage") or {}).get("prompt_tokens") for r in successful],
         "avg_output_tokens": [(r.get("usage") or {}).get("completion_tokens") for r in successful],
@@ -120,8 +143,8 @@ def print_summary(summary):
     print(f"整批执行耗时: {summary['wall_time_s']:.2f} s")
     rows = [
         ("平均首字耗时 TTFT", "ttft_ms", "ms"),
-        ("增量耗时 TPOT（token 加权）", "tpot_ms", "ms/token"),
-        ("平均投机步长 AvgSpecLen", "avg_spec_len", "token/段"),
+        ("增量耗时 TPOT（文本估算，token 加权）", "tpot_ms", "ms/token"),
+        ("平均投机步长 AvgSpecLen（估算）", "avg_spec_len", "token/段"),
         ("单次任务平均总耗时", "avg_task_duration_ms", "ms"),
         ("平均 prefill 长度", "avg_prefill_tokens", "token"),
         ("平均输出 token 长度", "avg_output_tokens", "token"),
@@ -131,7 +154,7 @@ def print_summary(summary):
         rendered = f"{value:.3f} {unit}" if value is not None else "N/A"
         print(f"{label}: {rendered}（有效请求 {summary['sample_counts'][key]}）")
     positions = summary["per_position_acceptance_rate"]
-    print(f"每一步平均接受率（有效请求 {summary['sample_counts']['per_position_acceptance_rate']}）:")
+    print(f"每一步平均接受率（估算，有效请求 {summary['sample_counts']['per_position_acceptance_rate']}）:")
     if positions:
         for index, rate in enumerate(positions, 1):
             print(f"  第 {index} 个投机位置: {rate * 100:.2f}%")
@@ -140,7 +163,9 @@ def print_summary(summary):
     if summary["spec_acc_pct"] is not None:
         print(f"各位置平均接受率 SpecAcc: {summary['spec_acc_pct']:.2f}%")
     print("口径: 首字/投机/TPOT 包含正文、推理、工具调用；token 长度取服务 usage。")
-    print("投机指标按序列化增量分词估算，工具 JSON 包含结构字符，不等于引擎真实接受率。")
+    print("投机指标按实际文本增量分词估算，排除工具协议包装，不等于引擎真实接受率。")
+    if summary["spec_invalid_requests"]:
+        print(f"投机统计排除 {summary['spec_invalid_requests']} 条请求：共 {summary['oversized_decode_chunks']} 段超过 K+1；未截断或伪造接受率。")
     print("N/A 表示未启用对应统计或没有有效样本，缺失值不按 0 计算。")
 
 
@@ -257,7 +282,6 @@ def execute(task, url, timeout, api_key):
                     delta = first_choice.get("delta") or {}
                     if first_choice.get("finish_reason") is not None:
                         result["finish_reason"] = first_choice["finish_reason"]
-                    parts = []
                     for field, target in (
                         ("content", "accumulated_content"),
                         ("reasoning", "accumulated_reasoning"),
@@ -269,14 +293,15 @@ def execute(task, url, timeout, api_key):
                         if value:
                             text = json.dumps(value, ensure_ascii=False) if field in ("tool_calls", "function_call") else value
                             result[target] += text
-                            parts.append(text)
+                    text = delta_text(delta)
                     # One SSE event counts as one increment, even when it has
                     # several output fields. Role/usage/finish-only events do not.
-                    if parts:
+                    if any(delta.get(key) for key in ("content", "reasoning", "reasoning_content", "tool_calls", "function_call")):
                         output_times.append(arrived_ms)
+                    if text:
                         chunks = result["output_chunks"]
                         previous_ms = chunks[-1]["arrival_ms"] if chunks else 0
-                        chunks.append({"content": "".join(parts), "arrival_ms": arrived_ms,
+                        chunks.append({"content": text, "arrival_ms": arrived_ms,
                                        "latency_ms": arrived_ms - previous_ms})
                     if delta.get("content"):
                         chunks = result["content_chunks"]
@@ -395,7 +420,7 @@ def main(argv=None):
                     result["benchmark_metrics_error"] = f"{type(exc).__name__}: {exc}"
                     print(f"统计失败 line={result['source_line']}: {exc}", file=sys.stderr)
             result_samples.append({key: result.get(key) for key in (
-                "success", "total_duration_ms", "usage", "benchmark_metrics", "benchmark_metrics_error")})
+                "success", "ttft_ms", "total_duration_ms", "usage", "benchmark_metrics", "benchmark_metrics_error")})
             # Retain timing only, not full response texts, for overall averages.
             chunks = result.get("output_chunks", result.get("content_chunks", []))
             result_samples[-1]["output_chunks"] = [

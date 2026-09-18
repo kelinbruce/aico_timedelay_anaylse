@@ -20,6 +20,13 @@ class Response(io.BytesIO):
 
 
 class ReplayTests(unittest.TestCase):
+    def test_tool_text_excludes_protocol_fields(self):
+        delta = {"tool_calls": [{"index": 0, "id": "call_123", "type": "function",
+                                "function": {"arguments": "深圳"}}]}
+        self.assertEqual(replay.delta_text(delta), "深圳")
+        self.assertEqual(replay.delta_text({"tool_calls": [{"index": 0, "id": "x"}]}), "")
+        self.assertEqual(replay.delta_text({"function_call": {"name": "query", "arguments": "{}"}}), "query{}")
+        self.assertEqual(replay.delta_text({"content": "A", "reasoning": "B", "reasoning_content": "C", **delta}), "ABC深圳")
     def test_overall_averages_exclude_failures_and_missing_usage(self):
         samples = [
             {"success": True, "total_duration_ms": 100, "content_chunks": [{"latency_ms": 10}],
@@ -179,6 +186,14 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual(metrics["decode_token_num_list"], [3, 1])
         self.assertEqual(metrics["avg_spec_len"], 2)
         self.assertEqual(metrics["tpot_ms"], 12.5)
+        meta.get_decode_token_num_list.return_value = [12, 1]
+        metrics = analyzer.analyze(result)
+        self.assertEqual(metrics["oversized_decode_chunks"], 1)
+        self.assertIsNone(metrics["avg_spec_len"])
+        self.assertEqual(metrics["per_position_acceptance_rate"], [])
+        self.assertEqual(metrics["avg_increment_tokens"], 6.5)
+        summary = replay.summarize_benchmark([metrics])
+        self.assertEqual(summary["spec_invalid_requests"], 1)
 
     def test_real_metadata_acceptance_formula(self):
         # Only stub the unavailable transformers import and tokenizer; execute
