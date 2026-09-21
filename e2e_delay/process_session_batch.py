@@ -7,6 +7,7 @@ import csv
 import gzip
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import tarfile
@@ -19,9 +20,81 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
-from split_step_durations import (
-    CATEGORY_ORDER, HEADER_TEMPLATES, REFERENCE_MINIMUMS, parse_step_details,
+# 内置历史拆分规则，入口脚本可独立复制，无需仓库辅助模块。
+CATEGORY_ORDER = ("skill", "workflow", "nego", "exec", "answer")
+
+# 至少生成与 Z 列示例相同数量的列；若实际数据出现更多次数，会自动扩展。
+REFERENCE_MINIMUMS = {
+    "skill": 5,
+    "workflow": 5,
+    "nego": 5,
+    "exec": 14,
+    "answer": 5,
+}
+
+HEADER_TEMPLATES = {
+    "skill": "调用Skill_{n}耗时(s)",
+    "workflow": "调用Workflow_{n}耗时(s)",
+    "nego": "call_nego_plan_llm_{n}耗时(s)",
+    "exec": "call_exec_llm_{n}耗时(s)",
+    "answer": "生成回答_{n}耗时(s)",
+}
+
+MODEL_LINE_RE = re.compile(
+    r"^\s*Model\(\s*(?P<value>[-+]?\d+(?:\.\d+)?)\s*"
+    r"(?P<unit>ms|s)\s*\)\s*(?:→|->|=>)\s*(?P<action>.+?)\s*$",
+    re.IGNORECASE,
 )
+
+DIRECT_LINE_RE = re.compile(
+    r"^\s*(?P<name>call_nego_plan_llm|call_exec_llm)"
+    r"\(\s*(?P<value>[-+]?\d+(?:\.\d+)?)\s*"
+    r"(?P<unit>ms|s)\s*\)\s*$",
+    re.IGNORECASE,
+)
+
+def duration_in_seconds(value: str, unit: str) -> float:
+    seconds = float(value)
+    if unit.lower() == "ms":
+        seconds /= 1000.0
+    return seconds
+
+
+def parse_step_details(value: object) -> dict[str, list[float]]:
+    """提取一个单元格中的目标耗时，保留每类步骤在文本里的出现顺序。"""
+    result: dict[str, list[float]] = {name: [] for name in CATEGORY_ORDER}
+    if not isinstance(value, str) or not value.strip():
+        return result
+
+    for raw_line in value.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        model_match = MODEL_LINE_RE.match(line)
+        if model_match:
+            action = model_match.group("action").strip()
+            duration = duration_in_seconds(
+                model_match.group("value"), model_match.group("unit")
+            )
+            if action.startswith("调用") and "skill" in action.lower():
+                result["skill"].append(duration)
+            elif action.startswith("调用") and "workflow" in action.lower():
+                result["workflow"].append(duration)
+            elif "生成回答" in action:
+                result["answer"].append(duration)
+            continue
+
+        direct_match = DIRECT_LINE_RE.match(line)
+        if direct_match:
+            category = "nego" if direct_match.group("name").lower() == "call_nego_plan_llm" else "exec"
+            result[category].append(
+                duration_in_seconds(
+                    direct_match.group("value"), direct_match.group("unit")
+                )
+            )
+
+    return result
 
 
 def text(value):

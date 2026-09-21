@@ -2,6 +2,9 @@
 
 入口：`process_session_batch.py`。需要 Python 3.10+ 和 `openpyxl`：
 
+可单独复制入口脚本和 `analyze_65_kq_v3.py` 到其他电脑，无需 `split_step_durations.py`。
+单独复制时请使用 `--analyzer` 指定分析脚本。`--questions` 和 `--output-dir` 为必填参数。
+
 ```bash
 python -m pip install openpyxl
 ```
@@ -16,6 +19,13 @@ python e2e_delay/process_session_batch.py \
 ```
 
 CSV 同样支持：将 `--questions` 指向 `查数150.csv`。题数不限定150。
+
+Windows PowerShell 示例（问数文件名请换成实际名称，结果目录须尚不存在）：
+
+```powershell
+python .\process_session_batch.py --archive ".\logs0920_76_老recipe_新模型.zip" --analyzer ".\analyze_65_kq_v3.py" --scenario wireless --questions ".\问数150.xlsx" --output-dir ".\处理结果"
+```
+
 Excel首行为表头，默认第一张工作表，可加 `--sheet 'Sheet1'`。
 默认自动识别 `额外答案-sessionId`、`sessionId`、`session_id`、`Session ID`、`SessionID`、`会话ID`。
 若有多个候选列或不同列名，用 `--session-column '实际列名'` 指定。

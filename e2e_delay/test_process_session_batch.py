@@ -1,6 +1,9 @@
 """运行: python -m unittest discover -s e2e_delay -p test_process_session_batch.py"""
 import gzip
 import io
+import shutil
+import subprocess
+import sys
 import tarfile
 import tempfile
 import unittest
@@ -18,6 +21,20 @@ class BatchTests(unittest.TestCase):
 
     def tearDown(self):
         self.tmp.cleanup()
+
+    def test_standalone_script_without_repository_modules(self):
+        script = self.root/'process_session_batch.py'
+        shutil.copyfile(Path(__file__).with_name(script.name), script)
+        # -I排除PYTHONPATH、当前目录，验证不再依赖仓库辅助模块。
+        result = subprocess.run([sys.executable, '-I', str(script), '--help'],
+                                cwd=self.root, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('--questions', result.stdout)
+        result = subprocess.run([sys.executable, '-I', str(script), '--archive', 'logs.zip'],
+                                cwd=self.root, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('--questions', result.stderr)
+        self.assertIn('--output-dir', result.stderr)
 
     def test_nested_archives_rotated_gzip_and_dedup(self):
         line = b'{"sessionId":"s1"}\n'
