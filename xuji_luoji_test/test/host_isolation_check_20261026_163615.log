@@ -1,0 +1,302 @@
+1A07-25-11:~/144vcpu # ll
+total 56
+-rw-r----- 1 root root 11416 Oct 26 16:36 check_host_isolation.sh
+-rw-r----- 1 root root 15496 Oct 26 16:36 host_isolation_check_20261026_163615.log
+-rw-r----- 1 root root 25826 Oct 23 11:02 instance-00000b34.144vcpu.xml
+1A07-25-11:~/144vcpu # 
+1A07-25-11:~/144vcpu # 
+1A07-25-11:~/144vcpu # cat host_isolation_check_20261026_163615.log 
+
+########################################################################
+ 1. 宿主机基本信息与系统内核启动参数
+########################################################################
+--- [1.1] 内核版本与系统信息 ---
+Linux 1A07-25-11 5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64 #1 SMP Tue Sep 24 13:37:13 UTC 2024 aarch64 aarch64 aarch64 GNU/Linux
+
+--- [1.2] 内核启动命令行 (/proc/cmdline) ---
+BOOT_IMAGE=/vmlinuz-5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64 root=/dev/cpsVG/rootfs vga=0x317 nohz=off crashkernel=512M crashkernel_auto_mem=1 crash_kexec_post_notifiers reserve_kbox_mem=16M oops=panic net.ifnames=0 selinux=0 pci=realloc highres=on panic=3 audit=0 smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 hpet=enable default_hugepagesz=1G hugepagesz=2M hugepages=0 hugepagesz=1G fsck.mode=auto fsck.repair=preen ext4.speed=0 hugetlb_hwpoison_full console=ttyAMA0,115200 hugetlb_free_vmemmap=on nokaslr=0-4G hkids_enable hugepage_prohibit_sz=34947M
+
+--- [1.2.1] 隔离核参数提取检查 (isolcpus / nohz_full / rcu_nocbs) ---
+未在 /proc/cmdline 中匹配到低时延隔离参数！
+
+########################################################################
+ 2. CPU 架构与 NUMA 拓扑概览
+########################################################################
+Architecture:                         aarch64
+CPU(s):                               192
+Model name:                           Kunpeng-920
+BIOS Model name:                      HUAWEI Kunpeng 920 5250
+Thread(s) per core:                   1
+Core(s) per socket:                   48
+Socket(s):                            4
+NUMA node(s):                         4
+NUMA node0 CPU(s):                    0-47
+NUMA node1 CPU(s):                    48-95
+NUMA node2 CPU(s):                    96-143
+NUMA node3 CPU(s):                    144-191
+
+########################################################################
+ 3. 目标虚机 (instance-00000b34) QEMU 进程与线程绑核状态
+########################################################################
+找到 QEMU 主进程 PID: 3227058
+
+--- [3.1] QEMU 进程 cgroup CPU 配额限制 (检查是否存在 CFS 限流) ---
+cgroup 路径: /machine.slice/machine-qemu\x2d11\x2dinstance\x2d00000b34.scope/emulator
+cpu.cfs_quota_us  = -1
+cpu.cfs_period_us = 100000
+cpu.shares        = 1024
+cpu.stat (throttled stats): nr_periods 0
+nr_throttled 0
+throttled_time 0
+nr_bursts 0
+burst_time 0
+
+--- [3.2] QEMU 主线程 (Emulator) 亲和性 ---
+主进程 taskset 亲和度:
+pid 3227058's current affinity list: 0-3,48-51,96-99,144-147
+
+--- [3.3] QEMU 关键子线程 (vCPU / iothread / worker) 绑核采样 ---
+正在列出前 20 个线程及最后 20 个线程的亲和度 (格式: TID 线程名 当前运行CPU 允许运行CPU掩码):
+TID      COMM                 PSR      AFFINITY                 
+QEMU 内部总线程数: 154
+3227058  qemu-kvm             51       0-3,48-51,96-99,144-147  
+3227061  qemu-kvm             50       0-3,48-51,96-99,144-147  
+3227313  IO mon_iothread      -1       0-3,48-51,96-99,144-147  
+3227318  CPU 0/KVM            -1       12                       
+3227319  CPU 1/KVM            -1       13                       
+3227320  CPU 2/KVM            -1       14                       
+3227321  CPU 3/KVM            -1       15                       
+3227322  CPU 4/KVM            -1       16                       
+3227323  CPU 5/KVM            -1       17                       
+3227324  CPU 6/KVM            -1       18                       
+3227325  CPU 7/KVM            -1       19                       
+3227326  CPU 8/KVM            -1       20                       
+3227327  CPU 9/KVM            -1       21                       
+3227328  CPU 10/KVM           -1       22                       
+3227330  CPU 11/KVM           -1       23                       
+...
+3227466  CPU 136/KVM          -1       184                      
+3227467  CPU 137/KVM          -1       185                      
+3227468  CPU 138/KVM          -1       186                      
+3227469  CPU 139/KVM          -1       187                      
+3227470  CPU 140/KVM          -1       188                      
+3227471  CPU 141/KVM          -1       189                      
+3227472  CPU 142/KVM          -1       190                      
+3227473  CPU 143/KVM          -1       191                      
+3227477  memory_lock          50       0-3,48-51,96-99,144-147  
+3268055  vnc_worker           1        0-3,48-51,96-99,144-147  
+3296223  worker               99       0-3,48-51,96-99,144-147  
+3297992  worker               98       0-3,48-51,96-99,144-147  
+3302720  worker               96       0-3,48-51,96-99,144-147  
+3302721  worker               97       0-3,48-51,96-99,144-147  
+3302722  worker               96       0-3,48-51,96-99,144-147  
+
+--- [3.4] 是否使用 virsh 查询绑核 (若 virsh 可用) ---
+virsh emulatorpin 输出:
+emulator: CPU Affinity
+----------------------------------
+       *: 0-3,48-51,96-99,144-147
+
+virsh vcpuinfo 概览 (前 6 个 vCPU):
+VCPU:           0
+CPU:            12
+State:          running
+CPU time:       31067.3s
+CPU Affinity:   ------------y-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+VCPU:           1
+CPU:            13
+State:          running
+CPU time:       19038.3s
+CPU Affinity:   -------------y----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+VCPU:           2
+CPU:            14
+State:          running
+CPU time:       13817.6s
+CPU Affinity:   --------------y---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+VCPU:           3
+CPU:            15
+State:          running
+CPU time:       11743.4s
+CPU Affinity:   ---------------y--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+VCPU:           4
+CPU:            16
+State:          running
+CPU time:       10996.5s
+CPU Affinity:   ----------------y-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+VCPU:           5
+CPU:            17
+State:          running
+CPU time:       10718.0s
+CPU Affinity:   -----------------y------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+virsh vcpuinfo 查询失败
+
+########################################################################
+ 4. 辅助网络线程 (vhost) 绑核排查
+########################################################################
+--- [4.1] 宿主机上的 vhost 内核线程列表与亲和性 ---
+PID      COMM                 PSR      AFFINITY                 
+3227311  vhost-3227058        51       0-3,48-51,96-99,144-147  
+3227312  vhost-3227058        51       0-3,48-51,96-99,144-147  
+
+########################################################################
+ 5. 目标隔离核 (12-47, 60-95, 108-143, 156-191) 干扰排查
+########################################################################
+--- [5.1] 检查是否有除目标 QEMU 以外的常规进程正在使用/绑定这些核 ---
+正在对部分代表性核 [ 12 13 14 15 60 61 62 63 108 109 110 111 156 157 158 159 ] 进行正在运行进程的瞬时检查:
+CPU    PID      TID      COMMAND                  
+12     72       72       cpuhp/12                 
+12     73       73       migration/12             
+12     74       74       ksoftirqd/12             
+12     76       76       kworker/12:0H-events_highpri
+12     1427     1427     kworker/u390:0           
+13     77       77       cpuhp/13                 
+13     78       78       migration/13             
+13     79       79       ksoftirqd/13             
+13     81       81       kworker/13:0H-events_highpri
+13     2080     2080     irq/282-hisi_sa          
+14     82       82       cpuhp/14                 
+14     83       83       migration/14             
+14     84       84       ksoftirqd/14             
+14     86       86       kworker/14:0H-events_highpri
+14     2687     2687     kworker/14:1H-kblockd    
+15     87       87       cpuhp/15                 
+15     88       88       migration/15             
+15     89       89       ksoftirqd/15             
+15     91       91       kworker/15:0H-kblockd    
+15     2102     2102     irq/322-hisi_sa          
+60     313      313      cpuhp/60                 
+60     314      314      migration/60             
+60     315      315      ksoftirqd/60             
+60     317      317      kworker/60:0H-kblockd    
+60     2513     2513     irq/1154-hisi_s          
+61     318      318      cpuhp/61                 
+61     319      319      migration/61             
+61     320      320      ksoftirqd/61             
+61     322      322      kworker/61:0H-events_highpri
+61     2068     2068     irq/270-hisi_sa          
+62     323      323      cpuhp/62                 
+62     324      324      migration/62             
+62     325      325      ksoftirqd/62             
+62     327      327      kworker/62:0H-kblockd    
+62     2559     2559     irq/1218-hisi_s          
+63     328      328      cpuhp/63                 
+63     329      329      migration/63             
+63     330      330      ksoftirqd/63             
+63     332      332      kworker/63:0H-events_highpri
+63     2090     2090     irq/310-hisi_sa          
+108    554      554      cpuhp/108                
+108    555      555      migration/108            
+108    556      556      ksoftirqd/108            
+108    557      557      kworker/108:0-mm_percpu_wq
+108    558      558      kworker/108:0H-events_highpri
+109    559      559      cpuhp/109                
+109    560      560      migration/109            
+109    561      561      ksoftirqd/109            
+109    562      562      kworker/109:0-mm_percpu_wq
+109    563      563      kworker/109:0H-events_highpri
+110    564      564      cpuhp/110                
+110    565      565      migration/110            
+110    566      566      ksoftirqd/110            
+110    567      567      kworker/110:0-mm_percpu_wq
+110    568      568      kworker/110:0H-events_highpri
+111    569      569      cpuhp/111                
+111    570      570      migration/111            
+111    571      571      ksoftirqd/111            
+111    572      572      kworker/111:0-mm_percpu_wq
+111    573      573      kworker/111:0H-events_highpri
+156    795      795      cpuhp/156                
+156    796      796      migration/156            
+156    797      797      ksoftirqd/156            
+156    799      799      kworker/156:0H-events_highpri
+156    2567     2567     irq/1226-hisi_s          
+157    800      800      cpuhp/157                
+157    801      801      migration/157            
+157    802      802      ksoftirqd/157            
+157    804      804      kworker/157:0H-kblockd   
+157    2031     2031     scsi_tmf_3               
+158    805      805      cpuhp/158                
+158    806      806      migration/158            
+158    807      807      ksoftirqd/158            
+158    809      809      kworker/158:0H-kblockd   
+158    2471     2471     nvme-wq                  
+159    810      810      cpuhp/159                
+159    811      811      migration/159            
+159    812      812      ksoftirqd/159            
+159    814      814      kworker/159:0H-events_highpri
+159    2098     2098     irq/318-hisi_sa          
+(如果上面没有输出非 qemu 的普通进程，说明常规进程未入侵该核)
+
+########################################################################
+ 6. 中断干扰与 irqbalance 服务排查
+########################################################################
+--- [6.1] irqbalance 服务运行状态与配置 ---
+active
+irqbalance 状态: active (正在运行)
+
+检查 irqbalance 配置文件中的禁止核配置 (IRQBALANCE_BANNED_CPUS):
+[/etc/sysconfig/irqbalance]:
+IRQBALANCE_ARGS="--hintpolicy=subset"
+
+--- [6.2] 隔离核上的硬中断与局部定时器中断 (LOC) 计数采样 ---
+检查核 0 (管家核) vs 核 12, 13 (vCPU 隔离核) 的定时器中断 (LOC / Timer) 累计频次:
+中断类型: ptimer
+中断类型: vtimer
+中断类型: arch_timer
+查看 /proc/interrupts 头部核分布以及目标核的中断发生情况 (管家核 vs 隔离核):
+ptimer             | CPU0: 0          | CPU12: 0          | CPU13: 0          | CPU60: 0         
+vtimer             | CPU0: 0          | CPU12: 119574931  | CPU13: 114863368  | CPU60: 122061576 
+arch_timer         | CPU0: 494923769  | CPU12: 1575378736 | CPU13: 1357591646 | CPU60: 2143796329
+interrupts         | CPU0: 442447486  | CPU12: 1136303069 | CPU13: 1054388602 | CPU60: 157500503 
+interrupts         | CPU0: 113152562  | CPU12: 249104847  | CPU13: 206307582  | CPU60: 132912850 
+interrupts         | CPU0: 0          | CPU12: 0          | CPU13: 0          | CPU60: 0         
+interrupts         | CPU0: 0          | CPU12: 0          | CPU13: 0          | CPU60: 0         
+interrupts         | CPU0: 0          | CPU12: 0          | CPU13: 0          | CPU60: 0         
+interrupts         | CPU0: 4288       | CPU12: 0          | CPU13: 0          | CPU60: 0         
+interrupts         | CPU0: 0          | CPU12: 0          | CPU13: 0          | CPU60: 0         
+interrupts         | CPU0: 0          | CPU12: 0          | CPU13: 0          | CPU60: 0         
+interrupts         | CPU0: 0          | CPU12: 0          | CPU13: 0          | CPU60: 0         
+interrupts         | CPU0: 0          | CPU12: 0          | CPU13: 0          | CPU60: 0         
+
+########################################################################
+ 7. CPU 调频策略 (Governor) 与空闲状态 (C-State / Idle) 检查
+########################################################################
+--- [7.1] CPU 调频策略 (scaling_governor) 分布 ---
+    192 performance
+
+--- [7.2] CPU 实时主频抽样 ---
+CPU0 频率:  2600000 kHz
+CPU12 频率: 2600000 kHz
+CPU60 频率: 2600000 kHz
+
+--- [7.3] CPU 空闲低功耗模式 (C-States / cpuidle) 检查 ---
+未检测到 cpuidle 状态接口
+
+########################################################################
+ 8. 内存透明大页 (THP) 与内存状态
+########################################################################
+--- [8.1] Transparent Hugepage (THP) 状态 ---
+[always] madvise never
+always defer defer+madvise madvise [never]
+
+--- [8.2] 宿主机 Hugepages 配置 ---
+AnonHugePages:  503834624 kB
+ShmemHugePages:    12288 kB
+FileHugePages:         0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:    1048576 kB
+Hugetlb:               0 kB
+
+========================================================================
+ 采集完成！
+ 结果文件已保存至: /root/144vcpu/host_isolation_check_20261026_163615.log
+ 请将该文件的内容或者核心段落复制返回。
+========================================================================
