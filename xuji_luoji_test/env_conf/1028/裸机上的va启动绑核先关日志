@@ -1,0 +1,57 @@
+(Worker_TP7_EP7 pid=33708) INFO 10-24 07:18:37 [cpu_binding.py:539] [cpu_bind_mode] mode=topo_affinity rank=7 visible_npus=[0, 1, 2, 3, 4, 5, 6, 7]
+(Worker_TP7_EP7 pid=33708) INFO 10-24 07:18:37 [cpu_binding.py:623] The CPU allocation plan is as follows:
+(Worker_TP7_EP7 pid=33708) INFO 10-24 07:18:37 [cpu_binding.py:637] NPU7: main=[74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93]  acl=[94]  release=[[95]]
+(Worker_TP7_EP7 pid=33708) INFO 10-24 07:18:37 [cpu_binding.py:663] [migrate] NPU:7 -> NUMA [3]
+(Worker_TP5_EP5 pid=33560) INFO 10-24 07:18:37 [cpu_binding.py:539] [cpu_bind_mode] mode=topo_affinity rank=5 visible_npus=[0, 1, 2, 3, 4, 5, 6, 7]
+(Worker_TP5_EP5 pid=33560) INFO 10-24 07:18:37 [cpu_binding.py:623] The CPU allocation plan is as follows:
+(Worker_TP5_EP5 pid=33560) INFO 10-24 07:18:37 [cpu_binding.py:637] NPU5: main=[26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45]  acl=[46]  release=[[47]]
+(Worker_TP4_EP4 pid=33486) INFO 10-24 07:18:37 [cpu_binding.py:539] [cpu_bind_mode] mode=topo_affinity rank=4 visible_npus=[0, 1, 2, 3, 4, 5, 6, 7]
+(Worker_TP4_EP4 pid=33486) INFO 10-24 07:18:37 [cpu_binding.py:623] The CPU allocation plan is as follows:
+(Worker_TP4_EP4 pid=33486) INFO 10-24 07:18:37 [cpu_binding.py:637] NPU4: main=[2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21]  acl=[22]  release=[[23]]
+(Worker_TP5_EP5 pid=33560) INFO 10-24 07:18:37 [cpu_binding.py:663] [migrate] NPU:5 -> NUMA [1]
+(Worker_TP4_EP4 pid=33486) INFO 10-24 07:18:37 [cpu_binding.py:663] [migrate] NPU:4 -> NUMA [0]
+(Worker_TP2_EP2 pid=33338) INFO 10-24 07:18:37 [cpu_binding.py:539] [cpu_bind_mode] mode=topo_affinity rank=2 visible_npus=[0, 1, 2, 3, 4, 5, 6, 7]
+(Worker_TP2_EP2 pid=33338) INFO 10-24 07:18:37 [cpu_binding.py:623] The CPU allocation plan is as follows:
+(Worker_TP2_EP2 pid=33338) INFO 10-24 07:18:37 [cpu_binding.py:637] NPU2: main=[98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117]  acl=[118]  release=[[119]]
+(Worker_TP3_EP3 pid=33412) INFO 10-24 07:18:37 [cpu_binding.py:539] [cpu_bind_mode] mode=topo_affinity rank=3 visible_npus=[0, 1, 2, 3, 4, 5, 6, 7]
+(Worker_TP3_EP3 pid=33412) INFO 10-24 07:18:37 [cpu_binding.py:623] The CPU allocation plan is as follows:
+(Worker_TP3_EP3 pid=33412) INFO 10-24 07:18:37 [cpu_binding.py:637] NPU3: main=[122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141]  acl=[142]  release=[[143]]
+(Worker_TP1_EP1 pid=33264) INFO 10-24 07:18:37 [cpu_binding.py:539] [cpu_bind_mode] mode=topo_affinity rank=1 visible_npus=[0, 1, 2, 3, 4, 5, 6, 7]
+(Worker_TP0_EP0 pid=33217) INFO 10-24 07:18:37 [cpu_binding.py:539] [cpu_bind_mode] mode=topo_affinity rank=0 visible_npus=[0, 1, 2, 3, 4, 5, 6, 7]
+(Worker_TP1_EP1 pid=33264) INFO 10-24 07:18:37 [cpu_binding.py:623] The CPU allocation plan is as follows:
+(Worker_TP0_EP0 pid=33217) INFO 10-24 07:18:37 [cpu_binding.py:623] The CPU allocation plan is as follows:
+(Worker_TP1_EP1 pid=33264) INFO 10-24 07:18:37 [cpu_binding.py:637] NPU1: main=[170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189]  acl=[190]  release=[[191]]
+(Worker_TP0_EP0 pid=33217) INFO 10-24 07:18:37 [cpu_binding.py:637] NPU0: main=[146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165]  acl=[166]  release=[[167]]
+(Worker_TP6_EP6 pid=33634) INFO 10-24 07:18:37 [cpu_binding.py:539] [cpu_bind_mode] mode=topo_affinity rank=6 visible_npus=[0, 1, 2, 3, 4, 5, 6, 7]
+(Worker_TP6_EP6 pid=33634) INFO 10-24 07:18:37 [cpu_binding.py:623] The CPU allocation plan is as follows:
+(Worker_TP6_EP6 pid=33634) INFO 10-24 07:18:37 [cpu_binding.py:637] NPU6: main=[50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69]  acl=[70]  release=[[71]]
+(Worker_TP2_EP2 pid=33338) INFO 10-24 07:18:38 [cpu_binding.py:663] [migrate] NPU:2 -> NUMA [4]
+(Worker_TP3_EP3 pid=33412) INFO 10-24 07:18:38 [cpu_binding.py:663] [migrate] NPU:3 -> NUMA [5]
+(Worker_TP1_EP1 pid=33264) INFO 10-24 07:18:38 [cpu_binding.py:663] [migrate] NPU:1 -> NUMA [7]
+(Worker_TP0_EP0 pid=33217) INFO 10-24 07:18:38 [cpu_binding.py:663] [migrate] NPU:0 -> NUMA [6]
+(Worker_TP6_EP6 pid=33634) INFO 10-24 07:18:38 [cpu_binding.py:663] [migrate] NPU:6 -> NUMA [2]
+(Worker_TP2_EP2 pid=33338) INFO 10-24 07:18:47 [cpu_binding.py:770] NPU2(PCI 0000:81:00.0): sq_send_trigger_irq IRQ_ID=2710 -> CPU96, cq_update_irq IRQ_ID=2711 -> CPU97
+(Worker_TP6_EP6 pid=33634) INFO 10-24 07:18:51 [cpu_binding.py:770] NPU6(PCI 0000:41:00.0): sq_send_trigger_irq IRQ_ID=2198 -> CPU48, cq_update_irq IRQ_ID=2199 -> CPU49
+(Worker_TP3_EP3 pid=33412) INFO 10-24 07:18:52 [cpu_binding.py:770] NPU3(PCI 0000:82:00.0): sq_send_trigger_irq IRQ_ID=2966 -> CPU120, cq_update_irq IRQ_ID=2967 -> CPU121
+(Worker_TP1_EP1 pid=33264) INFO 10-24 07:18:54 [cpu_binding.py:770] NPU1(PCI 0000:c2:00.0): sq_send_trigger_irq IRQ_ID=3478 -> CPU168, cq_update_irq IRQ_ID=3479 -> CPU169
+(Worker_TP0_EP0 pid=33217) INFO 10-24 07:18:57 [cpu_binding.py:770] NPU0(PCI 0000:c1:00.0): sq_send_trigger_irq IRQ_ID=3222 -> CPU144, cq_update_irq IRQ_ID=3223 -> CPU145
+(Worker_TP4_EP4 pid=33486) INFO 10-24 07:19:06 [cpu_binding.py:770] NPU4(PCI 0000:01:00.0): sq_send_trigger_irq IRQ_ID=1686 -> CPU0, cq_update_irq IRQ_ID=1687 -> CPU1
+(Worker_TP7_EP7 pid=33708) INFO 10-24 07:19:15 [cpu_binding.py:770] NPU7(PCI 0000:42:00.0): sq_send_trigger_irq IRQ_ID=2454 -> CPU72, cq_update_irq IRQ_ID=2455 -> CPU73
+(Worker_TP5_EP5 pid=33560) INFO 10-24 07:19:20 [cpu_binding.py:770] NPU5(PCI 0000:02:00.0): sq_send_trigger_irq IRQ_ID=1942 -> CPU24, cq_update_irq IRQ_ID=1943 -> CPU25
+(EngineCore pid=33162) INFO 10-24 07:19:20 [core.py:372] init engine (profile, create kv cache, warmup model) took 100.12 s (compilation: 35.69 s)
+(EngineCore pid=33162) INFO 10-24 07:19:22 [kv_cache_utils.py:748] kv cache group sizes [128, 4096, 32, 32, 2, 8]
+(EngineCore pid=33162) INFO 10-24 07:19:22 [kv_cache_utils.py:749] kv lcm block sizes 4096
+(EngineCore pid=33162) WARNING 10-24 07:19:22 [vllm.py:1508] Disabling cascade attention (not yet compatible with async speculative decoding).
+(EngineCore pid=33162) INFO 10-24 07:19:22 [kernel.py:416] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['native'])
+(EngineCore pid=33162) WARNING 10-24 07:19:22 [platform.py:730] GPU-specific parameter is not supported on Ascend. parameter=disable_cascade_attn, value=True, action: resetting to False.
+(EngineCore pid=33162) INFO 10-24 07:19:22 [platform.py:944] The timeout interval of the HCCL operator is 1836s. Timeout in seconds for execute_model RPC calls in multiprocessing must be greater than 1836s, Set VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS=3000
+(EngineCore pid=33162) WARNING 10-24 07:19:22 [utils.py:1447] For deepseek_v4 model, block size should be 32, 64 or 128. Setting block size to 32 for better performance.
+(EngineCore pid=33162) INFO 10-24 07:19:22 [platform.py:1455] Set PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
+(APIServer pid=32913) INFO 10-24 07:19:22 [async_llm.py:208] Torch profiler enabled. AsyncLLM CPU traces will be collected under /sharedstorage/z00927893/profiling/vcpu144_dsv4
+(APIServer pid=32913) INFO 10-24 07:19:22 [wrapper.py:202] Torch profiling enabled. Traces will be saved to: /sharedstorage/z00927893/profiling/vcpu144_dsv4
+(EngineCore pid=33162) INFO 10-24 07:19:22 [compilation.py:336] Enabled custom fusions: norm_quant, act_quant
+(APIServer pid=32913) INFO 10-24 07:19:23 [entry.py:135] Supported tasks: ['generate']
+(APIServer pid=32913) WARNING 10-24 07:19:23 [api_router.py:41] Profiler with mode 'torch' is enabled in the API server. This should ONLY be used for local development!
+(APIServer pid=32913) INFO 10-24 07:19:23 [factories.py:76] Scale-out endpoints are disabled. Set --enable-scale-out to enable them.
+(APIServer pid=32913) INFO 10-24 07:19:23 [parser_manager.py:36] "auto" tool choice has been enabled.
+(APIServer pid=32913) WARNING 10-24 07:19:23 [model.py:1772] Default vLLM sampling parameters have been overridden by the model's `generation_config.json`: `{'temperature': 1.0, 'top_p': 1.0}`. If this is not intended, please relaunch vLLM instance with `--generation-config vllm`.
