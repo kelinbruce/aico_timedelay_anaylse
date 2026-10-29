@@ -1,5 +1,5 @@
 import unittest
-from run import gated_measure, summarize
+from run import gated_measure, summarize, metadata_environment
 
 
 class Gate:
@@ -11,6 +11,16 @@ class Gate:
 
 
 class WindowTests(unittest.TestCase):
+    def test_metadata_keeps_jemalloc_removes_only_probe(self):
+        env = {'LD_PRELOAD': '/tmp/probe.so:/usr/lib64/libjemalloc.so.2:', 'OTHER': 'unchanged'}
+        clean = metadata_environment(env, '/tmp/probe.so')
+        self.assertEqual(clean['LD_PRELOAD'], '/usr/lib64/libjemalloc.so.2')
+        self.assertEqual(clean['OTHER'], 'unchanged')
+        self.assertEqual(env['LD_PRELOAD'], '/tmp/probe.so:/usr/lib64/libjemalloc.so.2:')
+
+    def test_metadata_no_preload_when_only_probe(self):
+        self.assertNotIn('LD_PRELOAD', metadata_environment({'LD_PRELOAD': '/tmp/probe.so'}, '/tmp/probe.so'))
+
     def test_only_submit_is_enabled(self):
         gate = Gate()
         states = []

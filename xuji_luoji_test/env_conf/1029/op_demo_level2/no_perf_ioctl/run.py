@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import statistics
 import subprocess
@@ -27,6 +28,19 @@ class Event(ctypes.Structure):
 
 def dump(path, value):
     Path(path).write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
+
+
+def metadata_environment(environment, probe_library):
+    """Do not inject this benchmark-only interceptor into npu-smi/lscpu children."""
+    result = dict(environment)
+    if result.get('LD_PRELOAD'):
+        entries = [x for x in re.split(r'[:\s]+', result['LD_PRELOAD']) if x]
+        entries = [x for x in entries if os.path.realpath(x) != os.path.realpath(probe_library)]
+        if entries:
+            result['LD_PRELOAD'] = ':'.join(entries)
+        else:
+            result.pop('LD_PRELOAD', None)
+    return result
 
 
 def stats(values):
@@ -121,6 +135,15 @@ def worker(args):
     library, batch = None, 0
     if args.worker == 'instrumented':
         library = configure_library(args.library)
+        def metadata_command(command):
+            try:
+                result = subprocess.run(command, capture_output=True, text=True, timeout=15,
+                                        env=metadata_environment(os.environ, args.library))
+                return {'argv': command, 'returncode': result.returncode,
+                        'stdout': result.stdout[:100000], 'stderr': result.stderr[:10000]}
+            except (OSError, subprocess.TimeoutExpired) as error:
+                return {'argv': command, 'error': str(error)}
+        bench.command = metadata_command
         library.probe_reset()
         original_measure = bench.measure_batch
 
@@ -174,6 +197,7 @@ def worker(args):
         dump(output / 'ioctl_summary.json', {'status': state, 'capture_batches': batch,
              'total_ops': total_ops, 'captured_calls': len(details), 'lost_calls': library.probe_lost(),
              'back_to_back_clock_ns': stats(calibration), 'caller_library_sha256': library_hashes,
+             'metadata_commands_probe_preload_removed': True,
              'groups': summarize(details, total_ops),
              'scope': 'Selected main-thread submission windows. The pre-batch and final synchronize calls are excluded. Python clock reads remain in the window. Only calls binding through the interposed libc ioctl are visible.',
              'limitations': 'No private Runtime function segmentation or kernel stacks. Direct syscall instructions, private __ioctl and internally bound calls may bypass this probe. fd paths are resolved after capture and are only hints. ioctl duration is wall time including possible scheduling. No captured calls is not proof of no kernel or ioctl activity.'})

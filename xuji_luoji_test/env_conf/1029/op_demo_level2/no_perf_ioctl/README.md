@@ -2,6 +2,17 @@
 
 本轮不使用perf、strace、bpftrace、内核探针或CANN私有函数探针。用一个小C共享库记录同一个Sub提交循环内、主线程经过libc `ioctl` 的调用。
 
+最新结果见 [ioctl结果分析_20261029.md](ioctl结果分析_20261029.md)。当前下一步是只读能力检查，无需再编译探针：
+
+```bash
+# 虚机
+python3 query_copy_capability.py --device 0 --out results/vm_copy_capability.json
+# 裸机
+python3 query_copy_capability.py --device 0 --out results/bare_copy_capability.json
+```
+
+提供两份JSON即可查看实际HAL哈希、driver版本记录，以及BAR-copy能力0x2/0x8的返回值。该脚本只查询，不强制打开能力或修改系统配置。以下保留ioctl实验的执行方法。
+
 目标：检验此前VM新增系统态CPU成本是否主要落在某个驱动ioctl请求上，并区分“请求次数更多”和“同请求单次更慢”。这一步不承诺覆盖Runtime全部内部工作，也不是完整系统调用跟踪。
 
 需要Linux、原torch_npu post6环境，以及可用的cc/gcc/clang之一。**脚本自动检测并编译；不用先手工确认编译器。**普通用户运行，无需root。没有编译器时生成 `preflight.json` 后退出3，不启动NPU测试；编译失败时另保留 `build.log`。
@@ -67,7 +78,7 @@ LD_PRELOAD只覆盖动态绑定到这个libc ioctl入口的调用；驱动内联
 
 ## 开发验证与资料
 
-10项不依赖NPU的测试覆盖真实ioctl参数/返回值和errno透传、线程与区间过滤、统计及错误清理。开发机验证为macOS原生C动态库与Python逻辑；**尚未在现场Linux/NPU上验证LD_PRELOAD对实际驱动的覆盖**。
+16项不依赖NPU的测试覆盖真实ioctl参数/返回值和errno透传、线程与区间过滤、统计、元数据子进程环境隔离、查询ABI及错误清理。开发机验证为macOS原生C动态库与Python逻辑。原版LD_PRELOAD已在现场捕获VM请求；**新查询和元数据隔离修正尚未在现场Linux/NPU验证**。
 
 ```bash
 python3 -m unittest discover -s . -p 'test_*.py'
