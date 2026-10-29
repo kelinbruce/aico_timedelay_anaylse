@@ -1,0 +1,84 @@
+1A07-25-11:/tmp/test/10.29/safe_version # bash ./run_host_check.sh \
+>   --vm instance-00000b34 \
+>   --dump-stage2 \
+>   --out /tmp/host_bar_wc_result
+OUTPUT_DIR=/tmp/host_bar_wc_result
+采集时间：2026-10-29T16:24:35.172969+08:00
+只读采集运行状态，写入本次结果目录；未执行任何 PCI BAR 数据读写。
+kernel.txt: exit_code=0
+Linux 1A07-25-11 5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64 #1 SMP Tue Sep 24 13:37:13 UTC 2024 aarch64 aarch64 aarch64 GNU/Linux
+lscpu.txt: exit_code=0
+kernel config: /proc/config.gz；Stage-2 dump 配置请看 kernel-config.txt
+modinfo-kvm.txt: exit_code=0
+modinfo-vfio_pci.txt: exit_code=0
+modinfo-vfio_pci_core.txt: exit_code=1
+补丁状态 UNKNOWN：未找到完整内核源码；版本号和内核头文件不足以确认。
+pci-0000:42:00.0.txt: exit_code=0
+pci-0000:41:00.0.txt: exit_code=0
+pci-0000:02:00.0.txt: exit_code=0
+pci-0000:01:00.0.txt: exit_code=0
+pci-0000:82:00.0.txt: exit_code=0
+pci-0000:81:00.0.txt: exit_code=0
+pci-0000:c2:00.0.txt: exit_code=0
+pci-0000:c1:00.0.txt: exit_code=0
+Host PCI BAR/驱动信息已保存 host-pci-bars.txt。HostPA 不可直接拿来匹配 Guest Stage-2。
+匹配目标域的 QEMU PIDs: [1602071]
+QEMU maps 仅用于关联，不代表 Guest Stage-2 属性。
+qemu-info-pci.txt: exit_code=0
+qemu-info-mtree.txt: exit_code=0
+qemu-query-pci.txt: exit_code=0
+已识别 24 个直通设备 memory BAR 区间；详情 guest-bar-ipa.json。
+Stage-2 属性 UNKNOWN：未找到目标 QEMU PID 对应的 stage2_page_tables。
+可能是内核未提供接口、CONFIG 未启用或 debugfs 未挂载；这不代表没有 WC 修复。
+本次不能确认 Runtime 参数 BAR、Guest Stage-1 属性或 Launch 内部分段耗时。
+Device-nGnRE 候选范围还需与真实参数 BAR/offset 对齐；Normal-NC 也不单独证明有效 WC。
+完成。OUTPUT_DIR=/tmp/host_bar_wc_result
+1A07-25-11:/tmp/test/10.29/safe_version # 
+1A07-25-11:/tmp/test/10.29/safe_version # 
+1A07-25-11:/tmp/test/10.29/safe_version # ll
+total 60
+-rw-r----- 1 root root  2739 Oct 29 16:23 bar_wc_probe.c
+-rw-r----- 1 root root 18074 Oct 29 16:23 check_host_bar_wc.py
+-rw-r----- 1 root root  5307 Oct 29 16:23 ╓┤╨╨╦╡├≈.md
+-rw-r----- 1 root root  5307 Oct 29 16:23 README.md
+-rw-r----- 1 root root  3576 Oct 29 16:23 run_guest_probe.sh
+-rw-r----- 1 root root   397 Oct 29 16:23 run_host_check.sh
+-rw-r----- 1 root root  7030 Oct 29 16:23 sample_host_kvm.py
+-rw-r----- 1 root root   580 Oct 29 16:23 SHA256SUMS
+1A07-25-11:/tmp/test/10.29/safe_version # 
+1A07-25-11:/tmp/test/10.29/safe_version # 
+1A07-25-11:/tmp/test/10.29/safe_version # cat /tmp/host_bar_wc_result/report.txt
+OUTPUT_DIR=/tmp/host_bar_wc_result
+采集时间：2026-10-29T16:24:35.172969+08:00
+只读采集运行状态，写入本次结果目录；未执行任何 PCI BAR 数据读写。
+kernel.txt: exit_code=0
+Linux 1A07-25-11 5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64 #1 SMP Tue Sep 24 13:37:13 UTC 2024 aarch64 aarch64 aarch64 GNU/Linux
+lscpu.txt: exit_code=0
+kernel config: /proc/config.gz；Stage-2 dump 配置请看 kernel-config.txt
+modinfo-kvm.txt: exit_code=0
+modinfo-vfio_pci.txt: exit_code=0
+modinfo-vfio_pci_core.txt: exit_code=1
+补丁状态 UNKNOWN：未找到完整内核源码；版本号和内核头文件不足以确认。
+pci-0000:42:00.0.txt: exit_code=0
+pci-0000:41:00.0.txt: exit_code=0
+pci-0000:02:00.0.txt: exit_code=0
+pci-0000:01:00.0.txt: exit_code=0
+pci-0000:82:00.0.txt: exit_code=0
+pci-0000:81:00.0.txt: exit_code=0
+pci-0000:c2:00.0.txt: exit_code=0
+pci-0000:c1:00.0.txt: exit_code=0
+Host PCI BAR/驱动信息已保存 host-pci-bars.txt。HostPA 不可直接拿来匹配 Guest Stage-2。
+匹配目标域的 QEMU PIDs: [1602071]
+QEMU maps 仅用于关联，不代表 Guest Stage-2 属性。
+qemu-info-pci.txt: exit_code=0
+qemu-info-mtree.txt: exit_code=0
+qemu-query-pci.txt: exit_code=0
+已识别 24 个直通设备 memory BAR 区间；详情 guest-bar-ipa.json。
+Stage-2 属性 UNKNOWN：未找到目标 QEMU PID 对应的 stage2_page_tables。
+可能是内核未提供接口、CONFIG 未启用或 debugfs 未挂载；这不代表没有 WC 修复。
+本次不能确认 Runtime 参数 BAR、Guest Stage-1 属性或 Launch 内部分段耗时。
+Device-nGnRE 候选范围还需与真实参数 BAR/offset 对齐；Normal-NC 也不单独证明有效 WC。
+完成。OUTPUT_DIR=/tmp/host_bar_wc_result
+1A07-25-11:/tmp/test/10.29/safe_version # cat /tmp/host_bar_wc_result/stage2-bar-matches-*.txt
+cat: '/tmp/host_bar_wc_result/stage2-bar-matches-*.txt': No such file or directory
+1A07-25-11:/tmp/test/10.29/safe_version # cd /tmp/

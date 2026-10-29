@@ -1,0 +1,176 @@
+[root@vnf-mae-1-node22-1792137068 safe_version]# 
+[root@vnf-mae-1-node22-1792137068 safe_version]# chmod +x run_guest_probe.sh
+./run_guest_probe.sh
+====================================================================
+ [安全只读检查] Ascend NPU PCIe BAR 属性与 WC 支持探测
+====================================================================
+安全声明: 本脚本为严格只读模式，不执行任何 BAR 空间写操作，避免触发硬件故障。
+
+发现以下 Ascend NPU 设备:
+0000:09:00.0
+0000:0a:00.0
+0000:0b:00.0
+0000:0c:00.0
+0000:0d:00.0
+0000:0e:00.0
+0000:0f:00.0
+0000:10:00.0
+
+--------------------------------------------------------------------
+检查设备: 0000:09:00.0
+--------------------------------------------------------------------
+lspci 报告的 BAR 物理属性:
+lspci: Unable to load libkmod resources: error -2
+	Region 0: Memory at 11000000000 (64-bit, prefetchable) [size=512M]
+	Region 2: Memory at 11020000000 (64-bit, prefetchable) [size=512M]
+	Region 4: Memory at 10000000000 (64-bit, prefetchable) [size=64G]
+
+sysfs 中的 resource 节点状态:
+[FOUND] 发现内核暴露的 WC 节点 (内核支持对该 BAR 进行 WC 映射):
+-rw------- 1 root root   536870912 Oct 29 01:57 /sys/bus/pci/devices/0000:09:00.0/resource0_wc
+-rw------- 1 root root   536870912 Oct 29 01:57 /sys/bus/pci/devices/0000:09:00.0/resource2_wc
+-rw------- 1 root root 68719476736 Oct 29 01:57 /sys/bus/pci/devices/0000:09:00.0/resource4_wc
+PCI 原始 resource 标志位 (最后一位为 flags, 包含 IORESOURCE_PREFETCH 0x2000):
+  BAR0: 0x0000011000000000-0x000001101fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR2: 0x0000011020000000-0x000001103fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR4: 0x0000010000000000-0x0000010fffffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+
+--------------------------------------------------------------------
+检查设备: 0000:0a:00.0
+--------------------------------------------------------------------
+lspci 报告的 BAR 物理属性:
+lspci: Unable to load libkmod resources: error -2
+	Region 0: Memory at 11800000000 (64-bit, prefetchable) [size=512M]
+	Region 2: Memory at 11820000000 (64-bit, prefetchable) [size=512M]
+	Region 4: Memory at 12000000000 (64-bit, prefetchable) [size=64G]
+
+sysfs 中的 resource 节点状态:
+[FOUND] 发现内核暴露的 WC 节点 (内核支持对该 BAR 进行 WC 映射):
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0a:00.0/resource0_wc
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0a:00.0/resource2_wc
+-rw------- 1 root root 68719476736 Oct 29 08:17 /sys/bus/pci/devices/0000:0a:00.0/resource4_wc
+PCI 原始 resource 标志位 (最后一位为 flags, 包含 IORESOURCE_PREFETCH 0x2000):
+  BAR0: 0x0000011800000000-0x000001181fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR2: 0x0000011820000000-0x000001183fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR4: 0x0000012000000000-0x0000012fffffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+
+--------------------------------------------------------------------
+检查设备: 0000:0b:00.0
+--------------------------------------------------------------------
+lspci 报告的 BAR 物理属性:
+lspci: Unable to load libkmod resources: error -2
+	Region 0: Memory at 14000000000 (64-bit, prefetchable) [size=512M]
+	Region 2: Memory at 14020000000 (64-bit, prefetchable) [size=512M]
+	Region 4: Memory at 13000000000 (64-bit, prefetchable) [size=64G]
+
+sysfs 中的 resource 节点状态:
+[FOUND] 发现内核暴露的 WC 节点 (内核支持对该 BAR 进行 WC 映射):
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0b:00.0/resource0_wc
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0b:00.0/resource2_wc
+-rw------- 1 root root 68719476736 Oct 29 08:17 /sys/bus/pci/devices/0000:0b:00.0/resource4_wc
+PCI 原始 resource 标志位 (最后一位为 flags, 包含 IORESOURCE_PREFETCH 0x2000):
+  BAR0: 0x0000014000000000-0x000001401fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR2: 0x0000014020000000-0x000001403fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR4: 0x0000013000000000-0x0000013fffffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+
+--------------------------------------------------------------------
+检查设备: 0000:0c:00.0
+--------------------------------------------------------------------
+lspci 报告的 BAR 物理属性:
+lspci: Unable to load libkmod resources: error -2
+	Region 0: Memory at 14800000000 (64-bit, prefetchable) [size=512M]
+	Region 2: Memory at 14820000000 (64-bit, prefetchable) [size=512M]
+	Region 4: Memory at 15000000000 (64-bit, prefetchable) [size=64G]
+
+sysfs 中的 resource 节点状态:
+[FOUND] 发现内核暴露的 WC 节点 (内核支持对该 BAR 进行 WC 映射):
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0c:00.0/resource0_wc
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0c:00.0/resource2_wc
+-rw------- 1 root root 68719476736 Oct 29 08:17 /sys/bus/pci/devices/0000:0c:00.0/resource4_wc
+PCI 原始 resource 标志位 (最后一位为 flags, 包含 IORESOURCE_PREFETCH 0x2000):
+  BAR0: 0x0000014800000000-0x000001481fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR2: 0x0000014820000000-0x000001483fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR4: 0x0000015000000000-0x0000015fffffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+
+--------------------------------------------------------------------
+检查设备: 0000:0d:00.0
+--------------------------------------------------------------------
+lspci 报告的 BAR 物理属性:
+lspci: Unable to load libkmod resources: error -2
+	Region 0: Memory at 17000000000 (64-bit, prefetchable) [size=512M]
+	Region 2: Memory at 17020000000 (64-bit, prefetchable) [size=512M]
+	Region 4: Memory at 16000000000 (64-bit, prefetchable) [size=64G]
+
+sysfs 中的 resource 节点状态:
+[FOUND] 发现内核暴露的 WC 节点 (内核支持对该 BAR 进行 WC 映射):
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0d:00.0/resource0_wc
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0d:00.0/resource2_wc
+-rw------- 1 root root 68719476736 Oct 29 08:17 /sys/bus/pci/devices/0000:0d:00.0/resource4_wc
+PCI 原始 resource 标志位 (最后一位为 flags, 包含 IORESOURCE_PREFETCH 0x2000):
+  BAR0: 0x0000017000000000-0x000001701fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR2: 0x0000017020000000-0x000001703fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR4: 0x0000016000000000-0x0000016fffffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+
+--------------------------------------------------------------------
+检查设备: 0000:0e:00.0
+--------------------------------------------------------------------
+lspci 报告的 BAR 物理属性:
+lspci: Unable to load libkmod resources: error -2
+	Region 0: Memory at 17800000000 (64-bit, prefetchable) [size=512M]
+	Region 2: Memory at 17820000000 (64-bit, prefetchable) [size=512M]
+	Region 4: Memory at 18000000000 (64-bit, prefetchable) [size=64G]
+
+sysfs 中的 resource 节点状态:
+[FOUND] 发现内核暴露的 WC 节点 (内核支持对该 BAR 进行 WC 映射):
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0e:00.0/resource0_wc
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0e:00.0/resource2_wc
+-rw------- 1 root root 68719476736 Oct 29 08:17 /sys/bus/pci/devices/0000:0e:00.0/resource4_wc
+PCI 原始 resource 标志位 (最后一位为 flags, 包含 IORESOURCE_PREFETCH 0x2000):
+  BAR0: 0x0000017800000000-0x000001781fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR2: 0x0000017820000000-0x000001783fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR4: 0x0000018000000000-0x0000018fffffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+
+--------------------------------------------------------------------
+检查设备: 0000:0f:00.0
+--------------------------------------------------------------------
+lspci 报告的 BAR 物理属性:
+lspci: Unable to load libkmod resources: error -2
+	Region 0: Memory at 1a000000000 (64-bit, prefetchable) [size=512M]
+	Region 2: Memory at 1a020000000 (64-bit, prefetchable) [size=512M]
+	Region 4: Memory at 19000000000 (64-bit, prefetchable) [size=64G]
+
+sysfs 中的 resource 节点状态:
+[FOUND] 发现内核暴露的 WC 节点 (内核支持对该 BAR 进行 WC 映射):
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0f:00.0/resource0_wc
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:0f:00.0/resource2_wc
+-rw------- 1 root root 68719476736 Oct 29 08:17 /sys/bus/pci/devices/0000:0f:00.0/resource4_wc
+PCI 原始 resource 标志位 (最后一位为 flags, 包含 IORESOURCE_PREFETCH 0x2000):
+  BAR0: 0x000001a000000000-0x000001a01fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR2: 0x000001a020000000-0x000001a03fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR4: 0x0000019000000000-0x0000019fffffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+
+--------------------------------------------------------------------
+检查设备: 0000:10:00.0
+--------------------------------------------------------------------
+lspci 报告的 BAR 物理属性:
+lspci: Unable to load libkmod resources: error -2
+	Region 0: Memory at 1a800000000 (64-bit, prefetchable) [size=512M]
+	Region 2: Memory at 1a820000000 (64-bit, prefetchable) [size=512M]
+	Region 4: Memory at 1b000000000 (64-bit, prefetchable) [size=64G]
+
+sysfs 中的 resource 节点状态:
+[FOUND] 发现内核暴露的 WC 节点 (内核支持对该 BAR 进行 WC 映射):
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:10:00.0/resource0_wc
+-rw------- 1 root root   536870912 Oct 29 08:17 /sys/bus/pci/devices/0000:10:00.0/resource2_wc
+-rw------- 1 root root 68719476736 Oct 29 08:17 /sys/bus/pci/devices/0000:10:00.0/resource4_wc
+PCI 原始 resource 标志位 (最后一位为 flags, 包含 IORESOURCE_PREFETCH 0x2000):
+  BAR0: 0x000001a800000000-0x000001a81fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR2: 0x000001a820000000-0x000001a83fffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+  BAR4: 0x000001b000000000-0x000001bfffffffff flags=0x000000000014220c [\033[1;32mPrefetchable (硬件允许写合并)\033[0m]
+
+====================================================================
+检查完成！
+若要彻底确证 Stage-2 是否降级为 UC，请在【宿主机】运行 check_host_bar_wc.py
+====================================================================
+[root@vnf-mae-1-node22-1792137068 safe_version]# 
+[root@vnf-mae-1-node22-1792137068 safe_version]# 
