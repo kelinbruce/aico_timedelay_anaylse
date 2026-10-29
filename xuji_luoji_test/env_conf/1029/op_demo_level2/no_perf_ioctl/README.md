@@ -2,16 +2,18 @@
 
 本轮不使用perf、strace、bpftrace、内核探针或CANN私有函数探针。用一个小C共享库记录同一个Sub提交循环内、主线程经过libc `ioctl` 的调用。
 
-最新结果见 [ioctl结果分析_20261029.md](ioctl结果分析_20261029.md)。当前下一步是只读能力检查，无需再编译探针：
+最新结果见 [BAR_copy能力确认与修复方向_20261029.md](BAR_copy能力确认与修复方向_20261029.md)：裸机能力返回0xA，VM返回0，查询均成功；实际HAL二进制和驱动包记录也不同。当前修复顺序是核对Guest/容器驱动来源、按配套关系对齐，并以能力和无探针性能验收。原 [ioctl结果分析](ioctl结果分析_20261029.md) 保留请求计数与耗时证据。
+
+修复后可用现有只读脚本重新查询，使用新文件名：
 
 ```bash
 # 虚机
-python3 query_copy_capability.py --device 0 --out results/vm_copy_capability.json
+python3 query_copy_capability.py --device 0 --out results/vm_copy_capability_after.json
 # 裸机
-python3 query_copy_capability.py --device 0 --out results/bare_copy_capability.json
+python3 query_copy_capability.py --device 0 --out results/bare_copy_capability_after.json
 ```
 
-提供两份JSON即可查看实际HAL哈希、driver版本记录，以及BAR-copy能力0x2/0x8的返回值。该脚本只查询，不强制打开能力或修改系统配置。以下保留ioctl实验的执行方法。
+生成的JSON记录实际HAL哈希、driver版本记录，以及BAR-copy能力0x2/0x8的返回值。该脚本只查询，不强制打开能力或修改系统配置。以下保留ioctl实验的执行方法。
 
 目标：检验此前VM新增系统态CPU成本是否主要落在某个驱动ioctl请求上，并区分“请求次数更多”和“同请求单次更慢”。这一步不承诺覆盖Runtime全部内部工作，也不是完整系统调用跟踪。
 
