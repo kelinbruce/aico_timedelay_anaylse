@@ -1,0 +1,284 @@
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # bash run.sh --vm instance-00000b34
+OUTPUT_DIR=/tmp/host_bar_wc_20261029_100822_ohgeqj8o
+采集时间：2026-10-29T10:08:22.515774+08:00
+只读采集运行状态，写入本次结果目录；未执行任何 PCI BAR 数据读写。
+kernel.txt: exit_code=0
+Linux 1A07-25-11 5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64 #1 SMP Tue Sep 24 13:37:13 UTC 2024 aarch64 aarch64 aarch64 GNU/Linux
+lscpu.txt: exit_code=0
+kernel config: /proc/config.gz；Stage-2 dump 配置请看 kernel-config.txt
+modinfo-kvm.txt: exit_code=0
+modinfo-vfio_pci.txt: exit_code=0
+modinfo-vfio_pci_core.txt: exit_code=1
+补丁状态 UNKNOWN：未找到完整内核源码；版本号和内核头文件不足以确认。
+pci-0000:42:00.0.txt: exit_code=0
+pci-0000:41:00.0.txt: exit_code=0
+pci-0000:02:00.0.txt: exit_code=0
+pci-0000:01:00.0.txt: exit_code=0
+pci-0000:82:00.0.txt: exit_code=0
+pci-0000:81:00.0.txt: exit_code=0
+pci-0000:c2:00.0.txt: exit_code=0
+pci-0000:c1:00.0.txt: exit_code=0
+Host PCI BAR/驱动信息已保存 host-pci-bars.txt。HostPA 不可直接拿来匹配 Guest Stage-2。
+匹配目标域的 QEMU PIDs: [1602071]
+QEMU maps 仅用于关联，不代表 Guest Stage-2 属性。
+qemu-info-pci.txt: exit_code=0
+qemu-info-mtree.txt: exit_code=0
+qemu-query-pci.txt: exit_code=0
+已识别 24 个直通设备 memory BAR 区间；详情 guest-bar-ipa.json。
+Stage-2 属性 UNKNOWN：未找到目标 QEMU PID 对应的 stage2_page_tables。
+可能是内核未提供接口、CONFIG 未启用或 debugfs 未挂载；这不代表没有 WC 修复。
+本次不能确认 Runtime 参数 BAR、Guest Stage-1 属性或 Launch 内部分段耗时。
+Device-nGnRE 候选范围还需与真实参数 BAR/offset 对齐；Normal-NC 也不单独证明有效 WC。
+完成。OUTPUT_DIR=/tmp/host_bar_wc_20261029_100822_ohgeqj8o
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # OUT=/tmp/host_bar_wc_20261029_100822_ohgeqj8o
+
+    \( -name stage2_page_tables -o -name stage2_levels \) \
+    -print 2>/dev/null
+
+echo
+echo "========== 5. QEMU 进程 =========="
+ps -p "$PID" -o pid,comm,stat
+
+echo
+echo "========== 6. 已识别的 BAR 映射 =========="
+head -100 "$OUT/host-pci-bars.1A07-25-11:~/test/1029 # PID=$(cat "$OUT/qemu-pid.txt")
+txt"1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo "========== 1. 内核 Stage-2 相关配置 =========="
+========== 1. 内核 Stage-2 相关配置 ==========
+1A07-25-11:~/test/1029 # grep -E 'CONFIG_(DEBUG_FS|DEBUG_KERNEL|PTDUMP|KVM)' \
+>     "$OUT/kernel-config.txt" || true
+CONFIG_KVM=y
+CONFIG_KVM_MMIO=y
+CONFIG_KVM_VFIO=y
+CONFIG_KVM_GENERIC_DIRTYLOG_READ_PROTECT=y
+CONFIG_KVM_HISI_VIRT=y
+CONFIG_KVM_ARM_PMU=y
+CONFIG_DEBUG_FS=y
+CONFIG_DEBUG_FS_ALLOW_ALL=y
+# CONFIG_DEBUG_FS_DISALLOW_MOUNT is not set
+# CONFIG_DEBUG_FS_ALLOW_NONE is not set
+# CONFIG_PTDUMP_DEBUGFS is not set
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo
+
+1A07-25-11:~/test/1029 # echo "========== 2. debugfs 是否挂载 =========="
+========== 2. debugfs 是否挂载 ==========
+1A07-25-11:~/test/1029 # findmnt -t debugfs || true
+TARGET            SOURCE  FSTYPE  OPTIONS
+/sys/kernel/debug debugfs debugfs rw,nosuid,nodev,noexec,relatime
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo
+
+1A07-25-11:~/test/1029 # echo "========== 3. KVM debugfs 目录 =========="
+========== 3. KVM debugfs 目录 ==========
+1A07-25-11:~/test/1029 # ls -ld /sys/kernel/debug/kvm 2>&1
+drwxr-xr-x 3 root root 0 Oct 27 20:52 /sys/kernel/debug/kvm
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo
+
+1A07-25-11:~/test/1029 # echo "========== 4. 当前虚机 Stage-2 接口 =========="
+========== 4. 当前虚机 Stage-2 接口 ==========
+1A07-25-11:~/test/1029 # find /sys/kernel/debug/kvm -maxdepth 3 \
+>     \( -name stage2_page_tables -o -name stage2_levels \) \
+>     -print 2>/dev/null
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo
+
+1A07-25-11:~/test/1029 # echo "========== 5. QEMU 进程 =========="
+========== 5. QEMU 进程 ==========
+
+1A07-25-11:~/test/1029 # ps -p "$PID" -o pid,comm,stat
+    PID COMMAND         STAT
+1602071 qemu-kvm        SLl
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo
+
+1A07-25-11:~/test/1029 # echo "========== 6. 已识别的 BAR 映射 =========="
+========== 6. 已识别的 BAR 映射 ==========
+1A07-25-11:~/test/1029 # head -100 "$OUT/host-pci-bars.txt"
+
+0000:42:00.0 alias=hostdev0 configured_guest=0000:0c:00.0 driver=vfio-pci iommu_group=61 numa=1
+BAR0 HostPA=0x281c20000000-0x281c3fffffff flags=0x14220c prefetch=True
+BAR2 HostPA=0x281c00000000-0x281c1fffffff flags=0x14220c prefetch=True
+BAR4 HostPA=0x280000000000-0x280fffffffff flags=0x14220c prefetch=True
+
+0000:41:00.0 alias=hostdev1 configured_guest=0000:0b:00.0 driver=vfio-pci iommu_group=60 numa=1
+BAR0 HostPA=0x283c20000000-0x283c3fffffff flags=0x14220c prefetch=True
+BAR2 HostPA=0x283c00000000-0x283c1fffffff flags=0x14220c prefetch=True
+BAR4 HostPA=0x282000000000-0x282fffffffff flags=0x14220c prefetch=True
+
+0000:02:00.0 alias=hostdev2 configured_guest=0000:0a:00.0 driver=vfio-pci iommu_group=59 numa=0
+BAR0 HostPA=0x81c20000000-0x81c3fffffff flags=0x14220c prefetch=True
+BAR2 HostPA=0x81c00000000-0x81c1fffffff flags=0x14220c prefetch=True
+BAR4 HostPA=0x80000000000-0x80fffffffff flags=0x14220c prefetch=True
+
+0000:01:00.0 alias=hostdev3 configured_guest=0000:09:00.0 driver=vfio-pci iommu_group=58 numa=0
+BAR0 HostPA=0x83c20000000-0x83c3fffffff flags=0x14220c prefetch=True
+BAR2 HostPA=0x83c00000000-0x83c1fffffff flags=0x14220c prefetch=True
+BAR4 HostPA=0x82000000000-0x82fffffffff flags=0x14220c prefetch=True
+
+0000:82:00.0 alias=hostdev4 configured_guest=0000:0e:00.0 driver=vfio-pci iommu_group=63 numa=2
+BAR0 HostPA=0x481c20000000-0x481c3fffffff flags=0x14220c prefetch=True
+BAR2 HostPA=0x481c00000000-0x481c1fffffff flags=0x14220c prefetch=True
+BAR4 HostPA=0x480000000000-0x480fffffffff flags=0x14220c prefetch=True
+
+0000:81:00.0 alias=hostdev5 configured_guest=0000:0d:00.0 driver=vfio-pci iommu_group=62 numa=2
+BAR0 HostPA=0x483c20000000-0x483c3fffffff flags=0x14220c prefetch=True
+BAR2 HostPA=0x483c00000000-0x483c1fffffff flags=0x14220c prefetch=True
+BAR4 HostPA=0x482000000000-0x482fffffffff flags=0x14220c prefetch=True
+
+0000:c2:00.0 alias=hostdev6 configured_guest=0000:10:00.0 driver=vfio-pci iommu_group=65 numa=3
+BAR0 HostPA=0x681c20000000-0x681c3fffffff flags=0x14220c prefetch=True
+BAR2 HostPA=0x681c00000000-0x681c1fffffff flags=0x14220c prefetch=True
+BAR4 HostPA=0x680000000000-0x680fffffffff flags=0x14220c prefetch=True
+
+0000:c1:00.0 alias=hostdev7 configured_guest=0000:0f:00.0 driver=vfio-pci iommu_group=64 numa=3
+BAR0 HostPA=0x683c20000000-0x683c3fffffff flags=0x14220c prefetch=True
+BAR2 HostPA=0x683c00000000-0x683c1fffffff flags=0x14220c prefetch=True
+BAR4 HostPA=0x682000000000-0x682fffffffff flags=0x14220c prefetch=True
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo "===== 1. 内核源码目录 ====="
+===== 1. 内核源码目录 =====
+-maxdepth 3 \
+  -type f -print 2>/dev/null | head -601A07-25-11:~/test/1029 # KVER=$(uname -r)
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # ls -ld \
+>   /lib/modules/$KVER/source \
+>   /lib/modules/$KVER/build \
+>   /usr/src/kernels/$KVER 2>&1
+ls: cannot access '/lib/modules/5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64/source': No such file or directory
+ls: cannot access '/lib/modules/5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64/build': No such file or directory
+ls: cannot access '/usr/src/kernels/5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64': No such file or directory
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo
+
+1A07-25-11:~/test/1029 # echo "===== 2. Stage-2 dump 配置 ====="
+===== 2. Stage-2 dump 配置 =====
+1A07-25-11:~/test/1029 # zcat /proc/config.gz | \
+>   grep -E 'PTDUMP_STAGE2|PTDUMP_DEBUGFS' || true
+# CONFIG_PTDUMP_DEBUGFS is not set
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo
+
+1A07-25-11:~/test/1029 # echo "===== 3. WC相关内核符号线索 ====="
+===== 3. WC相关内核符号线索 =====
+1A07-25-11:~/test/1029 # grep -E 'normal_nc|vfio|kvm' /proc/kallsyms | \
+>   grep -Ei 'normal.nc|allow.*uncached|vfio.*wc' | head -30
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # echo
+
+1A07-25-11:~/test/1029 # echo "===== 4. KVM调试目录 ====="
+===== 4. KVM调试目录 =====
+
+1A07-25-11:~/test/1029 # find /sys/kernel/debug/kvm -maxdepth 3 \
+>   -type f -print 2>/dev/null | head -60
+/sys/kernel/debug/kvm/1602071-25/vgic-state
+/sys/kernel/debug/kvm/1602071-25/vcpu_stat
+/sys/kernel/debug/kvm/1602071-25/halt_poll_fail_ns
+/sys/kernel/debug/kvm/1602071-25/halt_poll_success_ns
+/sys/kernel/debug/kvm/1602071-25/exits
+/sys/kernel/debug/kvm/1602071-25/mmio_exit_kernel
+/sys/kernel/debug/kvm/1602071-25/mmio_exit_user
+/sys/kernel/debug/kvm/1602071-25/wfi_exit_stat
+/sys/kernel/debug/kvm/1602071-25/wfe_exit_stat
+/sys/kernel/debug/kvm/1602071-25/hvc_exit_stat
+/sys/kernel/debug/kvm/1602071-25/halt_wakeup
+/sys/kernel/debug/kvm/1602071-25/halt_poll_invalid
+/sys/kernel/debug/kvm/1602071-25/halt_attempted_poll
+/sys/kernel/debug/kvm/1602071-25/halt_successful_poll
+/sys/kernel/debug/kvm/vcpu_stat
+/sys/kernel/debug/kvm/halt_poll_fail_ns
+/sys/kernel/debug/kvm/halt_poll_success_ns
+/sys/kernel/debug/kvm/exits
+/sys/kernel/debug/kvm/mmio_exit_kernel
+/sys/kernel/debug/kvm/mmio_exit_user
+/sys/kernel/debug/kvm/wfi_exit_stat
+/sys/kernel/debug/kvm/wfe_exit_stat
+/sys/kernel/debug/kvm/hvc_exit_stat
+/sys/kernel/debug/kvm/halt_wakeup
+/sys/kernel/debug/kvm/halt_poll_invalid
+/sys/kernel/debug/kvm/halt_attempted_poll
+/sys/kernel/debug/kvm/halt_successful_poll
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # KVM_DIR=/sys/kernel/debug/kvm/1602071-25
+  )
+
+    declare -A before
+
+    echo "===== $label: 开始采样 ====="
+
+    for f in "${metrics[@]}"; do
+        before[$f]=$(cat "$KVM_DIR/$f")
+    done
+
+    sleep "$duration"
+
+    echo "===== $label: 10秒增量 ====="
+
+    for f in "${metrics[@]}"; do
+        start="${before[$f]}"
+        end=$(cat "$KVM_DIR/$f")
+
+        if [[ "$start" =~ ^[0-9]+$ &&
+              "$end" =~ ^[0-9]+$ ]]; then
+            delta=$((end - start))
+            printf "%-20s delta=%-12s rate=%s/s\n" \
+                "$f" "$d1A07-25-11:~/test/1029 # 
+elta" \
+                "$(awk -v d="$delta" -v t="$duration" \
+                    'BEGIN {printf "%.2f", d/t}')"
+        else
+            echo "$f: 非单一数值，需要单独检查"
+            printf 'before: %s\nafter: %s\n' "$start" "$end"
+       1A07-25-11:~/test/1029 # sample_kvm() {
+>     local label="$1"
+>     local duration=10
+>     local f start end delta
+>     local metrics=(
+>         exits
+>         mmio_exit_kernel
+>         mmio_exit_user
+>         wfi_exit_stat
+>         wfe_exit_stat
+>     )
+> 
+>     declare -A before
+> 
+>     echo "===== $label: 开始采样 ====="
+> 
+>     for f in "${metrics[@]}"; do
+>         before[$f]=$(cat "$KVM_DIR/$f")
+>     done
+> 
+>     sleep "$duration"
+> 
+>     echo "===== $label: 10秒增量 ====="
+> 
+>     for f in "${metrics[@]}"; do
+>         start="${before[$f]}"
+>         end=$(cat "$KVM_DIR/$f")
+> 
+>         if [[ "$start" =~ ^[0-9]+$ &&
+>               "$end" =~ ^[0-9]+$ ]]; then
+>             delta=$((end - start))
+>             printf "%-20s delta=%-12s rate=%s/s\n" \
+>                 "$f" "$delta" \
+>                 "$(awk -v d="$delta" -v t="$duration" \
+>                     'BEGIN {printf "%.2f", d/t}')"
+>         else
+>             echo "$f: 非单一数值，需要单独检查"
+>             printf 'before: %s\nafter: %s\n' "$start" "$end"
+>         fi
+>     done
+> }
+1A07-25-11:~/test/1029 # 
+1A07-25-11:~/test/1029 # 
