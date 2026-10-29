@@ -1,0 +1,22 @@
+{
+  "vm144": {
+    "0": {"pool": "108-125", "main": "110-123", "acl": 124, "release": 125, "numa": 3},
+    "1": {"pool": "126-143", "main": "128-141", "acl": 142, "release": 143, "numa": 3},
+    "2": {"pool": "72-89", "main": "74-87", "acl": 88, "release": 89, "numa": 2},
+    "3": {"pool": "90-107", "main": "92-105", "acl": 106, "release": 107, "numa": 2},
+    "4": {"pool": "0-17", "main": "2-15", "acl": 16, "release": 17, "numa": 0},
+    "5": {"pool": "18-35", "main": "20-33", "acl": 34, "release": 35, "numa": 0},
+    "6": {"pool": "36-53", "main": "38-51", "acl": 52, "release": 53, "numa": 1},
+    "7": {"pool": "54-71", "main": "56-69", "acl": 70, "release": 71, "numa": 1}
+  },
+  "bare192": {
+    "0": {"pool": "144-167", "main": "146-165", "acl": 166, "release": 167, "numa": 6},
+    "1": {"pool": "168-191", "main": "170-189", "acl": 190, "release": 191, "numa": 7},
+    "2": {"pool": "96-119", "main": "98-117", "acl": 118, "release": 119, "numa": 4},
+    "3": {"pool": "120-143", "main": "122-141", "acl": 142, "release": 143, "numa": 5},
+    "4": {"pool": "0-23", "main": "2-21", "acl": 22, "release": 23, "numa": 0},
+    "5": {"pool": "24-47", "main": "26-45", "acl": 46, "release": 47, "numa": 1},
+    "6": {"pool": "48-71", "main": "50-69", "acl": 70, "release": 71, "numa": 2},
+    "7": {"pool": "72-95", "main": "74-93", "acl": 94, "release": 95, "numa": 3}
+  }
+}
