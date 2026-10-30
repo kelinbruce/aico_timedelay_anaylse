@@ -1,0 +1,37 @@
+{
+  "source_repository": "kelinbruce/aico_timedelay_anaylse",
+  "source_commit": "5e6479b1e96253db20eaf0d5bfc960d4bb20c85d",
+  "reused_files": [
+    {
+      "destination": "query_copy_capability.py",
+      "source": "xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/query_copy_capability.py",
+      "sha256": "c746fea2fe149936176f8ebcf8bac8b373e86a66710be1eb242a068f0739e4fb",
+      "unmodified": true
+    },
+    {
+      "destination": "performance/run.py",
+      "source": "xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/run.py",
+      "sha256": "9366c860825c88af874e7f3b66cf89c8a893a79d0037dc3c2e71d489fc3e3486",
+      "unmodified": true
+    },
+    {
+      "destination": "performance/bench.py",
+      "source": "xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/bench.py",
+      "sha256": "340aa90e8471b9a4a476b0cf773147813c134556cd8310f9217151168ff75a87",
+      "unmodified": true
+    },
+    {
+      "destination": "performance/probe.c",
+      "source": "xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/probe.c",
+      "sha256": "6c091dd56a39f5eb09f8de87b37200fef66f14372be26b34de141fd3a23068e2",
+      "unmodified": true
+    },
+    {
+      "destination": "performance/placements.json",
+      "source": "xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/placements.json",
+      "sha256": "cd4ed76b6a0b84a143e2b1feec65433dea8fa4ad1ca65d9e70f4ed8530c6bf80",
+      "unmodified": true
+    }
+  ],
+  "note": "New diagnosis code does not change the public HAL capability ABI or patch installed HAL symbols."
+}
