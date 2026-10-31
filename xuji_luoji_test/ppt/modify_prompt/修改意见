@@ -1,0 +1,354 @@
+修改意见：
+03：
+这里没有体现出，修改前是什么样子的，我觉得最好是同时把修改后的144vcpu版本以及修改前的48核版本对比一下，并且指出原来的48核版本为什么慢；现在修改了什么东西；https://github.com/kelinbruce/aico_timedelay_anaylse/commit/1ad6affc913a5a4bfabfefc2ce70da781fd56131#diff-7b009da2da8f3f39521f612362c1a553609ade681e4ad98bab985850049b16c4
+
+04：
+关于核隔离的具体配置：
+1A07-25-11:~ # echo "===== 当前内核隔离 CPU ====="
+===== 当前内核隔离 CPU =====
+1A07-25-11:~ # cat /sys/devices/system/cpu/isolated
+12-47,60-95,108-143,156-191
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "===== NOHZ FULL CPU ====="
+===== NOHZ FULL CPU =====
+1A07-25-11:~ # cat /sys/devices/system/cpu/nohz_full
+12-47,60-95,108-143,156-191
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "===== 当前内核参数 ====="
+===== 当前内核参数 =====
+1A07-25-11:~ # cat /proc/cmdline
+BOOT_IMAGE=/vmlinuz-5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64 root=/dev/cpsVG/rootfs vga=0x317 crashkernel=512M crashkernel_auto_mem=1 crash_kexec_post_notifiers reserve_kbox_mem=16M oops=panic net.ifnames=0 selinux=0 pci=realloc highres=on panic=3 audit=0 smmu.bypassdev=0x1000:0x17 smmu.bypassdev=0x1000:0x15 hpet=enable default_hugepagesz=1G hugepagesz=2M hugepages=0 hugepagesz=1G fsck.mode=auto fsck.repair=preen ext4.speed=0 hugetlb_hwpoison_full console=ttyAMA0,115200 hugetlb_free_vmemmap=on nokaslr=0-4G hkids_enable hugepage_prohibit_sz=34947M isolcpus=managed_irq,domain,nohz,12-47,60-95,108-143,156-191 nohz_full=12-47,60-95,108-143,156-191 rcu_nocbs=12-47,60-95,108-143,156-191 rcu_nocb_poll skew_tick=1 irqaffinity=0-11,48-59,96-107,144-155
+1A07-25-11:~ # 
+
+可以在页面上增加关于这些参数的简单介绍，还有具体的信息内容：
+isolcpus，还同时配置了 nohz_full、`rcu_nocbs`、`irqaffinity` 
+
+关于相关的配置：Tick / RCU的原理解释
+
+05：
+大页内存在虚机环境和宿主机上的查询结果：
+
+1A07-25-11:~ # echo "========== 1. 宿主机 HugePages =========="
+========== 1. 宿主机 HugePages ==========
+1A07-25-11:~ # grep -E 'HugePages|Hugepagesize|Hugetlb' /proc/meminfo
+AnonHugePages:    978944 kB
+ShmemHugePages:    12288 kB
+FileHugePages:         0 kB
+HugePages_Total:     480
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:    1048576 kB
+Hugetlb:        503316480 kB
+umpxml instance-00000b34 | \
+grep -A20 -B5 -E 'memoryBacking|hugepages|page size'
+
+echo "========== 5. 虚机 NUMA 配置 =========="
+virsh dumpxml instance-00000b34 | \
+grep -A20 -B3 -E '<cpu|<numa|<memnode'1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 2. 宿主机 1GB 大页池 =========="
+========== 2. 宿主机 1GB 大页池 ==========
+1A07-25-11:~ # for f in \
+>   /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages \
+>   /sys/kernel/mm/hugepages/hugepages-1048576kB/free_hugepages
+> do
+>     echo "$f: $(cat "$f" 2>/dev/null)"
+> done
+/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages: 480
+/sys/kernel/mm/hugepages/hugepages-1048576kB/free_hugepages: 0
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 3. 宿主机启动参数 =========="
+========== 3. 宿主机启动参数 ==========
+1A07-25-11:~ # cat /proc/cmdline | tr ' ' '\n' | grep -i huge
+default_hugepagesz=1G
+hugepagesz=2M
+hugepages=0
+hugepagesz=1G
+hugetlb_hwpoison_full
+hugetlb_free_vmemmap=on
+hugepage_prohibit_sz=34947M
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 4. 虚机 XML 内存配置 =========="
+========== 4. 虚机 XML 内存配置 ==========
+1A07-25-11:~ # virsh dumpxml instance-00000b34 | \
+> grep -A20 -B5 -E 'memoryBacking|hugepages|page size'
+  <memory unit='KiB'>503316480</memory>
+  <currentMemory unit='KiB'>503316480</currentMemory>
+  <memtune>
+    <min_guarantee unit='KiB'>503316480</min_guarantee>
+  </memtune>
+  <memoryBacking>
+    <hugepages>
+      <page size='1048576' unit='KiB'/>
+    </hugepages>
+  </memoryBacking>
+  <vcpu placement='static'>144</vcpu>
+  <cputune>
+    <shares>147456</shares>
+    <vcpupin vcpu='0' cpuset='12'/>
+    <vcpupin vcpu='1' cpuset='13'/>
+    <vcpupin vcpu='2' cpuset='14'/>
+    <vcpupin vcpu='3' cpuset='15'/>
+    <vcpupin vcpu='4' cpuset='16'/>
+    <vcpupin vcpu='5' cpuset='17'/>
+    <vcpupin vcpu='6' cpuset='18'/>
+    <vcpupin vcpu='7' cpuset='19'/>
+    <vcpupin vcpu='8' cpuset='20'/>
+    <vcpupin vcpu='9' cpuset='21'/>
+    <vcpupin vcpu='10' cpuset='22'/>
+    <vcpupin vcpu='11' cpuset='23'/>
+    <vcpupin vcpu='12' cpuset='24'/>
+    <vcpupin vcpu='13' cpuset='25'/>
+    <vcpupin vcpu='14' cpuset='26'/>
+    <vcpupin vcpu='15' cpuset='27'/>
+    <vcpupin vcpu='16' cpuset='28'/>
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 5. 虚机 NUMA 配置 =========="
+========== 5. 虚机 NUMA 配置 ==========
+1A07-25-11:~ # virsh dumpxml instance-00000b34 | \
+> grep -A20 -B3 -E '<cpu|<numa|<memnode'
+    </hugepages>
+  </memoryBacking>
+  <vcpu placement='static'>144</vcpu>
+  <cputune>
+    <shares>147456</shares>
+    <vcpupin vcpu='0' cpuset='12'/>
+    <vcpupin vcpu='1' cpuset='13'/>
+    <vcpupin vcpu='2' cpuset='14'/>
+    <vcpupin vcpu='3' cpuset='15'/>
+    <vcpupin vcpu='4' cpuset='16'/>
+    <vcpupin vcpu='5' cpuset='17'/>
+    <vcpupin vcpu='6' cpuset='18'/>
+    <vcpupin vcpu='7' cpuset='19'/>
+    <vcpupin vcpu='8' cpuset='20'/>
+    <vcpupin vcpu='9' cpuset='21'/>
+    <vcpupin vcpu='10' cpuset='22'/>
+    <vcpupin vcpu='11' cpuset='23'/>
+    <vcpupin vcpu='12' cpuset='24'/>
+    <vcpupin vcpu='13' cpuset='25'/>
+    <vcpupin vcpu='14' cpuset='26'/>
+    <vcpupin vcpu='15' cpuset='27'/>
+    <vcpupin vcpu='16' cpuset='28'/>
+    <vcpupin vcpu='17' cpuset='29'/>
+    <vcpupin vcpu='18' cpuset='30'/>
+--
+    <vcpupin vcpu='143' cpuset='191'/>
+    <emulatorpin cpuset='0-3,48-51,96-99,144-147'/>
+  </cputune>
+  <numatune>
+    <memory mode='interleave' nodeset='0-3'/>
+    <memnode cellid='0' mode='strict' nodeset='0'/>
+    <memnode cellid='1' mode='strict' nodeset='1'/>
+    <memnode cellid='2' mode='strict' nodeset='2'/>
+    <memnode cellid='3' mode='strict' nodeset='3'/>
+  </numatune>
+  <resource>
+    <partition>/machine</partition>
+  </resource>
+  <os>
+    <type arch='aarch64' machine='virt-6.2'>hvm</type>
+    <loader readonly='yes' type='pflash'>/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw</loader>
+    <nvram template='/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw'>/opt/HUAWEI/image/instances/instance-00000b34_VARS.fd</nvram>
+  </os>
+  <features>
+    <acpi/>
+    <gic version='3'/>
+  </features>
+  <cpu mode='host-passthrough' check='none'>
+    <topology sockets='4' dies='1' clusters='1' cores='36' threads='1'/>
+    <numa>
+      <cell id='0' cpus='0-35' memory='125829120' unit='KiB'/>
+      <cell id='1' cpus='36-71' memory='125829120' unit='KiB'/>
+      <cell id='2' cpus='72-107' memory='125829120' unit='KiB'/>
+      <cell id='3' cpus='108-143' memory='125829120' unit='KiB'/>
+    </numa>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup' track='guest'/>
+    <timer name='hpet' present='no'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-kvm</emulator>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x694a4f9100190f1909e3a40400000068'/>
+      <backingStore/>
+1A07-25-11:~ # 
+1A07-25-11:~ # 
+1A07-25-11:~ # 
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== QEMU 进程 =========="
+========== QEMU 进程 ==========
+1A07-25-11:~ # pgrep -af 'instance-00000b34'
+1602071 /usr/bin/qemu-kvm -name guest=instance-00000b34,debug-threads=on -S -object {"qom-type":"secret","id":"masterKey0","format":"raw","file":"/run/libvirt/qemu/domain-11-instance-00000b34/master-key.aes"} -machine virt-6.2,usb=off,dump-guest-core=off,gic-version=3 -accel kvm -cpu host -drive file=/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw,if=pflash,format=raw,unit=0,readonly=on -drive file=/opt/HUAWEI/image/instances/instance-00000b34_VARS.fd,if=pflash,format=raw,unit=1 -m 491520 -overcommit min_guarantee=491520,mem-lock=off -smp 144,sockets=4,dies=1,clusters=1,cores=36,threads=1 -object {"qom-type":"memory-backend-file","id":"ram-node0","prealloc":true,"mem-path":"/dev/hugepages/libvirt/qemu/11-instance-00000b34","size":128849018880,"host-nodes":[0],"policy":"bind"} -numa node,nodeid=0,cpus=0-35,memdev=ram-node0 -object {"qom-type":"memory-backend-file","id":"ram-node1","prealloc":true,"mem-path":"/dev/hugepages/libvirt/qemu/11-instance-00000b34","size":128849018880,"host-nodes":[1],"policy":"bind"} -numa node,nodeid=1,cpus=36-71,memdev=ram-node1 -object {"qom-type":"memory-backend-file","id":"ram-node2","prealloc":true,"mem-path":"/dev/hugepages/libvirt/qemu/11-instance-00000b34","size":128849018880,"host-nodes":[2],"policy":"bind"} -numa node,nodeid=2,cpus=72-107,memdev=ram-node2 -object {"qom-type":"memory-backend-file","id":"ram-node3","prealloc":true,"mem-path":"/dev/hugepages/libvirt/qemu/11-instance-00000b34","size":128849018880,"host-nodes":[3],"policy":"bind"} -numa node,nodeid=3,cpus=108-143,memdev=ram-node3 -uuid 78dfcf50-a8ee-4926-bad6-cf639ce01681 -no-user-config -nodefaults -chardev socket,id=charmonitor,fd=44,server=on,wait=off -mon chardev=charmonitor,id=monitor,mode=control -rtc base=utc,clock=vm,driftfix=slew -no-shutdown -boot strict=on -device pcie-root-port,port=0x8,chassis=1,id=pci.1,bus=pcie.0,multifunction=on,addr=0x1 -device pcie-pci-bridge,id=pci.2,bus=pci.1,addr=0x0 -device pcie-root-port,port=0x9,chassis=3,id=pci.3,bus=pcie.0,addr=0x1.0x1 -device pcie-root-port,port=0xa,chassis=4,id=pci.4,bus=pcie.0,addr=0x1.0x2 -device pcie-root-port,port=0xb,chassis=5,id=pci.5,bus=pcie.0,addr=0x1.0x3 -device pcie-root-port,port=0xc,chassis=6,id=pci.6,bus=pcie.0,addr=0x1.0x4 -device pcie-root-port,port=0xd,chassis=7,id=pci.7,bus=pcie.0,addr=0x1.0x5 -device pcie-root-port,port=0xe,chassis=8,id=pci.8,bus=pcie.0,addr=0x1.0x6 -device pcie-root-port,port=0xf,chassis=9,id=pci.9,bus=pcie.0,addr=0x1.0x7 -device pcie-root-port,port=0x10,chassis=10,id=pci.10,bus=pcie.0,multifunction=on,addr=0x2 -device pcie-root-port,port=0x11,chassis=11,id=pci.11,bus=pcie.0,addr=0x2.0x1 -device pcie-root-port,port=0x12,chassis=12,id=pci.12,bus=pcie.0,addr=0x2.0x2 -device pcie-root-port,port=0x13,chassis=13,id=pci.13,bus=pcie.0,addr=0x2.0x3 -device pcie-root-port,port=0x14,chassis=14,id=pci.14,bus=pcie.0,addr=0x2.0x4 -device pcie-root-port,port=0x15,chassis=15,id=pci.15,bus=pcie.0,addr=0x2.0x5 -device pcie-root-port,port=0x16,chassis=16,id=pci.16,bus=pcie.0,addr=0x2.0x6 -device pcie-root-port,port=0x17,chassis=17,id=pci.17,bus=pcie.0,addr=0x2.0x7 -device pcie-root-port,port=0x18,chassis=18,id=pci.18,bus=pcie.0,multifunction=on,addr=0x3 -device pcie-root-port,port=0x19,chassis=19,id=pci.19,bus=pcie.0,addr=0x3.0x1 -device pcie-root-port,port=0x1a,chassis=20,id=pci.20,bus=pcie.0,addr=0x3.0x2 -device pcie-root-port,port=0x1b,chassis=21,id=pci.21,bus=pcie.0,addr=0x3.0x3 -device pcie-root-port,port=0x1c,chassis=22,id=pci.22,bus=pcie.0,addr=0x3.0x4 -device pcie-root-port,port=0x1d,chassis=23,id=pci.23,bus=pcie.0,addr=0x3.0x5 -device pcie-root-port,port=0x1e,chassis=24,id=pci.24,bus=pcie.0,addr=0x3.0x6 -device pcie-root-port,port=0x1f,chassis=25,id=pci.25,bus=pcie.0,addr=0x3.0x7 -device pcie-root-port,port=0x20,chassis=26,id=pci.26,bus=pcie.0,multifunction=on,addr=0x4 -device pcie-root-port,port=0x21,chassis=27,id=pci.27,bus=pcie.0,addr=0x4.0x1 -device pcie-root-port,port=0x22,chassis=28,id=pci.28,bus=pcie.0,addr=0x4.0x2 -device pcie-root-port,port=0x23,chassis=29,id=pci.29,bus=pcie.0,addr=0x4.0x3 -device pcie-root-port,port=0x24,chassis=30,id=pci.30,bus=pcie.0,addr=0x4.0x4 -device piix3-usb-uhci,id=usb,bus=pci.2,addr=0x5 -device usb-ehci,id=usb1,bus=pci.2,addr=0x6 -device nec-usb-xhci,id=usb2,bus=pci.2,addr=0x7 -device virtio-scsi-pci,id=scsi0,bus=pci.5,addr=0x0 -device virtio-scsi-pci,id=scsi1,bus=pci.6,addr=0x0 -device virtio-scsi-pci,id=scsi2,bus=pci.7,addr=0x0 -device virtio-scsi-pci,id=scsi3,bus=pci.8,addr=0x0 -device ahci,id=sata0,bus=pci.2,addr=0x4 -device virtio-serial-pci,id=virtio-serial0,bus=pci.2,addr=0x3 -drive file=/dev/disk/by-id/wwn-0x694a4f9100190f1909e3a40400000068,format=raw,if=none,id=drive-scsi0-0-0-0,cache=none,aio=native -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=0,lun=0,drive=drive-scsi0-0-0-0,id=scsi0-0-0-0,bootindex=1,write-cache=on,serial=5cfdc876-5160-4120-acad-9a31460af667 -drive file=/dev/disk/by-id/wwn-0x694a4f9100190f1909e3b4000000006b,format=raw,if=none,id=drive-scsi0-0-1-0,cache=none,aio=native -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=1,lun=0,drive=drive-scsi0-0-1-0,id=scsi0-0-1-0,write-cache=on,serial=bc678ad8-8ff0-4ca1-af46-efc2c5028734 -drive file=/dev/disk/by-id/wwn-0x694a4f9100190f1909e3b9920000006d,format=raw,if=none,id=drive-scsi0-0-2-0,cache=none,aio=native -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=2,lun=0,drive=drive-scsi0-0-2-0,id=scsi0-0-2-0,write-cache=on,serial=f1c6648c-8538-42f2-9dc3-6313fbcb5f3c -drive file=/dev/disk/by-id/wwn-0x694a4f9100190f1909e3beeb0000006f,format=raw,if=none,id=drive-scsi0-0-3-0,cache=none,aio=native -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=3,lun=0,drive=drive-scsi0-0-3-0,id=scsi0-0-3-0,write-cache=on,serial=78b3f3b4-f1d3-45e1-9e7c-2d189150c793 -drive file=/dev/disk/by-id/wwn-0x694a4f9100190f1909e578c30000009c,format=raw,if=none,id=drive-scsi0-0-4-0,cache=none,aio=native -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=4,lun=0,share-rw=on,drive=drive-scsi0-0-4-0,id=scsi0-0-4-0,write-cache=on,serial=8896997f-9397-432a-afa3-05b3241c8dfd -drive file=/dev/disk/by-id/wwn-0x694a4f9100190f1909e57cf1000000b1,format=raw,if=none,id=drive-scsi0-0-5-0,cache=none,aio=native -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=5,lun=0,share-rw=on,drive=drive-scsi0-0-5-0,id=scsi0-0-5-0,write-cache=on,serial=52776cbe-7684-4cd6-97d3-8339467b19fb -drive file=/dev/disk/by-id/wwn-0x694a4f9100190f190a00e3f9000000d6,format=raw,if=none,id=drive-scsi0-0-6-0,cache=none,aio=native -device scsi-hd,bus=scsi0.0,channel=0,scsi-id=6,lun=0,share-rw=on,drive=drive-scsi0-0-6-0,id=scsi0-0-6-0,write-cache=on,serial=6798a955-4095-490b-9d28-67a48eaa0607 -drive file=/opt/HUAWEI/image/instances/78dfcf50-a8ee-4926-bad6-cf639ce01681/disk.config,format=raw,if=none,id=drive-scsi3-0-14-0,cache=none -device scsi-hd,bus=scsi3.0,channel=0,scsi-id=14,lun=0,drive=drive-scsi3-0-14-0,id=scsi3-0-14-0,write-cache=on -drive if=none,id=drive-sata0-0-1,readonly=on -device ide-cd,bus=sata0.1,drive=drive-sata0-0-1,id=sata0-0-1,bootindex=2,write-cache=on -netdev tap,fd=46,id=hostnet0,vhost=on,vhostfd=47 -device virtio-net-pci,rx_queue_size=4096,tx_queue_size=4096,netdev=hostnet0,id=net0,mac=fa:16:3e:10:f4:3d,bus=pci.3,addr=0x0,bootindex=3 -netdev tap,fd=48,id=hostnet1,vhost=on,vhostfd=49 -device virtio-net-pci,rx_queue_size=4096,tx_queue_size=4096,netdev=hostnet1,id=net1,mac=fa:16:3e:76:4e:10,bus=pci.4,addr=0x0,bootindex=4 -add-fd set=5,fd=51 -chardev pty,id=charserial0,logfile=/dev/fdset/5,logappend=on -serial chardev:charserial0 -chardev socket,id=charchannel0,fd=50,server=on,wait=off -device virtserialport,bus=virtio-serial0.0,nr=1,chardev=charchannel0,id=channel0,name=org.qemu.guest_agent.1 -chardev socket,id=charchannel1,fd=52,server=on,wait=off -device virtserialport,bus=virtio-serial0.0,nr=2,chardev=charchannel1,id=channel1,name=org.qemu.guest_agent.0 -chardev socket,id=charchannel2,fd=53,server=on,wait=off -device virtserialport,bus=virtio-serial0.0,nr=3,chardev=charchannel2,id=channel2,name=org.qemu.guest_agent.2 -chardev socket,id=charchannel3,fd=54,server=on,wait=off -device virtserialport,bus=virtio-serial0.0,nr=4,chardev=charchannel3,id=channel3,name=org.qemu.guest_agent.3 -device usb-tablet,id=input0,bus=usb1.0,port=2 -device usb-kbd,id=input1,bus=usb1.0,port=1 -object {"qom-type":"tls-creds-x509","id":"vnc-tls-creds0","dir":"/etc/pki/libvirt-vnc","endpoint":"server","verify-peer":false} -vnc 172.28.0.8:0,tls-creds=vnc-tls-creds0 -k en-us -device virtio-gpu-pci,id=video0,max_outputs=1,bus=pci.2,addr=0x2 -device i6300esb,id=watchdog0,bus=pci.2,addr=0x8,startmode=auto,pretimeout=240,timeout=480 -watchdog-action reset -device vfio-pci,host=0000:42:00.0,id=hostdev0,bus=pci.12,addr=0x0 -device vfio-pci,host=0000:41:00.0,id=hostdev1,bus=pci.11,addr=0x0 -device vfio-pci,host=0000:02:00.0,id=hostdev2,bus=pci.10,addr=0x0 -device vfio-pci,host=0000:01:00.0,id=hostdev3,bus=pci.9,addr=0x0 -device vfio-pci,host=0000:82:00.0,id=hostdev4,bus=pci.14,addr=0x0 -device vfio-pci,host=0000:81:00.0,id=hostdev5,bus=pci.13,addr=0x0 -device vfio-pci,host=0000:c2:00.0,id=hostdev6,bus=pci.16,addr=0x0 -device vfio-pci,host=0000:c1:00.0,id=hostdev7,bus=pci.15,addr=0x0 -device virtio-balloon-pci,id=balloon0,bus=pci.2,addr=0x1 -NetInterruptAutobind -device pv_channel,bus=pci.2,addr=0x1f -extend_pcie_mmio -sandbox off -msg timestamp=on
+1A07-25-11:~ # 
+1A07-25-11:~ # 
+1A07-25-11:~ # 
+1A07-25-11:~ # PID=12345
+/proc/$PID/smaps | sort | uniq -c
+
+echo "========== QEMU NUMA 内存映射 =========="
+grep -E 'huge|kernelpagesize_kB=1048576' /proc/$PID/numa_maps | head -301A07-25-11:~ # 
+1A07-25-11:~ # echo "========== QEMU 内存统计 =========="
+========== QEMU 内存统计 ==========
+1A07-25-11:~ # grep -E '^(Name|VmSize|VmRSS|HugetlbPages):' /proc/$PID/status
+grep: /proc/12345/status: No such file or directory
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== QEMU HugePages 映射 =========="
+========== QEMU HugePages 映射 ==========
+1A07-25-11:~ # grep -E '^(Size|KernelPageSize|MMUPageSize|Shared_Hugetlb|Private_Hugetlb):' \
+>     /proc/$PID/smaps | sort | uniq -c
+grep: /proc/12345/smaps: No such file or directory
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== QEMU NUMA 内存映射 =========="
+========== QEMU NUMA 内存映射 ==========
+1A07-25-11:~ # grep -E 'huge|kernelpagesize_kB=1048576' /proc/$PID/numa_maps | head -30
+grep: /proc/12345/numa_maps: No such file or directory
+1A07-25-11:~ # 
+1A07-25-11:~ # 
+1A07-25-11:~ # 
+1A07-25-11:~ # PID=1602071
+ /proc/$PID/maps
+
+echo "========== 3. QEMU NUMA 内存分布 =========="
+grep -E 'huge|kernelpagesize_kB=1048576' \
+    /proc/$PID/numa_maps | head -30
+
+echo "========== 4. HugePages 文件信息 =========="
+ls -lh /dev/hugepages/libvirt/qemu/11-instance-00000b34
+
+echo "========== 5. HugePages 文件系统 =========="
+findmnt /dev/hugepages1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 1. QEMU 基本内存信息 =========="
+========== 1. QEMU 基本内存信息 ==========
+1A07-25-11:~ # grep -E '^(Name|VmSize|VmRSS|HugetlbPages):' /proc/$PID/status
+Name:	qemu-kvm
+VmSize:	1060712600 kB
+VmRSS:	  459472 kB
+HugetlbPages:	503316480 kB
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 2. QEMU HugeTLB 映射 =========="
+========== 2. QEMU HugeTLB 映射 ==========
+1A07-25-11:~ # grep -B20 -A20 '/dev/hugepages/libvirt/qemu/11-instance-00000b34' \
+>     /proc/$PID/maps
+4fffb3a00000-4fffb7a00000 rw-p 00000000 00:00 0 
+4fffb7a00000-4fffb7a01000 ---p 00000000 00:00 0 
+4fffb7c00000-4fffbbc00000 rw-p 00000000 00:00 0 
+4fffbbc00000-4fffbbc01000 ---p 00000000 00:00 0 
+5f8680000000-5fa480000000 rw-s 00000000 00:34 198167                     /dev/hugepages/libvirt/qemu/11-instance-00000b34/qemu_back_mem.ram-node3.2mtt5q (deleted)
+5fa480000000-5fa480001000 ---p 00000000 00:00 0 
+5fa4c0000000-5fc2c0000000 rw-s 00000000 00:34 13413                      /dev/hugepages/libvirt/qemu/11-instance-00000b34/qemu_back_mem.ram-node2.w6avOI (deleted)
+5fc2c0000000-5fc2c0001000 ---p 00000000 00:00 0 
+5fc300000000-5fe100000000 rw-s 00000000 00:34 13412                      /dev/hugepages/libvirt/qemu/11-instance-00000b34/qemu_back_mem.ram-node1.KxkiVg (deleted)
+5fe100000000-5fe100001000 ---p 00000000 00:00 0 
+5fe140000000-5fff40000000 rw-s 00000000 00:34 5944881                    /dev/hugepages/libvirt/qemu/11-instance-00000b34/qemu_back_mem.ram-node0.Aw1IRz (deleted)
+5fff40000000-5fff40001000 ---p 00000000 00:00 0 
+aaaac8f90000-aaaac9e25000 r-xp 00000000 fd:00 11544                      /usr/bin/qemu-kvm-6.2.0.oe2203sp1-2.12.0.5.414
+aaaac9e42000-aaaac9fd0000 r--p 00ea2000 fd:00 11544                      /usr/bin/qemu-kvm-6.2.0.oe2203sp1-2.12.0.5.414
+aaaac9fd0000-aaaaca106000 rw-p 01030000 fd:00 11544                      /usr/bin/qemu-kvm-6.2.0.oe2203sp1-2.12.0.5.414
+aaaaca106000-aaaaca13d000 rw-p 00000000 00:00 0 
+aaaadc9af000-aaaae4d20000 rw-p 00000000 00:00 0                          [heap]
+ff7ad4000000-ff7ad4021000 rw-p 00000000 00:00 0 
+ff7ad4021000-ff7ad8000000 ---p 00000000 00:00 0 
+ff7ad8000000-ff7ad8021000 rw-p 00000000 00:00 0 
+ff7ad8021000-ff7adc000000 ---p 00000000 00:00 0 
+ff7adc7b8000-ff7adc7b9000 ---p 00000000 00:00 0 
+ff7adc7b9000-ff7adc8b9000 rw-p 00000000 00:00 0 
+ff7adc8b9000-ff7adc8ba000 ---p 00000000 00:00 0 
+ff7adc8ba000-ff7adc9ba000 rw-p 00000000 00:00 0 
+ff7adc9ba000-ff7adc9bb000 ---p 00000000 00:00 0 
+ff7adc9bb000-ff7adcabb000 rw-p 00000000 00:00 0 
+ff7adcabb000-ff7adcabc000 ---p 00000000 00:00 0 
+ff7adcabc000-ff7adcbbc000 rw-p 00000000 00:00 0 
+ff7adcbbc000-ff7adcbbd000 ---p 00000000 00:00 0 
+ff7adcbbd000-ff7adccbd000 rw-p 00000000 00:00 0 
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 3. QEMU NUMA 内存分布 =========="
+========== 3. QEMU NUMA 内存分布 ==========
+1A07-25-11:~ # grep -E 'huge|kernelpagesize_kB=1048576' \
+>     /proc/$PID/numa_maps | head -30
+5f8680000000 bind:3 file=/dev/hugepages/libvirt/qemu/11-instance-00000b34/qemu_back_mem.ram-node3.2mtt5q\040(deleted) huge dirty=120 N3=120 kernelpagesize_kB=1048576
+5fa4c0000000 bind:2 file=/dev/hugepages/libvirt/qemu/11-instance-00000b34/qemu_back_mem.ram-node2.w6avOI\040(deleted) huge dirty=120 N2=120 kernelpagesize_kB=1048576
+5fc300000000 bind:1 file=/dev/hugepages/libvirt/qemu/11-instance-00000b34/qemu_back_mem.ram-node1.KxkiVg\040(deleted) huge dirty=120 N1=120 kernelpagesize_kB=1048576
+5fe140000000 bind:0 file=/dev/hugepages/libvirt/qemu/11-instance-00000b34/qemu_back_mem.ram-node0.Aw1IRz\040(deleted) huge dirty=120 N0=120 kernelpagesize_kB=1048576
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 4. HugePages 文件信息 =========="
+========== 4. HugePages 文件信息 ==========
+1A07-25-11:~ # ls -lh /dev/hugepages/libvirt/qemu/11-instance-00000b34
+total 0
+1A07-25-11:~ # 
+1A07-25-11:~ # echo "========== 5. HugePages 文件系统 =========="
+========== 5. HugePages 文件系统 ==========
+1A07-25-11:~ # findmnt /dev/hugepages
+TARGET         SOURCE    FSTYPE    OPTIONS
+/dev/hugepages hugetlbfs hugetlbfs rw,relatime,pagesize=1024M
+/dev/hugepages nodev     hugetlbfs rw,relatime,pagesize=1024M
+1A07-25-11:~ # 
+
+
+虚机环境：
+[root@vnf-mae-1-node22-1792137068 ~]# 
+[root@vnf-mae-1-node22-1792137068 ~]# echo "========== HugePages 总体信息 =========="
+========== HugePages 总体信息 ==========
+[root@vnf-mae-1-node22-1792137068 ~]# grep -E 'HugePages|Hugepagesize|Hugetlb' /proc/meminfo
+hugepages free_hugepages resv_hugepages surplus_hugepages; do
+        [ -f "$d/$f" ] && echo "$f: $(cat "$d/$f")"
+    done
+doneAnonHugePages:  20750336 kB
+ShmemHugePages:        0 kB
+FileHugePages:    755712 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+[root@vnf-mae-1-node22-1792137068 ~]# 
+[root@vnf-mae-1-node22-1792137068 ~]# echo "========== 1GB HugePages 详细信息 =========="
+========== 1GB HugePages 详细信息 ==========
+[root@vnf-mae-1-node22-1792137068 ~]# for d in /sys/kernel/mm/hugepages/hugepages-*; do
+>     echo "===== $d ====="
+>     for f in nr_hugepages free_hugepages resv_hugepages surplus_hugepages; do
+>         [ -f "$d/$f" ] && echo "$f: $(cat "$d/$f")"
+>     done
+> done
+===== /sys/kernel/mm/hugepages/hugepages-1048576kB =====
+nr_hugepages: 0
+free_hugepages: 0
+resv_hugepages: 0
+surplus_hugepages: 0
+===== /sys/kernel/mm/hugepages/hugepages-2048kB =====
+nr_hugepages: 0
+free_hugepages: 0
+resv_hugepages: 0
+surplus_hugepages: 0
+===== /sys/kernel/mm/hugepages/hugepages-32768kB =====
+nr_hugepages: 0
+free_hugepages: 0
+resv_hugepages: 0
+surplus_hugepages: 0
+===== /sys/kernel/mm/hugepages/hugepages-64kB =====
+nr_hugepages: 0
+free_hugepages: 0
+resv_hugepages: 0
+surplus_hugepages: 0
+[root@vnf-mae-1-node22-1792137068 ~]# 
+[root@vnf-mae-1-node22-1792137068 ~]# 
+
+
+
+
+
+增加的内容：
+1、profiling的
+
+讲解顺序：
+03：
+1、实际的物理机的分布
+2、在vllm-ascend上关于杜宇cpu binding的原理说明
+3、关于cpu bind的patch内容，为什么要加这个的原因
+4、从64核到144核的性能提升不大
