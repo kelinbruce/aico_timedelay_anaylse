@@ -1,0 +1,81 @@
+1A07-25-11:/tmp/test/10.29/safe_version # sudo python3 ./sample_host_kvm.py \
+>   --vm instance-00000b34 \
+>   --label idle \
+>   --seconds 30 \
+>   --out /tmp/kvm_idle
+OUTPUT_DIR=/tmp/kvm_idle
+VM=instance-00000b34 PID=1602071 KVM_DIR=/sys/kernel/debug/kvm/1602071-25
+label=idle duration=30.0s
+{
+  "status": "ok",
+  "actual_seconds": 30.001268690015422,
+  "totals": {
+    "exits": {
+      "status": "ok",
+      "delta": 4249076,
+      "rate_per_s": 141629.8771862976
+    },
+    "mmio_exit_kernel": {
+      "status": "ok",
+      "delta": 3130,
+      "rate_per_s": 104.32892129797432
+    },
+    "mmio_exit_user": {
+      "status": "ok",
+      "delta": 3014,
+      "rate_per_s": 100.46241814443917
+    },
+    "wfi_exit_stat": {
+      "status": "ok",
+      "delta": 4094986,
+      "rate_per_s": 136493.76105760597
+    },
+    "wfe_exit_stat": {
+      "status": "ok",
+      "delta": 0,
+      "rate_per_s": 0.0
+    }
+  }
+}
+OUTPUT_DIR=/tmp/kvm_idle
+1A07-25-11:/tmp/test/10.29/safe_version # sudo python3 ./sample_host_kvm.py \
+>   --vm instance-00000b34 \
+>   --label workload \
+>   --seconds 30 \
+>   --out /tmp/kvm_workload
+OUTPUT_DIR=/tmp/kvm_workload
+VM=instance-00000b34 PID=1602071 KVM_DIR=/sys/kernel/debug/kvm/1602071-25
+label=workload duration=30.0s
+{
+  "status": "ok",
+  "actual_seconds": 30.001268619991606,
+  "totals": {
+    "exits": {
+      "status": "ok",
+      "delta": 10608183,
+      "rate_per_s": 353591.14757337776
+    },
+    "mmio_exit_kernel": {
+      "status": "ok",
+      "delta": 3965,
+      "rate_per_s": 132.16107792714766
+    },
+    "mmio_exit_user": {
+      "status": "ok",
+      "delta": 3145,
+      "rate_per_s": 104.82890039870854
+    },
+    "wfi_exit_stat": {
+      "status": "ok",
+      "delta": 6447519,
+      "rate_per_s": 214908.21210485877
+    },
+    "wfe_exit_stat": {
+      "status": "ok",
+      "delta": 0,
+      "rate_per_s": 0.0
+    }
+  }
+}
+OUTPUT_DIR=/tmp/kvm_workload
+1A07-25-11:/tmp/test/10.29/safe_version # 

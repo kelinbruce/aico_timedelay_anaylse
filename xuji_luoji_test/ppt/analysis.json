@@ -1,0 +1,1325 @@
+{
+  "date": "2026-10-30",
+  "business": {
+    "source": "xuji_luoji_test/test_result/虚机对比测试.xlsx",
+    "sha256": "d82035bda8fe3ee066d7dadc05f54863aea9fd02a9e9c70925b6f372ea979ca9",
+    "rows": [
+      {
+        "source_sheet": "030",
+        "source_row": 40,
+        "configuration": "裸机",
+        "ttft_ms": 1624.181,
+        "increment_ms": 25.33,
+        "e2e_ms": 7987.733,
+        "prefill_tokens": 27633.264,
+        "decode_tokens": 251.184,
+        "speculative_accept_length": 4.923,
+        "accept_rate_raw": 0.5604,
+        "increment_formula": 25.33,
+        "ttft_ms_gap_pct": 0.0,
+        "increment_ms_gap_pct": 0.0,
+        "e2e_ms_gap_pct": 0.0,
+        "increment_recomputed": 25.334225109879608
+      },
+      {
+        "source_sheet": "030",
+        "source_row": 43,
+        "configuration": "初始虚机",
+        "ttft_ms": 2295.394,
+        "increment_ms": 35.51,
+        "e2e_ms": 11275.85,
+        "prefill_tokens": 27633.264,
+        "decode_tokens": 252.885,
+        "speculative_accept_length": 4.952,
+        "accept_rate_raw": 56.46,
+        "increment_formula": 35.51,
+        "ttft_ms_gap_pct": 41.32624381149637,
+        "increment_ms_gap_pct": 40.18949861823924,
+        "e2e_ms_gap_pct": 41.16458324282996,
+        "increment_recomputed": 35.51201534294245
+      },
+      {
+        "source_sheet": "030",
+        "source_row": 46,
+        "configuration": "重配NUMA",
+        "ttft_ms": 2233.423,
+        "increment_ms": 37.373,
+        "e2e_ms": 11478.326,
+        "prefill_tokens": 27633.264,
+        "decode_tokens": 247.362,
+        "speculative_accept_length": 5.037,
+        "accept_rate_raw": 0.5768,
+        "increment_formula": 37.373,
+        "ttft_ms_gap_pct": 37.51072078789246,
+        "increment_ms_gap_pct": 47.544413738649816,
+        "e2e_ms_gap_pct": 43.699420098293196,
+        "increment_recomputed": 37.37398226081613
+      },
+      {
+        "source_sheet": "030",
+        "source_row": 49,
+        "configuration": "增加绑定patch",
+        "ttft_ms": 1980.275,
+        "increment_ms": 33.127,
+        "e2e_ms": 10336.142,
+        "prefill_tokens": 27633.264,
+        "decode_tokens": 252.236,
+        "speculative_accept_length": 4.825,
+        "accept_rate_raw": 0.5464,
+        "increment_formula": 33.127,
+        "ttft_ms_gap_pct": 21.924526884626783,
+        "increment_ms_gap_pct": 30.781681800236882,
+        "e2e_ms_gap_pct": 29.40019402250926,
+        "increment_recomputed": 33.127178515358636
+      },
+      {
+        "source_sheet": "030",
+        "source_row": 52,
+        "configuration": "手动NUMA迁移",
+        "ttft_ms": 1924.31,
+        "increment_ms": 32.076,
+        "e2e_ms": 9995.584,
+        "prefill_tokens": 27633.264,
+        "decode_tokens": 251.615,
+        "speculative_accept_length": 5.097,
+        "accept_rate_raw": 0.5853,
+        "increment_formula": 32.076,
+        "ttft_ms_gap_pct": 18.478790233354523,
+        "increment_ms_gap_pct": 26.63245163837349,
+        "e2e_ms_gap_pct": 25.136681458932088,
+        "increment_recomputed": 32.07787294080242
+      },
+      {
+        "source_sheet": "030",
+        "source_row": 57,
+        "configuration": "idle=poll",
+        "ttft_ms": 1874.629,
+        "increment_ms": 30.352437937318076,
+        "e2e_ms": 9570.004,
+        "prefill_tokens": 27633.264,
+        "decode_tokens": 253.534,
+        "speculative_accept_length": 4.892,
+        "accept_rate_raw": 0.556,
+        "increment_formula": "=(E57-C57)/G57",
+        "ttft_ms_gap_pct": 15.41995627334638,
+        "increment_ms_gap_pct": 19.828021860710933,
+        "e2e_ms_gap_pct": 19.808761760063852,
+        "increment_recomputed": 30.352437937318076
+      },
+      {
+        "source_sheet": "030",
+        "source_row": 60,
+        "configuration": "增加1GB大页",
+        "ttft_ms": 1708.883,
+        "increment_ms": 31.511252340557498,
+        "e2e_ms": 9736.28,
+        "prefill_tokens": 27633.264,
+        "decode_tokens": 254.747,
+        "speculative_accept_length": 4.801,
+        "accept_rate_raw": 0.5431,
+        "increment_formula": "=(E60-C60)/G60",
+        "ttft_ms_gap_pct": 5.21505915904692,
+        "increment_ms_gap_pct": 24.40289119841097,
+        "e2e_ms_gap_pct": 21.89040369777007,
+        "increment_recomputed": 31.511252340557498
+      },
+      {
+        "source_sheet": "030",
+        "source_row": 63,
+        "configuration": "增加核隔离",
+        "ttft_ms": 1794.534,
+        "increment_ms": 29.722420568267935,
+        "e2e_ms": 9403.652,
+        "prefill_tokens": 27633.264,
+        "decode_tokens": 256.006,
+        "speculative_accept_length": 5.097,
+        "accept_rate_raw": 0.5853,
+        "increment_formula": "=(E63-C63)/G63",
+        "ttft_ms_gap_pct": 10.488547766535872,
+        "increment_ms_gap_pct": 17.34078392525833,
+        "e2e_ms_gap_pct": 17.726168363414253,
+        "increment_recomputed": 29.722420568267935
+      }
+    ],
+    "latest_gap_ms": 1415.9189999999999,
+    "latest_vm_reduction_to_bare_pct": 15.057118234490174,
+    "vm_total_improvement_pct": 16.60360859713459,
+    "original_excess_removed_pct": 56.93830237792634,
+    "output_token_difference_pct": 1.9197082616727146,
+    "first_token_delta_ms": 170.35300000000007,
+    "after_first_token_delta_ms": 1245.5660000000007,
+    "notes": [
+      "Single recorded aggregate per configuration; no run-to-run confidence interval.",
+      "D57/D60/D63 are derived ratios, not independently measured per-request TPOT.",
+      "I28/I43 use 56.46 while other rows use fractional rates; original data retained.",
+      "The agent E2E tab changes thinking behavior and has only-DS placement labels; do not use 92/33.69 as virtualization ratio."
+    ],
+    "e2e_reduction_ms": 1872.1980000000003,
+    "hugepage_ttft_change_pct": -8.841536111945347,
+    "hugepage_e2e_change_pct": 1.7374705381523414,
+    "isolation_e2e_change_pct": -3.416376685962197,
+    "poll_e2e_change_pct": -4.257680191572599,
+    "first_token_share_of_gap_pct": 12.031267325320169
+  },
+  "level2": {
+    "bare": {
+      "baseline": {
+        "submit_us_per_op": {
+          "count": 20,
+          "mean": 15.038201171875,
+          "p50": 15.00578125,
+          "p95": 15.346609375,
+          "min": 14.6562109375,
+          "max": 15.6302734375
+        },
+        "drain_us_per_op": {
+          "count": 20,
+          "mean": 0.247896484375,
+          "p50": 0.25128906250000005,
+          "p95": 0.28425000000000006,
+          "min": 0.190546875,
+          "max": 0.3197265625
+        },
+        "total_us_per_op": {
+          "count": 20,
+          "mean": 15.3174140625,
+          "p50": 15.28404296875,
+          "p95": 15.682498046874999,
+          "min": 14.9032421875,
+          "max": 15.9221875
+        },
+        "main_cpu_us_per_op": {
+          "count": 20,
+          "mean": 15.281427734375,
+          "p50": 15.2651953125,
+          "p95": 15.66346484375,
+          "min": 14.85015625,
+          "max": 15.8606640625
+        },
+        "process_cpu_us_per_op": {
+          "count": 20,
+          "mean": 15.744357421875,
+          "p50": 15.7167578125,
+          "p95": 16.12355859375,
+          "min": 15.3046875,
+          "max": 16.3240234375
+        },
+        "submit_main_cpu_us_per_op": {
+          "count": 20,
+          "mean": 15.009962890625,
+          "p50": 14.97296875,
+          "p95": 15.333396484375001,
+          "min": 14.608515625,
+          "max": 15.573828125
+        },
+        "submit_process_cpu_us_per_op": {
+          "count": 20,
+          "mean": 15.431515625,
+          "p50": 15.415742187500001,
+          "p95": 15.760806640625,
+          "min": 15.035703125,
+          "max": 15.9965625
+        }
+      },
+      "part_stats": {
+        "aclnn_us": {
+          "count": 128,
+          "mean": 13.482109375,
+          "p50": 12.475000000000001,
+          "p95": 15.403,
+          "min": 10.97,
+          "max": 103.08
+        },
+        "hostargs_us": {
+          "count": 128,
+          "mean": 8.596640625,
+          "p50": 7.89,
+          "p95": 9.839499999999997,
+          "min": 6.83,
+          "max": 63.24
+        },
+        "aclnn_other_us": {
+          "count": 128,
+          "mean": 4.88546875,
+          "p50": 4.545,
+          "p95": 5.358,
+          "min": 4.05,
+          "max": 39.84
+        },
+        "acl_shell_us": {
+          "count": 128,
+          "mean": 3.556171875,
+          "p50": 3.375,
+          "p95": 3.8784999999999994,
+          "min": 2.9,
+          "max": 13.57
+        },
+        "runtime_us": {
+          "count": 128,
+          "mean": 5.04046875,
+          "p50": 4.465,
+          "p95": 5.788999999999999,
+          "min": 3.82,
+          "max": 49.67
+        },
+        "acl_before_runtime_us": {
+          "count": 128,
+          "mean": 2.624765625,
+          "p50": 2.48,
+          "p95": 2.7924999999999995,
+          "min": 2.12,
+          "max": 12.51
+        },
+        "acl_after_runtime_us": {
+          "count": 128,
+          "mean": 0.93140625,
+          "p50": 0.89,
+          "p95": 1.1294999999999997,
+          "min": 0.73,
+          "max": 3.65
+        }
+      },
+      "kernel": {
+        "count": 128,
+        "mean": 0.915018798828125,
+        "p50": 0.90003125,
+        "p95": 1.0330109374999998,
+        "min": 0.8,
+        "max": 1.12003125
+      },
+      "launch_count": 128,
+      "kernel_count": 128,
+      "config": {
+        "repeats": 20,
+        "batch_sizes": [
+          256
+        ],
+        "warmup": 200,
+        "torch_num_threads": 10,
+        "profile_ops": 128
+      }
+    },
+    "vm": {
+      "baseline": {
+        "submit_us_per_op": {
+          "count": 20,
+          "mean": 31.8424951171875,
+          "p50": 31.901033203125,
+          "p95": 32.8551814453125,
+          "min": 30.67940625,
+          "max": 32.98153515625
+        },
+        "drain_us_per_op": {
+          "count": 20,
+          "mean": 0.29221953125,
+          "p50": 0.293951171875,
+          "p95": 0.2996892578125,
+          "min": 0.26194140625,
+          "max": 0.3125625
+        },
+        "total_us_per_op": {
+          "count": 20,
+          "mean": 32.1621236328125,
+          "p50": 32.204398437500004,
+          "p95": 33.175706640625,
+          "min": 30.9966171875,
+          "max": 33.30483984375
+        },
+        "main_cpu_us_per_op": {
+          "count": 20,
+          "mean": 31.76401953125,
+          "p50": 31.833261718750002,
+          "p95": 32.337292968750006,
+          "min": 30.949375,
+          "max": 32.4469140625
+        },
+        "process_cpu_us_per_op": {
+          "count": 20,
+          "mean": 32.421855468749996,
+          "p50": 32.468378906249995,
+          "p95": 32.997232421875005,
+          "min": 31.5708984375,
+          "max": 33.10421875
+        },
+        "submit_main_cpu_us_per_op": {
+          "count": 20,
+          "mean": 31.448728515625,
+          "p50": 31.52599609375,
+          "p95": 32.02016796875,
+          "min": 30.6355859375,
+          "max": 32.12875
+        },
+        "submit_process_cpu_us_per_op": {
+          "count": 20,
+          "mean": 32.107705078125,
+          "p50": 32.154667968750005,
+          "p95": 32.681277343750004,
+          "min": 31.2592578125,
+          "max": 32.79015625
+        }
+      },
+      "part_stats": {
+        "aclnn_us": {
+          "count": 128,
+          "mean": 28.541953125,
+          "p50": 26.86,
+          "p95": 31.706,
+          "min": 24.86,
+          "max": 127.54
+        },
+        "hostargs_us": {
+          "count": 128,
+          "mean": 21.894140625,
+          "p50": 20.545,
+          "p95": 23.725,
+          "min": 19.01,
+          "max": 88.35
+        },
+        "aclnn_other_us": {
+          "count": 128,
+          "mean": 6.6478125,
+          "p50": 6.345,
+          "p95": 7.1819999999999995,
+          "min": 5.51,
+          "max": 39.19
+        },
+        "acl_shell_us": {
+          "count": 128,
+          "mean": 4.36640625,
+          "p50": 4.085,
+          "p95": 4.603,
+          "min": 3.55,
+          "max": 31.19
+        },
+        "runtime_us": {
+          "count": 128,
+          "mean": 17.527734375,
+          "p50": 16.435000000000002,
+          "p95": 18.977499999999996,
+          "min": 14.99,
+          "max": 75.47
+        },
+        "acl_before_runtime_us": {
+          "count": 128,
+          "mean": 3.051171875,
+          "p50": 2.775,
+          "p95": 3.1954999999999996,
+          "min": 2.38,
+          "max": 29.37
+        },
+        "acl_after_runtime_us": {
+          "count": 128,
+          "mean": 1.315234375,
+          "p50": 1.2850000000000001,
+          "p95": 1.5865,
+          "min": 0.98,
+          "max": 3.47
+        }
+      },
+      "kernel": {
+        "count": 128,
+        "mean": 0.9123608398437499,
+        "p50": 0.92,
+        "p95": 1.0130109374999998,
+        "min": 0.8,
+        "max": 1.10003125
+      },
+      "launch_count": 128,
+      "kernel_count": 128,
+      "config": {
+        "repeats": 20,
+        "batch_sizes": [
+          256
+        ],
+        "warmup": 200,
+        "torch_num_threads": 10,
+        "profile_ops": 128
+      }
+    },
+    "attribution": {
+      "mean_deltas_us": {
+        "aclnn_us": 15.059843749999999,
+        "hostargs_us": 13.2975,
+        "aclnn_other_us": 1.7623437499999994,
+        "acl_shell_us": 0.8102343749999998,
+        "runtime_us": 12.487265625000003,
+        "acl_before_runtime_us": 0.4264062499999999,
+        "acl_after_runtime_us": 0.38382812499999996
+      },
+      "runtime_share_of_extra_hostargs": 0.9390686689227301,
+      "runtime_share_of_extra_aclnn": 0.829176307025098,
+      "runtime_share_excluding_first_call": 0.9377448612676434
+    }
+  },
+  "ioctl": {
+    "bare": {
+      "comparison": {
+        "status": "no_intercepted_ioctl",
+        "baseline_total_p50_us_per_op": 15.6128515625,
+        "instrumented_total_p50_us_per_op": 15.56408203125,
+        "instrumented_over_baseline": 0.9968763213398418,
+        "probe_perturbation_warning": false,
+        "captured_calls": 0,
+        "lost_calls": 0,
+        "note": "Fresh baseline and probe processes are separate sequential runs. Their difference includes run-to-run variation and probe effects, not only timer overhead. Compare VM/bare baseline performance separately from probe request distributions."
+      },
+      "baseline": {
+        "submit_us_per_op": {
+          "count": 20,
+          "mean": 15.476609375,
+          "p50": 15.38134765625,
+          "p95": 15.782158203125,
+          "min": 15.1865234375,
+          "max": 16.671484375
+        },
+        "drain_us_per_op": {
+          "count": 20,
+          "mean": 0.2080703125,
+          "p50": 0.20517578125,
+          "p95": 0.22258593750000003,
+          "min": 0.1964453125,
+          "max": 0.2509375
+        },
+        "total_us_per_op": {
+          "count": 20,
+          "mean": 15.714548828125,
+          "p50": 15.6128515625,
+          "p95": 16.020177734375,
+          "min": 15.41484375,
+          "max": 16.9587109375
+        },
+        "main_cpu_us_per_op": {
+          "count": 20,
+          "mean": 15.68522265625,
+          "p50": 15.600957031250001,
+          "p95": 15.920128906250001,
+          "min": 15.39828125,
+          "max": 16.9430859375
+        },
+        "process_cpu_us_per_op": {
+          "count": 20,
+          "mean": 16.030833984375,
+          "p50": 15.92478515625,
+          "p95": 16.278166015625004,
+          "min": 15.7485546875,
+          "max": 17.5480859375
+        },
+        "submit_main_cpu_us_per_op": {
+          "count": 20,
+          "mean": 15.452486328125,
+          "p50": 15.37158203125,
+          "p95": 15.68804296875,
+          "min": 15.1746875,
+          "max": 16.6646875
+        },
+        "submit_process_cpu_us_per_op": {
+          "count": 20,
+          "mean": 15.76315625,
+          "p50": 15.66115234375,
+          "p95": 16.016826171875003,
+          "min": 15.492421875,
+          "max": 17.2360546875
+        }
+      },
+      "event_count": 0,
+      "groups": [],
+      "hal_sha256": {}
+    },
+    "vm": {
+      "comparison": {
+        "status": "ok",
+        "baseline_total_p50_us_per_op": 28.806736328124998,
+        "instrumented_total_p50_us_per_op": 32.4754921875,
+        "instrumented_over_baseline": 1.1273575672573874,
+        "probe_perturbation_warning": false,
+        "captured_calls": 10240,
+        "lost_calls": 0,
+        "note": "Fresh baseline and probe processes are separate sequential runs. Their difference includes run-to-run variation and probe effects, not only timer overhead. Compare VM/bare baseline performance separately from probe request distributions."
+      },
+      "baseline": {
+        "submit_us_per_op": {
+          "count": 20,
+          "mean": 28.8600318359375,
+          "p50": 28.520830078125,
+          "p95": 30.500953515625,
+          "min": 28.1911953125,
+          "max": 31.21591015625
+        },
+        "drain_us_per_op": {
+          "count": 20,
+          "mean": 0.26929453125,
+          "p50": 0.2685234375,
+          "p95": 0.28304882812500004,
+          "min": 0.25311328125,
+          "max": 0.28998828125
+        },
+        "total_us_per_op": {
+          "count": 20,
+          "mean": 29.156710546875,
+          "p50": 28.806736328124998,
+          "p95": 30.82045546875,
+          "min": 28.48501171875,
+          "max": 31.51585546875
+        },
+        "main_cpu_us_per_op": {
+          "count": 20,
+          "mean": 28.9369453125,
+          "p50": 28.69248046875,
+          "p95": 30.239388671875,
+          "min": 28.4505859375,
+          "max": 30.4615625
+        },
+        "process_cpu_us_per_op": {
+          "count": 20,
+          "mean": 29.51648828125,
+          "p50": 29.3333984375,
+          "p95": 30.87065234375,
+          "min": 28.800703125,
+          "max": 31.1316796875
+        },
+        "submit_main_cpu_us_per_op": {
+          "count": 20,
+          "mean": 28.643923828125,
+          "p50": 28.403691406249997,
+          "p95": 29.923740234375,
+          "min": 28.1603125,
+          "max": 30.1655078125
+        },
+        "submit_process_cpu_us_per_op": {
+          "count": 20,
+          "mean": 29.226103515625,
+          "p50": 29.046484375,
+          "p95": 30.55748046875,
+          "min": 28.5249609375,
+          "max": 30.8383984375
+        }
+      },
+      "event_count": 10240,
+      "groups": [
+        {
+          "request_hex": "0x41584d09",
+          "fd_path_after_capture": "/dev/davinci_manager",
+          "caller_library": "/usr/local/Ascend/driver/lib64/driver/libascend_hal.so",
+          "caller_offset_hex": "0xd8534",
+          "count": 5120,
+          "calls_per_op": 1.0,
+          "duration_us": {
+            "count": 5120,
+            "mean": 4.940508203125,
+            "p50": 4.87,
+            "p95": 5.669,
+            "min": 3.469,
+            "max": 34.918
+          },
+          "total_us_per_op": 4.940508203125
+        },
+        {
+          "request_hex": "0x41584d0a",
+          "fd_path_after_capture": "/dev/davinci_manager",
+          "caller_library": "/usr/local/Ascend/driver/lib64/driver/libascend_hal.so",
+          "caller_offset_hex": "0xd8534",
+          "count": 5120,
+          "calls_per_op": 1.0,
+          "duration_us": {
+            "count": 5120,
+            "mean": 3.232416015625,
+            "p50": 2.69,
+            "p95": 4.1690499999999995,
+            "min": 2.12,
+            "max": 56.888
+          },
+          "total_us_per_op": 3.232416015625
+        }
+      ],
+      "hal_sha256": {
+        "/usr/local/Ascend/driver/lib64/driver/libascend_hal.so": "12de70257ec2fcfcd0407c02bae769aa50c1e384b3e79f2dc7ad0a27c84a064a"
+      }
+    },
+    "pairs": {
+      "ioctl_sum_us": {
+        "count": 5120,
+        "mean": 8.17292421875,
+        "p50": 7.6,
+        "p95": 9.20905,
+        "min": 5.979,
+        "max": 62.048
+      },
+      "between_calls_us": {
+        "count": 5120,
+        "mean": 3.09699140625,
+        "p50": 2.59,
+        "p95": 3.150500000000002,
+        "min": 2.04,
+        "max": 48.958
+      },
+      "pair_span_us": {
+        "count": 5120,
+        "mean": 11.269915625,
+        "p50": 10.19,
+        "p95": 12.760500000000002,
+        "min": 8.269,
+        "max": 64.608
+      }
+    }
+  },
+  "capabilities": {
+    "bare": {
+      "kernel": "5.10.0-182.0.0.95.h2826.eulerosv2r13.aarch64",
+      "base_page_size": 4096,
+      "torch_npu_version": "2.10.0.post6",
+      "device_name": "Ascend910B4-1",
+      "hal_library": {
+        "path": "/usr/local/Ascend/driver/lib64/driver/libascend_hal.so",
+        "size": 2213288,
+        "sha256": "9ea3510f7b613e1944925ec6da1eb0c142a4189ffb5b508cb0b629fb486ef970"
+      },
+      "driver_version_info": "Version=26.1.2\nascendhal_version=7.35.23\naicpu_version=1.0\ntdt_version=1.0\nlog_version=1.0\nprof_version=2.0\ndvppkernels_version=1.1\ntsfw_version=1.0\nInnerversion=V100R001C10SPC010B220\ncompatible_version=[V100R001C21],[V100R001C22],[V100R001C23],[V100R001C25],[V100R001C10]\ncompatible_version_fw=[7.0.0,9.9.9]\npackage_version=26.1.2\n",
+      "queries": [
+        {
+          "input_mask_hex": "0x2",
+          "return_code": 0,
+          "output_mask_hex": "0x2",
+          "output_size": 0,
+          "bar_mem": true,
+          "bar_huge_mem": false,
+          "runtime_query_any_supported": true
+        },
+        {
+          "input_mask_hex": "0x8",
+          "return_code": 0,
+          "output_mask_hex": "0x8",
+          "output_size": 0,
+          "bar_mem": false,
+          "bar_huge_mem": true,
+          "runtime_query_any_supported": true
+        },
+        {
+          "input_mask_hex": "0xa",
+          "return_code": 0,
+          "output_mask_hex": "0xa",
+          "output_size": 0,
+          "bar_mem": true,
+          "bar_huge_mem": true,
+          "runtime_query_any_supported": true
+        }
+      ],
+      "package_version": "26.1.2"
+    },
+    "vm": {
+      "kernel": "6.6.0-72.0.0.76.h21510.1739.eulerosv2r15.aarch64",
+      "base_page_size": 4096,
+      "torch_npu_version": "2.10.0.post6",
+      "device_name": "Ascend910B4-1",
+      "hal_library": {
+        "path": "/usr/local/Ascend/driver/lib64/driver/libascend_hal.so",
+        "size": 1861224,
+        "sha256": "12de70257ec2fcfcd0407c02bae769aa50c1e384b3e79f2dc7ad0a27c84a064a"
+      },
+      "driver_version_info": "Version=25.5.0\nascendhal_version=7.35.23\naicpu_version=1.0\ntdt_version=1.0\nlog_version=1.0\nprof_version=2.0\ndvppkernels_version=1.1\ntsfw_version=1.0\nInnerversion=V100R001C23SPC005B219\ncompatible_version=[V100R001C19],[V100R001C20],[V100R001C21],[V100R001C22],[V100R001C23]\ncompatible_version_fw=[7.0.0,8.9.9]\npackage_version=25.5.0\n",
+      "queries": [
+        {
+          "input_mask_hex": "0x2",
+          "return_code": 0,
+          "output_mask_hex": "0x0",
+          "output_size": 0,
+          "bar_mem": false,
+          "bar_huge_mem": false,
+          "runtime_query_any_supported": false
+        },
+        {
+          "input_mask_hex": "0x8",
+          "return_code": 0,
+          "output_mask_hex": "0x0",
+          "output_size": 0,
+          "bar_mem": false,
+          "bar_huge_mem": false,
+          "runtime_query_any_supported": false
+        },
+        {
+          "input_mask_hex": "0xa",
+          "return_code": 0,
+          "output_mask_hex": "0x0",
+          "output_size": 0,
+          "bar_mem": false,
+          "bar_huge_mem": false,
+          "runtime_query_any_supported": false
+        }
+      ],
+      "package_version": "25.5.0"
+    }
+  },
+  "rank": {
+    "present_ranks": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "missing_ranks": [
+      2
+    ],
+    "common_collectives": 1261,
+    "large_collectives": 87,
+    "latest_device_large": {
+      "6": 87
+    },
+    "latest_host_large": {
+      "6": 87
+    },
+    "latest_enqueue_large": {
+      "6": 87
+    },
+    "device_large_start_spread_ms": {
+      "n": 87,
+      "total": 1491.891488,
+      "mean": 17.148178022988507,
+      "p50": 15.843226,
+      "p95": 29.701711500000002,
+      "p99": 31.833849500000003,
+      "min": 9.774797,
+      "max": 32.985024
+    },
+    "device_large_end_spread_ms": {
+      "n": 87,
+      "total": 6.385101,
+      "mean": 0.07339196551724138,
+      "p50": 0.075102,
+      "p95": 0.0996636,
+      "p99": 0.10502938,
+      "min": 0.037049,
+      "max": 0.107581
+    },
+    "host_large_start_spread_ms": {
+      "n": 87,
+      "total": 28854.37885,
+      "mean": 331.6595270114943,
+      "p50": 359.47673,
+      "p95": 514.669856,
+      "p99": 518.7952262,
+      "min": 23.84308,
+      "max": 519.71528
+    },
+    "enqueue_large_start_spread_ms": {
+      "n": 87,
+      "total": 28851.17537,
+      "mean": 331.62270540229883,
+      "p50": 359.48489,
+      "p95": 514.669577,
+      "p99": 518.8071388,
+      "min": 23.61,
+      "max": 519.72039
+    },
+    "r0_large_interval_before_r6_start_ms": 1483.024707,
+    "host_epoch_offset_spread_ns": 1490,
+    "compute_matching_groups": 303,
+    "by_rank": {
+      "0": {
+        "large_duration_ms": {
+          "n": 87,
+          "total": 1495.862918,
+          "mean": 17.19382664367816,
+          "p50": 15.929039,
+          "p95": 29.788373200000002,
+          "p99": 31.938277380000002,
+          "min": 9.885337,
+          "max": 33.102861
+        },
+        "large_device_start_minus_host_end_ms": {
+          "n": 87,
+          "total": 24231.992609,
+          "mean": 278.52865067816094,
+          "p50": 307.032816,
+          "p95": 438.39244149999996,
+          "p99": 440.23508896,
+          "min": 0.379671,
+          "max": 440.260815
+        },
+        "large_handoff_delta_us": {
+          "n": 87,
+          "total": 4374.83,
+          "mean": 50.28540229885058,
+          "p50": 31.53,
+          "p95": 85.638,
+          "p99": 312.99420000000015,
+          "min": 22.93,
+          "max": 597.68
+        },
+        "standardized_compute_us": 761235.333,
+        "compute_coverage": 0.9515348055263506
+      },
+      "1": {
+        "large_duration_ms": {
+          "n": 87,
+          "total": 1497.62608,
+          "mean": 17.214092873563217,
+          "p50": 15.9272,
+          "p95": 29.808290000000003,
+          "p99": 31.9385912,
+          "min": 9.89322,
+          "max": 33.09966
+        },
+        "large_device_start_minus_host_end_ms": {
+          "n": 87,
+          "total": 23645.217705,
+          "mean": 271.78411155172415,
+          "p50": 300.285285,
+          "p95": 426.1578,
+          "p99": 426.9048606,
+          "min": 0.140755,
+          "max": 427.247175
+        },
+        "large_handoff_delta_us": {
+          "n": 87,
+          "total": 3440.93,
+          "mean": 39.550919540229884,
+          "p50": 20.02,
+          "p95": 49.679,
+          "p99": 649.9126000000001,
+          "min": 5.79,
+          "max": 816.83
+        },
+        "standardized_compute_us": 755479.56,
+        "compute_coverage": 0.9504322640112856
+      },
+      "3": {
+        "large_duration_ms": {
+          "n": 87,
+          "total": 1499.798242,
+          "mean": 17.239060252873564,
+          "p50": 15.942098,
+          "p95": 29.7936912,
+          "p99": 31.93537938,
+          "min": 9.889218,
+          "max": 33.101941
+        },
+        "large_device_start_minus_host_end_ms": {
+          "n": 87,
+          "total": 27370.191441,
+          "mean": 314.59990162068965,
+          "p50": 343.597241,
+          "p95": 501.7171722,
+          "p99": 506.85106609999997,
+          "min": 0.005926,
+          "max": 509.064289
+        },
+        "large_handoff_delta_us": {
+          "n": 87,
+          "total": 3536.19,
+          "mean": 40.64586206896552,
+          "p50": 18.84,
+          "p95": 48.16700000000002,
+          "p99": 496.5068000000002,
+          "min": 9.06,
+          "max": 801.91
+        },
+        "standardized_compute_us": 751561.808,
+        "compute_coverage": 0.9504742048142262
+      },
+      "4": {
+        "large_duration_ms": {
+          "n": 87,
+          "total": 1489.820373,
+          "mean": 17.124372103448277,
+          "p50": 15.919898,
+          "p95": 29.8056939,
+          "p99": 31.94692318,
+          "min": 9.892818,
+          "max": 33.110062
+        },
+        "large_device_start_minus_host_end_ms": {
+          "n": 87,
+          "total": 19632.876111,
+          "mean": 225.66524265517242,
+          "p50": 255.874164,
+          "p95": 352.7231254,
+          "p99": 354.37693142,
+          "min": -0.026838,
+          "max": 354.789863
+        },
+        "large_handoff_delta_us": {
+          "n": 87,
+          "total": 4530.59,
+          "mean": 52.07574712643678,
+          "p50": 24.53,
+          "p95": 123.20000000000007,
+          "p99": 405.6634000000007,
+          "min": 6.15,
+          "max": 1446.1
+        },
+        "standardized_compute_us": 755764.003,
+        "compute_coverage": 0.9501011602959707
+      },
+      "5": {
+        "large_duration_ms": {
+          "n": 87,
+          "total": 1494.474436,
+          "mean": 17.17786708045977,
+          "p50": 15.928359,
+          "p95": 29.8074279,
+          "p99": 31.93137298,
+          "min": 9.885457,
+          "max": 33.105881
+        },
+        "large_device_start_minus_host_end_ms": {
+          "n": 87,
+          "total": 23113.703386,
+          "mean": 265.67475156321836,
+          "p50": 293.923498,
+          "p95": 415.63721250000003,
+          "p99": 415.92001404,
+          "min": -0.065524,
+          "max": 416.185527
+        },
+        "large_handoff_delta_us": {
+          "n": 87,
+          "total": 2861.2,
+          "mean": 32.88735632183908,
+          "p50": 19.09,
+          "p95": 35.98900000000001,
+          "p99": 320.4278000000002,
+          "min": 6.72,
+          "max": 657.35
+        },
+        "standardized_compute_us": 760785.054,
+        "compute_coverage": 0.9512791796585367
+      },
+      "6": {
+        "large_duration_ms": {
+          "n": 87,
+          "total": 6.675286,
+          "mean": 0.07672742528735632,
+          "p50": 0.073459,
+          "p95": 0.093528,
+          "p99": 0.0968808,
+          "min": 0.070378,
+          "max": 0.096898
+        },
+        "large_device_start_minus_host_end_ms": {
+          "n": 87,
+          "total": -4.779634,
+          "mean": -0.05493832183908046,
+          "p50": -0.065889,
+          "p95": 0.02299210000000001,
+          "p99": 0.10705872000000001,
+          "min": -0.189269,
+          "max": 0.119355
+        },
+        "large_handoff_delta_us": {
+          "n": 87,
+          "total": 6272.3,
+          "mean": 72.09540229885057,
+          "p50": 22.93,
+          "p95": 304.6610000000002,
+          "p99": 530.8552000000003,
+          "min": 4.61,
+          "max": 931.34
+        },
+        "standardized_compute_us": 748458.923,
+        "compute_coverage": 0.9501986179621402
+      },
+      "7": {
+        "large_duration_ms": {
+          "n": 87,
+          "total": 1495.11874,
+          "mean": 17.185272873563218,
+          "p50": 15.9216,
+          "p95": 29.798832,
+          "p99": 31.9390752,
+          "min": 9.88818,
+          "max": 33.09378
+        },
+        "large_device_start_minus_host_end_ms": {
+          "n": 87,
+          "total": 23391.700985,
+          "mean": 268.8701262643678,
+          "p50": 301.168385,
+          "p95": 427.126853,
+          "p99": 429.6978532,
+          "min": 0.053985,
+          "max": 429.929305
+        },
+        "large_handoff_delta_us": {
+          "n": 87,
+          "total": 2120.9,
+          "mean": 24.37816091954023,
+          "p50": 21.43,
+          "p95": 42.859,
+          "p99": 48.15780000000001,
+          "min": 5.88,
+          "max": 63.01
+        },
+        "standardized_compute_us": 756487.6,
+        "compute_coverage": 0.9508523572701338
+      }
+    },
+    "rank6_minus_rank0_heavy_launch_span_ms": 444.1429899999998,
+    "rank6_minus_rank0_heavy_launch_inside_ms": 67.22359999999998,
+    "rank6_minus_rank0_heavy_interlaunch_ms": 376.91939,
+    "launch_tail_counts": {
+      "0": {
+        "launch_count": 7120,
+        "ge_1ms": 1
+      },
+      "1": {
+        "launch_count": 7120,
+        "ge_1ms": 1
+      },
+      "3": {
+        "launch_count": 7120,
+        "ge_1ms": 0
+      },
+      "4": {
+        "launch_count": 7120,
+        "ge_1ms": 0
+      },
+      "5": {
+        "launch_count": 7120,
+        "ge_1ms": 0
+      },
+      "6": {
+        "launch_count": 7120,
+        "ge_1ms": 42
+      },
+      "7": {
+        "launch_count": 7120,
+        "ge_1ms": 0
+      }
+    },
+    "interlaunch_extra_share": 0.8486442395499705
+  },
+  "topology": [
+    {
+      "npu": 0,
+      "guest_cpus": "108-125",
+      "host_cpus": "156–173",
+      "node": 3,
+      "cores": 18
+    },
+    {
+      "npu": 1,
+      "guest_cpus": "126-143",
+      "host_cpus": "174–191",
+      "node": 3,
+      "cores": 18
+    },
+    {
+      "npu": 2,
+      "guest_cpus": "72-89",
+      "host_cpus": "108–125",
+      "node": 2,
+      "cores": 18
+    },
+    {
+      "npu": 3,
+      "guest_cpus": "90-107",
+      "host_cpus": "126–143",
+      "node": 2,
+      "cores": 18
+    },
+    {
+      "npu": 4,
+      "guest_cpus": "0-17",
+      "host_cpus": "12–29",
+      "node": 0,
+      "cores": 18
+    },
+    {
+      "npu": 5,
+      "guest_cpus": "18-35",
+      "host_cpus": "30–47",
+      "node": 0,
+      "cores": 18
+    },
+    {
+      "npu": 6,
+      "guest_cpus": "36-53",
+      "host_cpus": "60–77",
+      "node": 1,
+      "cores": 18
+    },
+    {
+      "npu": 7,
+      "guest_cpus": "54-71",
+      "host_cpus": "78–95",
+      "node": 1,
+      "cores": 18
+    }
+  ],
+  "mmio": [
+    {
+      "exits": 141629.8771862976,
+      "mmio_exit_kernel": 104.32892129797432,
+      "mmio_exit_user": 100.46241814443917,
+      "wfi_exit_stat": 136493.76105760597,
+      "wfe_exit_stat": 0.0
+    },
+    {
+      "exits": 353591.14757337776,
+      "mmio_exit_kernel": 132.16107792714766,
+      "mmio_exit_user": 104.82890039870854,
+      "wfi_exit_stat": 214908.21210485877,
+      "wfe_exit_stat": 0.0
+    }
+  ],
+  "sources": [
+    {
+      "id": "excel",
+      "title": "业务性能记录",
+      "original": "xuji_luoji_test/test_result/虚机对比测试.xlsx",
+      "href": "evidence/performance.xlsx",
+      "note": "030!A39:I63；同组 8 个汇总记录。",
+      "sha256": "d82035bda8fe3ee066d7dadc05f54863aea9fd02a9e9c70925b6f372ea979ca9"
+    },
+    {
+      "id": "business",
+      "title": "业务复算与口径",
+      "original": "outputs/vm_gap_review_20261030/business.json",
+      "href": "evidence/business.json",
+      "note": "保留单元格、公式、token 数及差距分母。",
+      "sha256": "295538666eb4210921ad22527b5b0ad5ecdd1bfc20e5af847761f6ca88b965bd"
+    },
+    {
+      "id": "topology",
+      "title": "144 vCPU 的 XML 配置",
+      "original": "xuji_luoji_test/env_conf/1028/虚机xml配置",
+      "href": "evidence/domain-config.txt",
+      "note": "4 个 NUMA cell、每组 36 vCPU / 120 GiB、1 GiB hugepage、vcpupin 与 emulatorpin。配置快照不等于最新 live 生效证明。",
+      "sha256": "94329ec1a0e2f2aa2317568b9012e2fbda1654f703624d9c0d81216ed3e4d227"
+    },
+    {
+      "id": "binding",
+      "title": "CPU binding patch",
+      "original": "xuji_luoji_test/env_conf/1028/apply_cpu_binding_patch.py",
+      "href": "evidence/cpu-binding-patch.txt",
+      "note": "显式 NPU → Guest CPU 池；检查重叠、NUMA 和允许 CPU；内存迁移失败告警。",
+      "sha256": "711560f09820616fdcf096acef4b9f9997292872d48f27d1dd96e97f290477d0"
+    },
+    {
+      "id": "startup",
+      "title": "业务启动配置",
+      "original": "xuji_luoji_test/start_bash/dsv4_dspark_cpubind_144vcpu.sh",
+      "href": "evidence/startup-config.txt",
+      "note": "每 NPU 18 vCPU；TASK_QUEUE_ENABLE=1；FULL_DECODE_ONLY；npugraph_ex。",
+      "sha256": "6a48dc9b6e37a58c88af4f3466894bf07793d0df7a29a55b139d988177c9d6d0"
+    },
+    {
+      "id": "level2",
+      "title": "Level2 分段核验",
+      "original": "outputs/vm_gap_review_20261030/level2/verification.json",
+      "href": "evidence/level2-verification.json",
+      "note": "两侧各 20 批基线；各 128 次采集 Launch，嵌套关系已校验。",
+      "sha256": "cfd2ad3205269c8131d05a7ace2d7cd96c66470da0f07fcedd7dd237847709f2"
+    },
+    {
+      "id": "ioctl",
+      "title": "ioctl 事件核验",
+      "original": "outputs/vm_gap_review_20261030/ioctl/verification.json",
+      "href": "evidence/ioctl-verification.json",
+      "note": "80 批有效计时；VM 10240 个事件；有探针与无探针分开比较。",
+      "sha256": "e3241a91721ff463e243d3eed083819624744be5825d28015905b06a20062f00"
+    },
+    {
+      "id": "cap-bare",
+      "title": "裸机 BAR-copy 查询",
+      "original": "xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/result/bare_copy_capability.json",
+      "href": "evidence/bare-copy-capability.json",
+      "note": "返回码均为 0；0x2 / 0x8 / 0xA 支持；记录实际 HAL 哈希。",
+      "sha256": "22554b6ebc0a6c59faddebf36e47b6357fb25e8a534cefb6c3dec1b37a8610e7"
+    },
+    {
+      "id": "cap-vm",
+      "title": "虚机 BAR-copy 查询",
+      "original": "xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/result/vm_copy_capability.json",
+      "href": "evidence/vm-copy-capability.json",
+      "note": "返回码均为 0；支持掩码全零；记录实际 HAL 哈希。",
+      "sha256": "312515fff6d97b639c0cbe38fe7cbef5177801accd3176538aaa5afb4261d2a5"
+    },
+    {
+      "id": "rank",
+      "title": "七 Rank 对齐分析",
+      "original": "outputs/vm_gap_review_20261030/multirank/summary.json",
+      "href": "evidence/multirank-summary.json",
+      "note": "1261 次共同通信，其中 87 次大消息；缺 Rank 2。",
+      "sha256": "923d2c964f3ba5fb864f9ac3d4f2aae1951bc9b695ce9c5d581e3e41036fc288"
+    },
+    {
+      "id": "stage2",
+      "title": "宿主映射现场报告",
+      "original": "xuji_luoji_test/env_conf/1029/PCIe BAR_uc_wc/gpt/log/extracted/host_bar_wc_20261029_100822_ohgeqj8o/report.txt",
+      "href": "evidence/host-stage2-report.txt",
+      "note": "原始结论：Stage-2 属性 UNKNOWN，补丁状态 UNKNOWN。",
+      "sha256": "8f54fb867274b307dd125b373bad802f4dc7cfb9b4c6ab86ba1433c1df4dccc2"
+    },
+    {
+      "id": "vmexit",
+      "title": "30 秒 KVM 采样",
+      "original": "xuji_luoji_test/env_conf/1029/PCIe BAR_uc_wc/safe_version/result/宿主机 MMIO Exit 采样",
+      "href": "evidence/kvm-exit-sample.txt",
+      "note": "idle / workload 两个窗口；未与逐 Launch 地址和时刻对应。",
+      "sha256": "bb0ec758c99224555d69604bdd5ffe351c5fa01744489e272f38bc2b7b8e9377"
+    },
+    {
+      "id": "review",
+      "title": "综合复核报告",
+      "original": "xuji_luoji_test/md/虚机裸机剩余性能差距综合复核_20261030.md",
+      "href": "evidence/review.txt",
+      "note": "区分共同下发瓶颈与慢 Rank；整理证据边界和修复顺序。",
+      "sha256": "e1fc3e7477a5ae0a9e43f42786042abcda8598ec3779f73ccf7a93c16fab40b3"
+    },
+    {
+      "id": "runbook",
+      "title": "分环境操作指南",
+      "original": "xuji_luoji_test/env_conf/1030/性能差距修复操作指南.md",
+      "href": "evidence/repair-guide.txt",
+      "note": "Guest、容器、KVM 宿主与裸机的执行位置；修复前后采样与验收。",
+      "sha256": "0b82946da10dcbf26b984a0fe79ef8a37cde0b25c119cda1fcc2542d44010b11"
+    }
+  ],
+  "references": [
+    {
+      "title": "libvirt：CPU、NUMA 与内存后端",
+      "url": "https://libvirt.org/formatdomain.html",
+      "note": "vcpupin / emulatorpin / memnode / hugepages 的配置含义。"
+    },
+    {
+      "title": "Linux：CPU Isolation",
+      "url": "https://www.kernel.org/doc/html/latest/admin-guide/cpu-isolation.html",
+      "note": "内核噪声、housekeeping、tick 与 IRQ 的隔离边界。"
+    },
+    {
+      "title": "Linux：HugeTLB Pages",
+      "url": "https://www.kernel.org/doc/html/latest/admin-guide/mm/hugetlbpage.html",
+      "note": "大页与 TLB 覆盖、预留与 NUMA 分配。"
+    },
+    {
+      "title": "Linux：KVM halt polling",
+      "url": "https://www.kernel.org/doc/html/latest/virt/kvm/halt-polling.html",
+      "note": "宿主轮询与调度延迟；与 Guest idle 参数是不同层。"
+    },
+    {
+      "title": "Linux：内核启动参数",
+      "url": "https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html",
+      "note": "上游 idle 参数有架构限制；现场 EulerOS 以实际构建为准。"
+    },
+    {
+      "title": "vLLM Ascend：CPU Binding",
+      "url": "https://docs.vllm.ai/projects/ascend/en/v0.18.0/developer_guide/Design_Documents/cpu_binding.html",
+      "note": "CPU 池和关键线程绑定；现场修改版以实际 affinity 为准。"
+    },
+    {
+      "title": "ARM64 KVM：Normal-NC 补丁讨论",
+      "url": "https://lists.infradead.org/pipermail/linux-arm-kernel/2024-February/908141.html",
+      "note": "说明机制存在；不证明现场补丁缺失或参数 BAR 属性。"
+    }
+  ],
+  "checks": {
+    "excel_cached_values_and_formulas_match": true,
+    "source_workbook_unchanged": true,
+    "ioctl_pairs": 5120,
+    "multirank_large_collectives": 87,
+    "no_remote_configuration_changes": true
+  }
+}

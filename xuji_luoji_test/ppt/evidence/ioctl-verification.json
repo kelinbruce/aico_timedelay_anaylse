@@ -1,0 +1,26 @@
+{
+  "source_commit": "da852c37",
+  "matches": {
+    "baseline_torch_version": true,
+    "baseline_torch_npu_version": true,
+    "baseline_benchmark_sha256": true,
+    "baseline_placements_sha256": true,
+    "baseline_recorded_libraries": true,
+    "baseline_env_except_preload": true,
+    "instrumented_torch_version": true,
+    "instrumented_torch_npu_version": true,
+    "instrumented_benchmark_sha256": true,
+    "instrumented_placements_sha256": true,
+    "instrumented_recorded_libraries": true,
+    "instrumented_env_except_preload": true,
+    "probe_binary": true
+  },
+  "raw_vm_events_verified": 10240,
+  "valid_batches": 80,
+  "vm_per_batch": "20 batches, exactly 256 alternating submit/wait pairs per batch",
+  "bare_zero_is_coverage_limited": true,
+  "hal_binary_equality_verified": false,
+  "hal_mapping_layout_same": false,
+  "original_archives_unchanged": true,
+  "user_confirmed_no_business_requests": true
+}

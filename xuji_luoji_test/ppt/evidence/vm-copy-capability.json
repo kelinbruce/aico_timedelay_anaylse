@@ -1,0 +1,61 @@
+{
+  "status": "ok",
+  "device": 0,
+  "platform": "Linux",
+  "kernel": "6.6.0-72.0.0.76.h21510.1739.eulerosv2r15.aarch64",
+  "machine": "aarch64",
+  "python": "3.12.13 (main, Aug  3 2026, 03:58:42) [GCC 12.3.1 (openEuler 12.3.1-105.oe2403sp3)]",
+  "base_page_size": 4096,
+  "script_sha256": "c746fea2fe149936176f8ebcf8bac8b373e86a66710be1eb242a068f0739e4fb",
+  "abi": {
+    "sizeof_supportFeaturePara": 16,
+    "support_feature_offset": 0,
+    "devid_offset": 8
+  },
+  "meaning": "Read CTRL_TYPE_SUPPORT_FEATURE=2 with masks 0x2/0x8/0xa. No capability is forced or modified. A positive capability alone does not prove Runtime selected BAR copy.",
+  "task_queue_enable": "0",
+  "torch_version": "2.10.0+cpu",
+  "torch_npu_version": "2.10.0.post6",
+  "device_name": "Ascend910B4-1",
+  "hal_mapping_lines": [
+    "ffff6a690000-ffff6a847000 r-xp 00000000 fd:09 549752                     /usr/local/Ascend/driver/lib64/driver/libascend_hal.so",
+    "ffff6a847000-ffff6a85f000 ---p 001b7000 fd:09 549752                     /usr/local/Ascend/driver/lib64/driver/libascend_hal.so",
+    "ffff6a85f000-ffff6a860000 r--p 001bf000 fd:09 549752                     /usr/local/Ascend/driver/lib64/driver/libascend_hal.so",
+    "ffff6a860000-ffff6a866000 rw-p 001c0000 fd:09 549752                     /usr/local/Ascend/driver/lib64/driver/libascend_hal.so"
+  ],
+  "hal_library": {
+    "path": "/usr/local/Ascend/driver/lib64/driver/libascend_hal.so",
+    "size": 1861224,
+    "sha256": "12de70257ec2fcfcd0407c02bae769aa50c1e384b3e79f2dc7ad0a27c84a064a"
+  },
+  "driver_version_info": "Version=25.5.0\nascendhal_version=7.35.23\naicpu_version=1.0\ntdt_version=1.0\nlog_version=1.0\nprof_version=2.0\ndvppkernels_version=1.1\ntsfw_version=1.0\nInnerversion=V100R001C23SPC005B219\ncompatible_version=[V100R001C19],[V100R001C20],[V100R001C21],[V100R001C22],[V100R001C23]\ncompatible_version_fw=[7.0.0,8.9.9]\npackage_version=25.5.0\n",
+  "queries": [
+    {
+      "input_mask_hex": "0x2",
+      "return_code": 0,
+      "output_mask_hex": "0x0",
+      "output_size": 0,
+      "bar_mem": false,
+      "bar_huge_mem": false,
+      "runtime_query_any_supported": false
+    },
+    {
+      "input_mask_hex": "0x8",
+      "return_code": 0,
+      "output_mask_hex": "0x0",
+      "output_size": 0,
+      "bar_mem": false,
+      "bar_huge_mem": false,
+      "runtime_query_any_supported": false
+    },
+    {
+      "input_mask_hex": "0xa",
+      "return_code": 0,
+      "output_mask_hex": "0x0",
+      "output_size": 0,
+      "bar_mem": false,
+      "bar_huge_mem": false,
+      "runtime_query_any_supported": false
+    }
+  ]
+}

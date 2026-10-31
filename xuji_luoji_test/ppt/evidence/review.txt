@@ -1,0 +1,167 @@
+# 虚机裸机剩余性能差距综合复核
+
+2026 年 10 月 30 日
+
+**目前可以给出明确的定位方向和修复顺序，但还不能宣布剩余业务差距已经完成根因闭环。** 最有力的共同下发瓶颈证据是：虚机未向 Runtime 提供 BAR-copy 能力，固定小算子提交时持续出现 DMA 提交和完成等待。与此同时，10 月 27 日的多 Rank 采样存在明显的 Rank 6 Host 端拖后，其他 Rank 的长通信区间与等待它到达吻合。这两条问题需要分别处理。
+
+**优先修复虚机的受支持参数拷贝快速路径，核对容器 HAL、Guest 驱动与虚拟化 WC 能力链路；再对实际仍存在的慢 Rank 做线程级验证。** 现有数据不足以把全部差距归因于 Stage-2 Device-nGnRE，也不足以保证升级某个版本后与裸机完全持平。
+
+## 业务差距已经从 41.16% 缩小到 17.73%
+
+基准取同一工作簿 `030` 表的 `ds+dspark入图_modelrunnerV2`，8 并发、`batched-tokens 8192`。下表依次引用第 40、43、46、49、52、57、60、63 行。差距统一按 `虚机 / 裸机 − 1` 计算。
+
+| 记录的配置 | 首字 ms | 原表增量 ms | E2E ms | E2E 相对裸机 |
+|---|---:|---:|---:|---:|
+| 裸机 | 1624.181 | 25.330 | 7987.733 | 基线 |
+| 初始虚机 | 2295.394 | 35.510 | 11275.850 | +41.16% |
+| 重配 NUMA | 2233.423 | 37.373 | 11478.326 | +43.70% |
+| 增加绑定 patch | 1980.275 | 33.127 | 10336.142 | +29.40% |
+| 手动 NUMA 迁移 | 1924.310 | 32.076 | 9995.584 | +25.14% |
+| idle=poll | 1874.629 | 30.352 | 9570.004 | +19.81% |
+| 再加 1GB 大页 | 1708.883 | 31.511 | 9736.280 | +21.89% |
+| 再加核隔离 | 1794.534 | 29.722 | 9403.652 | +17.73% |
+
+这一系列记录中，虚机 E2E 总体下降 16.60%，原来高于裸机的额外时间消除了 56.94%。剩余差值为 **1415.919 ms**。如果以当前虚机耗时为分母，降到这次裸机值需要再降低 **15.06%**，不是降低 17.73%。
+
+最后一轮首字相对裸机高 10.49%。汇总数值相减时，剩余 1415.919 ms 中，首字差为 170.353 ms，首字后的差为 1245.566 ms。因此后续业务验收应重点关注持续生成阶段，不能仅以首字改善认定整体差距已消除。这是汇总指标的算术分解，不是 trace 关键路径归因。
+
+这张表有三个影响结论的限制：
+
+- 每种配置只有一个汇总记录，没有重复运行区间，不能把每一行变化当成独立、稳定的因果收益。例如 1GB 大页这一行首字改善，但 E2E 从 9570.004 增至 9736.280 ms，尚未展示稳定的 E2E 收益。
+- D57、D60、D63 是公式 `(E−C)/G`，因此最后一轮增量高 17.34% 是原表派生指标，不能作为独立测得的逐请求 TPOT 分布。裸机与最后一轮输出 token 为 251.184 和 256.006，后者多 1.92%；投机平均接收步长和接受率也有变化。
+- `实机端到端测试` 页存在 thinking 设置变化和“裸机部署（仅DS）”范围区别。92 秒与 33.69 秒不能拿来计算纯虚拟化损失。I28/I43 的 56.46 与其他行的小数比例格式也不同，原值没有改动。
+
+来源：[性能记录 Excel](/Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/test_result/虚机对比测试.xlsx)。计算与原始公式保存在 [业务复算结果](/Users/zhangfan/project/aico_timedelay_report/outputs/vm_gap_review_20261030/business.json)。
+
+## 参数下发快速路径是当前最明确的修复对象
+
+### 实测环境在 HAL 和内核层并不完全相同
+
+10 月 29 日原始能力查询中，两侧都成功完成三次 `halMemCtl` 查询，返回码均为 0。虚机的零掩码表示此查询报告不支持，而不是采集失败。
+
+| 实测项目 | 裸机 | 虚机 |
+|---|---|---|
+| 设备型号 | Ascend910B4-1 | Ascend910B4-1 |
+| torch_npu | 2.10.0.post6 | 2.10.0.post6 |
+| 查询进程可见的 driver package | 26.1.2 | 25.5.0 |
+| 实际 HAL 文件大小 | 2,213,288 字节 | 1,861,224 字节 |
+| 实际 HAL SHA256 前缀 | 9ea3510f7b613e19 | 12de70257ec2fcfc |
+| ascendhal_version 字段 | 7.35.23 | 7.35.23 |
+| 查询进程所见 Linux | EulerOS v2r13，5.10.0-182… | EulerOS v2r15，6.6.0-72… |
+| Linux 基础页大小 | 4096 | 4096 |
+| 查询 0x2 / 0x8 / 0xA 返回 | 0x2 / 0x8 / 0xA | 0 / 0 / 0 |
+
+**CANN、torch_npu 和若干用户态库相同，不代表完整驱动栈相同。** `ascendhal_version` 文本相同也不能替代实际二进制哈希。表中的 VM 6.6 是 Guest 内核；10 月 29 日宿主采集为 EulerOS v2r12 的 `5.10.0-136.12.0.86.h2196`，负责 KVM Stage-2 的是后者。不能用 Guest 内核版本判断宿主是否支持相关映射。
+
+这些记录来自测试进程可见的库、版本文件与系统信息。容器外 Guest 的内核模块构建、驱动目录挂载来源和固件配套还没有完整对齐。因而 HAL 版本差异是必须控制的变量，但目前不能说“25.5.0 就是唯一根因”。
+
+原始证据：[裸机能力查询](/Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/result/bare_copy_capability.json)、[虚机能力查询](/Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/result/vm_copy_capability.json)。
+
+### 耗时和路径证据能接起来
+
+Level2 固定算例是 NPU0、queue0、Sub INT32 `[8]`。两侧各有 20 批无 profiler 基线，另有 128 次独立采集的算子；采集模式与基线分开比较。
+
+| Level2 指标 | 裸机 | 虚机 | 含义 |
+|---|---:|---:|---|
+| 无 profiler 完成均摊 P50 | 15.284 μs/op | 32.204 μs/op | 该轮存在约 16.920 μs/op 差距 |
+| HostArgs Launch 平均 | 8.597 μs | 21.894 μs | API 均值差 13.298 μs |
+| 内嵌 LaunchKernelV2 平均 | 5.040 μs | 17.528 μs | Runtime 均值差 12.487 μs |
+| 对应设备 kernel 平均 | 0.915 μs | 0.912 μs | 这个固定算例的 NPU 执行接近 |
+
+逐调用嵌套关系和 SQLite 纳秒边界均能核对。Runtime 的均值增量占 HostArgs Launch 均值增量的 **93.91%**。这个比例只描述此采集窗口的 API 分段，不代表 93.91% 的业务 E2E 差距。
+
+后续 ioctl 实验又进行了独立基线与探针测量。两侧各模式 20 批，每批 256 次操作：
+
+| ioctl 实验指标 | 裸机 | 虚机 |
+|---|---:|---:|
+| 无探针完成均摊 P50 | 15.613 μs/op | 28.807 μs/op |
+| 无探针提交循环均摊 P50 | 15.381 μs/op | 28.521 μs/op |
+| 无探针末尾同步均摊 P50 | 0.205 μs/op | 0.269 μs/op |
+| 有探针捕获调用 | 0 | 10240 |
+
+虚机每次 Sub 稳定对应一条 `0x41584d09` 和一条 `0x41584d0a`，5120 对全部成功、零丢失。公开参考驱动将它们分别对应到 DMA 提交和完成等待；调用方是与能力查询相同哈希的 HAL。两接口均值分别为 4.941 和 3.232 μs，合计 **8.173 μs/op**。
+
+无探针两侧完成差是 **13.194 μs/op**。VM 有探针比自身基线高 12.74%，且是顺序运行的不同进程。因此 8.173 μs 不能直接除以 13.194 μs 宣称“可以回收 62%”，也不能直接乘业务 Launch 数作为业务收益。裸机的零捕获仅覆盖该 libc ioctl 入口与采集窗口，不证明所有内核交互都不存在。
+
+参考 Runtime 的能力查询与 `H2DCopyMgr::Init` 表明：默认策略在 BAR-copy 能力可用且大小满足条件时走 BAR，否则选择 DMA，随后还会根据运行条件选择异步或同步路径。**能力差异、DMA 请求和 Runtime 内部增量共同支持“VM 小参数拷贝未能采用 BAR 快速路径”这一解释。** 实际私有 copy policy、参数字节数和裸机 BAR 写入尚未逐项记录，故仍需以修复前后的路径变化完成因果验证。
+
+更具体的驱动检查点已经存在：参考 `devmm_is_support_wc_scene` 对物理运行模式直接放行，对虚拟模式调用 `devdrv_get_bar_wc_flag` 检查 BAR4 bit4。`feature_bar_mem` 还受基础页大小一致性限制，而 `feature_bar_huge_mem` 共用 WC 条件。两项能力同时为零，使虚拟化 WC 门控/能力传递成为优先核查点；现场内部 flag 未被读取，不能据此宣布该 bit 已确定为零。这里的 0x8 BAR 映射能力与 1GB hugetlb 客体内存大页不是同一开关。
+
+来源：[Level2 原始包](/Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/env_conf/1029/op_demo_level2/result)、[ioctl 原始包](/Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/env_conf/1029/op_demo_level2/no_perf_ioctl/result)、[Runtime 策略源码快照](/Users/zhangfan/project/aico_timedelay_report/outputs/launch_whitebox_20261026/source_snapshot/src/runtime/core/src/pool/h2d_copy_mgr.cc:89)、[驱动 WC 门控源码快照](/Users/zhangfan/project/aico_timedelay_report/outputs/ioctl_launch_analysis_20261029/source_snapshot/svm_master_dev_capability.c:127)。源码快照是参考实现，不能替代现场版本的构建证明。
+
+## Rank 6 拖后需要独立处理
+
+10 月 27 日原始 ZIP 覆盖 Rank 0、1、3、4、5、6、7，缺 Rank 2。对七个 Rank 共同的 1261 次集合通信按名称、通信组、元素数、类型、算法等匹配，其中 87 次大消息通信的设备启动、Host 调用和框架 Enqueue 都是 Rank 6 最晚。
+
+| 同窗口指标 | Rank 0 | Rank 3 | Rank 6 |
+|---|---:|---:|---:|
+| Launch 平均 μs | 36.499 | 32.743 | 66.903 |
+| Launch P50 μs | 30.030 | 26.710 | 32.275 |
+| 全窗口 Launch ≥1 ms | 1 次 | 0 次 | 42 次 |
+| Communication ms | 1636.639 | 1665.046 | 82.635 |
+| Free ms | 300.714 | 247.657 | 1818.272 |
+| 重负载 execute_model 窗口 ms | 1278.683 | 1213.408 | 1723.080 |
+
+87 次大消息通信的设备开始时间跨度中位数为 **15.843 ms**，结束时间跨度中位数仅 **0.075 ms**。Rank 0 在这些通信区间中累计有 1483.025 ms 位于 Rank 6 对应通信启动之前。它与 Rank 6 的大量 Free 以及更早发生的 Host/Enqueue 拖后一起，强烈支持“快 Rank 等慢 Rank”。该累计值不是可回收的业务时间，不可再与 Host 时长相加。
+
+需要特别区分两个层次：
+
+- **Rank 6 的额外拖后不只发生在 Launch API 内。** 重负载窗口的首末 Launch 跨度比 Rank 0 多 444.143 ms，其中 API 内累计只多 67.224 ms，两个 Launch 之间累计多 376.919 ms，约占 84.86%。应检查主线程输入准备、框架处理、tiling/workspace、锁和调度；这些间隔是墙钟时间，不能直接认定为 CPU 被抢占。
+- **设备执行没有呈现同等规模的 Rank 6 普遍劣化。** 按 shape/dtype/format/block 等匹配的 303 组计算 kernel 覆盖各 Rank 约 95% 的可分析计算累计。等次数加权的 Rank 6 计算累计约 748.459 ms，Rank 0 约 761.235 ms。这支持优先查 Host 路径，但不是全部算子、全部设备与全部负载均无硬件问题的证明。
+
+七个已观测 Rank 中的最晚者不能称作八卡中的唯一慢卡；缺失的 Rank 2 需要保留为未知。此外，文件名和历史报告没有严格证明这份采样等同于 Excel 第 63 行全部配置。Rank 6 问题是否在最终大页和核隔离配置下仍然存在，需要同配置复测。
+
+昇腾官方调优方法也要求区分传输耗时与同步等待：后者偏高时要回到时间线寻找慢 Rank，不能只看 Communication 总量推断带宽。[官方通信分析方法](https://www.hiascend.com/doc_center/source/en/mindstudio/830/practicalcases/GeneralPerformanceIssue/toolsample6_020.html)
+
+来源：[七 Rank 原始采样](/Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/profiling/1027_xuji)、[本次重算的集合通信配对](/Users/zhangfan/project/aico_timedelay_report/outputs/vm_gap_review_20261030/multirank/paired_large_collectives.csv)、[本次多 Rank 汇总](/Users/zhangfan/project/aico_timedelay_report/outputs/vm_gap_review_20261030/multirank/summary.json)。
+
+## 现有 Stage-2 和通信根因说法需要收窄
+
+目录里的报告形成于不同阶段，部分措辞超过了原始证据：
+
+| 旧说法 | 本次复核后的结论 |
+|---|---|
+| 初期 profiling Stage 增加 25.7%，就是当前业务差距 | 那是不同工作量、不同采样窗口的 Stage 总量。当前业务对照应使用 Excel 的 17.73%。 |
+| HCCS 通信耗时变长说明链路被虚拟化拖慢 | 多 Rank 对齐显示大量等待慢 Rank。不能据 Elapse/Communication 将增长全部解释为线缆或带宽。 |
+| Rank 6 的 78.81 ms 就是全卡纯物理传输耗时 | 单个 Rank 的通信区间仍包含同步及其他活动，不能作为纯 wire time，也不能用它证明所有链路完全正常。 |
+| Stage-2 已确定是 Device-nGnRE，补丁能消除全部差距 | 宿主原始报告明确记录 Stage-2 UNKNOWN、补丁状态 UNKNOWN。尚无实际参数页的属性证据和修复后 A/B。 |
+| Prefetchable、resource_wc、QEMU mmap 证明实际 WC 已生效 | 它们只证明部分硬件或映射条件，不能替代实际 Stage-1/Stage-2 属性及驱动向 Runtime 提供的能力。 |
+| 所有 BAR 都完全不触发模拟 | QEMU memory tree 存在 MSI-X 和 BAR2 局部 I/O 区域；是否命中 Launch 热路径尚未知。 |
+| 所有问题都可用 TASK_QUEUE_ENABLE=1 解决 | 当前业务启动脚本已经设置为 1。异步排队可以改变重叠关系，但不会自动恢复 BAR-copy 能力。 |
+
+上游确实存在 ARM64 KVM/VFIO 的 Normal-NC 支持补丁，允许符合条件的设备映射避免被 Stage-2 默认 Device 属性限制。这证明机制合理，不证明当前厂商内核未回合，也不证明现场热路径就是该属性。应由内核维护方核对精确构建和安全 BAR 范围，再决定是否补丁或升级。[Linux ARM 内核补丁记录](https://lists.infradead.org/pipermail/linux-arm-kernel/2024-February/908141.html)
+
+30 秒宿主采样中，userspace MMIO 速率由约 100.46/s 到 104.83/s，kernel MMIO 由 104.33/s 到 132.16/s；同时总 exits 和 WFI 次数显著增加。两个窗口没有与每次 Launch 的时间和访问地址对应，不能推导“每个 NPU 操作都因 MMIO exit 增加固定几十微秒”。WFI 计数也不能单独解释等待原因或 `idle=poll` 在该内核的实际行为。
+
+10 月 26 日隔离检查早于后续配置。它不能用于否定后来大页、核隔离已经启用；仓库候选 XML 同样不能替代最新 live 配置。
+
+原始宿主结论：[report.txt](</Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/env_conf/1029/PCIe BAR_uc_wc/gpt/log/extracted/host_bar_wc_20261029_100822_ohgeqj8o/report.txt:20>)。原始计数：[宿主 MMIO 采样](</Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/env_conf/1029/PCIe BAR_uc_wc/safe_version/result/宿主机 MMIO Exit 采样>)。
+
+## 修复和验收顺序
+
+| 优先级 | 要做的事 | 观察结果与下一步 |
+|---|---|---|
+| 1 | 在当前业务容器和容器外 Guest 核对 driver/version.info、实际加载 HAL 哈希、Guest 模块、固件及宿主版本；能力查询扩展到实际使用的 8 张卡 | 若 Guest 已是目标配套而容器仍旧，修正驱动库挂载来源；若 Guest 也旧，采用厂商支持的完整组合。 |
+| 2 | 在保持模型、并发、NUMA、大页和 CPU 配置不变时，对齐受支持驱动组合并重启进程 | 重新查询 0x2/0x8/0xA。目标是 Runtime 获得有效 BAR-copy 能力，不要求掩码必须恰好是完整 0xA；仍需验证实际路径。 |
+| 3 | 如果能力恢复，运行固定小算例的无探针基线和独立路径探针 | 检查 DMA 对是否减少、Launch 与完成时间是否收敛。能力恢复而耗时不变时，查实际 policy、argsSize、分配/映射回退及 SQ/等待。 |
+| 4 | 如果配套对齐后能力仍为 0，请驱动/虚拟化团队检查 BAR4 WC flag、设备能力、Guest 映射与宿主 KVM/VFIO 支持 | 只有能力门控和实际映射证据指向 Stage-2 时，才安排对应厂商补丁或内核升级。不要以强制 capability 位代替真实映射支持，也不要直接替换单个 HAL。 |
+| 5 | 以当前最终配置确认慢 Rank 是否仍在；若存在，沿实际主线程/ACL TID → guest vCPU → host pCPU 检查 | 检查线程之间共享核、runqueue、IRQ、cgroup/祖先 quota 和实际内存分布。主线程与 ACL/辅助线程分离做单因素 A/B，再检查慢点是否消失或迁移。 |
+| 6 | 原 8 并发业务做交替重复对照，最后才判断修复结果 | 同数据、thinking、投机参数、缓存/预热、图配置、driver/firmware；保留逐请求 TTFT/E2E/输出 token，报告均值及 P50/P95/P99。各配置先做 3–5 个独立运行，按运行间波动判断，不能把同进程的 20 批当作独立部署重复。 |
+
+主线程隔离可以复用项目中的 [现有 A/B 操作方案](/Users/zhangfan/project/aico_timedelay_report/xuji_luoji_test/test/thread_affinity_ab_20261028/执行说明.md)，先 `plan` 和 live 映射核对，保留原有 CPU/NPU 亲和性。它只是一项有边界的验证，尚无现场结果证明能消除差距。标准 vLLM Ascend 的 main CPU 池也不等于主线程拥有独占物理核，现场修改版应以实际线程 affinity 为准。[vLLM Ascend CPU Binding 文档](https://docs.vllm.ai/projects/ascend/en/v0.18.0/developer_guide/Design_Documents/cpu_binding.html)
+
+若快速路径短期不能恢复，可与 Runtime/框架维护方评估减少实际 HostArgs Launch 数、融合或扩大受支持图覆盖的方案。当前已经启用 task queue 和图配置，应检查采样中仍落到 eager 的具体阶段，不能重复推荐打开现有开关。任何这类变化都应与驱动修复分开验证。
+
+完成根因闭环应看到同一链条变化：**受支持的能力/实际 copy policy 改变 → DMA/等待成本变化 → 无探针下发改善 → 原业务 E2E 的重复测量改善。** 若下发恢复但 E2E 仍慢，再对剩余关键路径定位，不能将改善幅度预先承诺为整个 17.73%。
+
+## 可交给驱动和虚拟化团队的问题描述
+
+Ascend910B4-1、CANN 9.1.0、torch_npu 2.10.0.post6。实测裸机查询进程所见驱动包 26.1.2，VM 为 25.5.0，实际 HAL 哈希不同。裸机 `halMemCtl` 的 0x2/0x8/0xA 请求全部成功并返回对应支持位；VM 同样成功但均返回 0。VM 固定 Sub INT32 `[8]`、queue0 提交窗口内每次操作稳定出现一对 DMA 提交/完成等待 ioctl，5120 对零失败、零丢失；无探针完成均摊 P50 为 28.807 μs/op，裸机 15.613 μs/op。请核实现场 Guest 驱动、容器 HAL、物理固件和宿主 KVM/VFIO 组合是否提供受支持的 BAR-copy/WC 能力，并说明虚拟场景能力门控失败的具体条件。宿主实际 Stage-2 属性及补丁状态当前未知，需与真实 Runtime 参数映射对应后判断。
+
+## 复核记录
+
+本次重新读取原始 Excel 值与公式，复算两份 Level2 原始 tar.gz、两份 ioctl 原始 tar.gz、两份能力 JSON 和七个 Rank 的原始 ZIP；保留输入 SHA256、派生结果和验证日志。没有修改原始 Excel、日志、既有分析结论或远端运行配置。
+
+复算通过的关键检查包括：Level2 的 40 批基线、256 个逐调用嵌套与设备 kernel；ioctl 的 80 批测量、10240 个 VM 事件、探针哈希和调用方身份；能力查询返回码/ABI/掩码；七 Rank 的 87 次大消息到达顺序以及 Launch 内外时间分解。历史脚本中的现场条件说明按来源保留，本次校验范围是文件和计时一致性，不将其当作新增现场确认。
+
+[输入清单与哈希](/Users/zhangfan/project/aico_timedelay_report/outputs/vm_gap_review_20261030/source_manifest.json) · [核验结果](/Users/zhangfan/project/aico_timedelay_report/outputs/vm_gap_review_20261030/verification.json)

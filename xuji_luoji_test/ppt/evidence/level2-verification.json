@@ -1,0 +1,20 @@
+{
+  "source_commit": "42b4ad80",
+  "comparison_matches": {
+    "torch_version": true,
+    "torch_npu_version": true,
+    "benchmark_sha256": true,
+    "placements_sha256": true,
+    "env": true,
+    "recorded_libraries": true,
+    "profiler_config": true,
+    "kernel_specification": true,
+    "test_config": true
+  },
+  "recorded_library_count": 11,
+  "source_archives_unchanged": true,
+  "user_confirmed_no_business_requests": true,
+  "validation": "All 256 Launchs matched one-to-one to the enclosing aclnnSub and nested LaunchKernelV2 on the main TID. All CANN intervals exactly match SQLite nanosecond boundaries. Summary mean/P50/P95 agree with raw trace. 40 baseline batches and 256 matching device kernels validated.",
+  "attribution_caveat": "Instrumented mean API deltas only; not business E2E loss or attribution of the unprofiled delta.",
+  "runtime_visibility": "Only LaunchKernelV2 is nested inside each HostArgs. No private copy, wait, SQ-send, lock or resource phase is independently exposed. CPU sampling and OS runtime profiling were off."
+}
