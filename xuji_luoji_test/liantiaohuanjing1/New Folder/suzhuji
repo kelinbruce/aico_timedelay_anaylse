@@ -1,0 +1,5082 @@
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # for f in system.txt cpu_sample.tsv node*_meminfo.txt hostdev_mapping.tsv; do
+>     printf '\n===== %s =====\n' "$f"
+>     cat "$f"
+> done
+
+===== system.txt =====
+$ date -Is
+2026-11-06T11:20:27+08:00
+
+[exit=0]
+
+$ hostname
+F1S6-shengteng
+
+[exit=0]
+
+$ uname -a
+Linux F1S6-shengteng 5.10.0-136.12.0.86.h2196.eulerosv2r12.aarch64 #1 SMP Tue Sep 24 13:37:13 UTC 2024 aarch64 aarch64 aarch64 GNU/Linux
+
+[exit=0]
+
+$ lscpu
+Architecture:                         aarch64
+CPU op-mode(s):                       64-bit
+Byte Order:                           Little Endian
+CPU(s):                               256
+On-line CPU(s) list:                  0-255
+Vendor ID:                            HiSilicon
+BIOS Vendor ID:                       HiSilicon
+Model name:                           Kunpeng-920
+BIOS Model name:                      HUAWEI Kunpeng 920 7265
+Model:                                0
+Thread(s) per core:                   1
+Core(s) per socket:                   64
+Socket(s):                            4
+Stepping:                             0x1
+Frequency boost:                      disabled
+CPU max MHz:                          3000.0000
+CPU min MHz:                          200.0000
+BogoMIPS:                             200.00
+Flags:                                fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma dcpop asimddp asimdfhm ssbs
+L1d cache:                            16 MiB (256 instances)
+L1i cache:                            16 MiB (256 instances)
+L2 cache:                             128 MiB (256 instances)
+L3 cache:                             256 MiB (8 instances)
+NUMA node(s):                         4
+NUMA node0 CPU(s):                    0-63
+NUMA node1 CPU(s):                    64-127
+NUMA node2 CPU(s):                    128-191
+NUMA node3 CPU(s):                    192-255
+Vulnerability Gather data sampling:   Not affected
+Vulnerability Itlb multihit:          Not affected
+Vulnerability L1tf:                   Not affected
+Vulnerability Mds:                    Not affected
+Vulnerability Meltdown:               Not affected
+Vulnerability Mmio stale data:        Not affected
+Vulnerability Reg file data sampling: Not affected
+Vulnerability Retbleed:               Not affected
+Vulnerability Spec rstack overflow:   Not affected
+Vulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:             Mitigation; __user pointer sanitization
+Vulnerability Spectre v2:             Not affected
+Vulnerability Srbds:                  Not affected
+Vulnerability Tsx async abort:        Not affected
+
+[exit=0]
+
+$ lscpu -e=CPU,NODE,SOCKET,CORE,ONLINE
+CPU NODE SOCKET CORE ONLINE
+  0    0      0    0    yes
+  1    0      0    1    yes
+  2    0      0    2    yes
+  3    0      0    3    yes
+  4    0      0    4    yes
+  5    0      0    5    yes
+  6    0      0    6    yes
+  7    0      0    7    yes
+  8    0      0    8    yes
+  9    0      0    9    yes
+ 10    0      0   10    yes
+ 11    0      0   11    yes
+ 12    0      0   12    yes
+ 13    0      0   13    yes
+ 14    0      0   14    yes
+ 15    0      0   15    yes
+ 16    0      0   16    yes
+ 17    0      0   17    yes
+ 18    0      0   18    yes
+ 19    0      0   19    yes
+ 20    0      0   20    yes
+ 21    0      0   21    yes
+ 22    0      0   22    yes
+ 23    0      0   23    yes
+ 24    0      0   24    yes
+ 25    0      0   25    yes
+ 26    0      0   26    yes
+ 27    0      0   27    yes
+ 28    0      0   28    yes
+ 29    0      0   29    yes
+ 30    0      0   30    yes
+ 31    0      0   31    yes
+ 32    0      0   32    yes
+ 33    0      0   33    yes
+ 34    0      0   34    yes
+ 35    0      0   35    yes
+ 36    0      0   36    yes
+ 37    0      0   37    yes
+ 38    0      0   38    yes
+ 39    0      0   39    yes
+ 40    0      0   40    yes
+ 41    0      0   41    yes
+ 42    0      0   42    yes
+ 43    0      0   43    yes
+ 44    0      0   44    yes
+ 45    0      0   45    yes
+ 46    0      0   46    yes
+ 47    0      0   47    yes
+ 48    0      0   48    yes
+ 49    0      0   49    yes
+ 50    0      0   50    yes
+ 51    0      0   51    yes
+ 52    0      0   52    yes
+ 53    0      0   53    yes
+ 54    0      0   54    yes
+ 55    0      0   55    yes
+ 56    0      0   56    yes
+ 57    0      0   57    yes
+ 58    0      0   58    yes
+ 59    0      0   59    yes
+ 60    0      0   60    yes
+ 61    0      0   61    yes
+ 62    0      0   62    yes
+ 63    0      0   63    yes
+ 64    1      1   64    yes
+ 65    1      1   65    yes
+ 66    1      1   66    yes
+ 67    1      1   67    yes
+ 68    1      1   68    yes
+ 69    1      1   69    yes
+ 70    1      1   70    yes
+ 71    1      1   71    yes
+ 72    1      1   72    yes
+ 73    1      1   73    yes
+ 74    1      1   74    yes
+ 75    1      1   75    yes
+ 76    1      1   76    yes
+ 77    1      1   77    yes
+ 78    1      1   78    yes
+ 79    1      1   79    yes
+ 80    1      1   80    yes
+ 81    1      1   81    yes
+ 82    1      1   82    yes
+ 83    1      1   83    yes
+ 84    1      1   84    yes
+ 85    1      1   85    yes
+ 86    1      1   86    yes
+ 87    1      1   87    yes
+ 88    1      1   88    yes
+ 89    1      1   89    yes
+ 90    1      1   90    yes
+ 91    1      1   91    yes
+ 92    1      1   92    yes
+ 93    1      1   93    yes
+ 94    1      1   94    yes
+ 95    1      1   95    yes
+ 96    1      1   96    yes
+ 97    1      1   97    yes
+ 98    1      1   98    yes
+ 99    1      1   99    yes
+100    1      1  100    yes
+101    1      1  101    yes
+102    1      1  102    yes
+103    1      1  103    yes
+104    1      1  104    yes
+105    1      1  105    yes
+106    1      1  106    yes
+107    1      1  107    yes
+108    1      1  108    yes
+109    1      1  109    yes
+110    1      1  110    yes
+111    1      1  111    yes
+112    1      1  112    yes
+113    1      1  113    yes
+114    1      1  114    yes
+115    1      1  115    yes
+116    1      1  116    yes
+117    1      1  117    yes
+118    1      1  118    yes
+119    1      1  119    yes
+120    1      1  120    yes
+121    1      1  121    yes
+122    1      1  122    yes
+123    1      1  123    yes
+124    1      1  124    yes
+125    1      1  125    yes
+126    1      1  126    yes
+127    1      1  127    yes
+128    2      2  128    yes
+129    2      2  129    yes
+130    2      2  130    yes
+131    2      2  131    yes
+132    2      2  132    yes
+133    2      2  133    yes
+134    2      2  134    yes
+135    2      2  135    yes
+136    2      2  136    yes
+137    2      2  137    yes
+138    2      2  138    yes
+139    2      2  139    yes
+140    2      2  140    yes
+141    2      2  141    yes
+142    2      2  142    yes
+143    2      2  143    yes
+144    2      2  144    yes
+145    2      2  145    yes
+146    2      2  146    yes
+147    2      2  147    yes
+148    2      2  148    yes
+149    2      2  149    yes
+150    2      2  150    yes
+151    2      2  151    yes
+152    2      2  152    yes
+153    2      2  153    yes
+154    2      2  154    yes
+155    2      2  155    yes
+156    2      2  156    yes
+157    2      2  157    yes
+158    2      2  158    yes
+159    2      2  159    yes
+160    2      2  160    yes
+161    2      2  161    yes
+162    2      2  162    yes
+163    2      2  163    yes
+164    2      2  164    yes
+165    2      2  165    yes
+166    2      2  166    yes
+167    2      2  167    yes
+168    2      2  168    yes
+169    2      2  169    yes
+170    2      2  170    yes
+171    2      2  171    yes
+172    2      2  172    yes
+173    2      2  173    yes
+174    2      2  174    yes
+175    2      2  175    yes
+176    2      2  176    yes
+177    2      2  177    yes
+178    2      2  178    yes
+179    2      2  179    yes
+180    2      2  180    yes
+181    2      2  181    yes
+182    2      2  182    yes
+183    2      2  183    yes
+184    2      2  184    yes
+185    2      2  185    yes
+186    2      2  186    yes
+187    2      2  187    yes
+188    2      2  188    yes
+189    2      2  189    yes
+190    2      2  190    yes
+191    2      2  191    yes
+192    3      3  192    yes
+193    3      3  193    yes
+194    3      3  194    yes
+195    3      3  195    yes
+196    3      3  196    yes
+197    3      3  197    yes
+198    3      3  198    yes
+199    3      3  199    yes
+200    3      3  200    yes
+201    3      3  201    yes
+202    3      3  202    yes
+203    3      3  203    yes
+204    3      3  204    yes
+205    3      3  205    yes
+206    3      3  206    yes
+207    3      3  207    yes
+208    3      3  208    yes
+209    3      3  209    yes
+210    3      3  210    yes
+211    3      3  211    yes
+212    3      3  212    yes
+213    3      3  213    yes
+214    3      3  214    yes
+215    3      3  215    yes
+216    3      3  216    yes
+217    3      3  217    yes
+218    3      3  218    yes
+219    3      3  219    yes
+220    3      3  220    yes
+221    3      3  221    yes
+222    3      3  222    yes
+223    3      3  223    yes
+224    3      3  224    yes
+225    3      3  225    yes
+226    3      3  226    yes
+227    3      3  227    yes
+228    3      3  228    yes
+229    3      3  229    yes
+230    3      3  230    yes
+231    3      3  231    yes
+232    3      3  232    yes
+233    3      3  233    yes
+234    3      3  234    yes
+235    3      3  235    yes
+236    3      3  236    yes
+237    3      3  237    yes
+238    3      3  238    yes
+239    3      3  239    yes
+240    3      3  240    yes
+241    3      3  241    yes
+242    3      3  242    yes
+243    3      3  243    yes
+244    3      3  244    yes
+245    3      3  245    yes
+246    3      3  246    yes
+247    3      3  247    yes
+248    3      3  248    yes
+249    3      3  249    yes
+250    3      3  250    yes
+251    3      3  251    yes
+252    3      3  252    yes
+253    3      3  253    yes
+254    3      3  254    yes
+255    3      3  255    yes
+
+[exit=0]
+
+$ numactl --hardware
+available: 4 nodes (0-3)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63
+node 0 size: 515219 MB
+node 0 free: 383726 MB
+node 1 cpus: 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127
+node 1 size: 516046 MB
+node 1 free: 267715 MB
+node 2 cpus: 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191
+node 2 size: 516086 MB
+node 2 free: 267521 MB
+node 3 cpus: 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255
+node 3 size: 516072 MB
+node 3 free: 267981 MB
+node distances:
+node   0   1   2   3 
+  0:  10  11  24  25 
+  1:  11  10  25  32 
+  2:  24  25  10  11 
+  3:  25  32  11  10 
+
+[exit=0]
+
+$ free -k
+               total        used        free      shared  buff/cache   available
+Mem:      2112947672   894161356  1215431092      274148     3355224  1211524280
+Swap:              0           0           0
+
+[exit=0]
+
+$ ps -eLo pid,tid,psr,pcpu,comm --sort=-pcpu
+    PID     TID PSR %CPU COMMAND
+2766408 2766408 149 1114 qemu-kvm
+3099957 3099957  13  190 qemu-kvm
+2741379 2741379   0  0.0 evscfg
+3008336 3008336  68 43.1 qemu-kvm
+3008811 3008811 202 29.2 qemu-kvm
+2741285 2741285   3  0.0 python3
+3099999 3099999   5  3.2 vhost-3099957
+ 127705  127705   2  2.7 rsyslogd
+  29675   29675   2  1.4 ovs-vswitchd
+2741232 2741232   3  0.0 arping
+      1       1   3  1.3 systemd
+ 111762  111762   2  1.3 /usr/bin/python
+ 404040  404040   1  1.1 python3
+  99261   99261   0  1.1 /usr/bin/python
+ 103456  103456   3  0.8 python
+2724352 2724352   2  0.8 iostat
+2734276 2734276   2  0.8 python3
+ 238810  238810   2  0.8 libvirtd
+  23387   23387   2  0.8 irqbalance
+2734272 2734272   3  0.7 python
+ 113799  113799   2  0.6 /usr/bin/python
+2766844 2766844 130  0.5 vhost-2766408
+  72722   72722   2  0.5 python3
+     13      13   2  0.5 rcu_sched
+  23712   23712   3  0.4 getosstat
+ 254636  254636   1  0.3 ld-linux-aarch6
+ 242318  242318   3  0.3 python3
+ 125109  125109   2  0.3 python
+2724421 2724421   2  0.3 pidstat
+  21742   21742   2  0.3 dms_sensor_scan
+ 114858  114858   2  0.2 ceilometer-root
+ 102853  102853   1  0.2 sysmonitor
+  30698   30698   2  0.2 rsyslogd
+  75094   75094   2  0.2 nscd
+ 103607  103607   2  0.2 process_monitor
+  25032   25032   1  0.2 ovsdb-server
+ 209973  209973   0  0.2 ceilometer-poll
+ 112101  112101   3  0.2 python3
+ 102974  102974   2  0.2 unetwork_alarm.
+2703078 2703078 102  0.2 kworker/u514:5-iscsi_q_17
+   3228    3228   2  0.1 systemd-journal
+3009108 3009108 220  0.1 vhost-3008811
+3008533 3008533  83  0.1 vhost-3008336
+1227866 1227866 105  0.1 kworker/u514:7-iscsi_q_17
+2580790 2580790 107  0.1 kworker/u514:1-iscsi_q_23
+1897742 1897742  80  0.1 kworker/u514:6-iscsi_q_23
+1568216 1568216 102  0.1 kworker/u514:4-iscsi_q_31
+2361318 2361318  69  0.1 kworker/u514:3-iscsi_q_25
+2018974 2018974  73  0.1 kworker/u514:0-iscsi_q_33
+  92019   92019   1  0.1 logagent.py
+2641750 2641750  40  0.1 kworker/u513:2-hclge
+  89608   89608   3  0.1 info_collect_cl
+1575748 1575748  54  0.1 kworker/u513:4-hclge
+1309564 1309564  44  0.1 kworker/u513:5-hclge
+     12      12   0  0.0 ksoftirqd/0
+  73836   73836   2  0.0 python
+2252662 2252662  91  0.0 kworker/u514:2-iscsi_q_26
+ 103557  103557   3  0.0 process_monitor
+1668475 1668475  59  0.0 kworker/u513:1-events_unbound
+  89320   89320   0  0.0 collect_alarm.p
+2536209 2536209  64  0.0 kworker/64:0-events
+     18      18   1  0.0 ksoftirqd/1
+     23      23   2  0.0 ksoftirqd/2
+     28      28   3  0.0 ksoftirqd/3
+  87955   87955   0  0.0 networkconf.py
+2673466 2673466  64  0.0 kworker/64:1-events
+   3102    3102   3  0.0 jbd2/dm-0-8
+2579178 2579178  64  0.0 kworker/64:3-events
+ 103088  103088   1  0.0 process_monitor
+2720491 2720491 123  0.0 kworker/u512:3-mlx5_cmd_0000:43:00.0
+ 103237  103237   0  0.0 qemu_tls_alarm_
+2043898 2043898   1  0.0 kworker/1:0-cgroup_pidlist_destroy
+  92120   92120   3  0.0 python
+  73760   73760   1  0.0 wrap-server
+ 519146  519146 118  0.0 kworker/u512:2-mlx5_health0000:43:00.1
+  54039   54039   1  0.0 upservice
+ 404015  404015   3  0.0 python
+2766845 2766845 150  0.0 vhost-2766408
+1413994 1413994   2  0.0 kworker/2:2-events
+2457634 2457634 123  0.0 kworker/u512:1-mlx5_health0000:c3:00.1
+ 907395  907395   0  0.0 kworker/0:0-events
+1112001 1112001   1  0.0 kworker/1:1-events
+2524013 2524013   2  0.0 kworker/2:4-events
+    575     575 112  0.0 ksoftirqd/112
+  93093   93093   1  0.0 ntpclient.py
+ 112590  112590   2  0.0 python3
+ 214781  214781   2  0.0 python3
+2707989 2707989 105  0.0 kworker/u512:0-mlx5_cmd_0000:43:00.0
+2724402 2724402   3  0.0 sadc
+ 115636  115636   3  0.0 python
+ 254987  254987   2  0.0 python
+ 113350  113350   0  0.0 python3
+ 106940  106940   3  0.0 python
+ 101573  101573   2  0.0 python3
+    334     334  64  0.0 ksoftirqd/64
+ 242360  242360   0  0.0 python3
+ 113800  113800   2  0.0 python
+ 114042  114042   3  0.0 python
+ 105466  105466   1  0.0 python3
+ 101699  101699   1  0.0 python
+3100000 3100000   6  0.0 vhost-3099957
+  74341   74341   1  0.0 python3
+ 105478  105478   1  0.0 python
+2613676 2613676   3  0.0 kworker/3:3-intf_cb_recycle
+   3497    3497   0  0.0 PingWorkQueue_1
+  89798   89798   3  0.0 python
+  87636   87636   3  0.0 python
+  88090   88090   3  0.0 python
+  82970   82970   0  0.0 python
+1584962 1584962  66  0.0 kworker/66:0-events
+3009115 3009115 197  0.0 vhost-3008811
+2788430 2788430  70  0.0 kworker/70:1-events
+3965740 3965740  68  0.0 kworker/68:2-events
+3008545 3008545  66  0.0 vhost-3008336
+  73053   73053   0  0.0 python3
+2714699 2714699   0  0.0 kvmtop
+ 250653  250653   3  0.0 nova-rootwrap-d
+  88618   88618   3  0.0 backup_client.p
+2169891 2169891   3  0.0 kworker/3:0-intf_cb_recycle
+ 103495  103495   0  0.0 tls_alarm_monit
+  33465   33465   2  0.0 python
+ 364353  364353   3  0.0 kworker/3:4-events
+2490943 2490943 102  0.0 kworker/102:1-events
+  34347   34347   0  0.0 UVPHostd
+  23282   23282   3  0.0 dbus-daemon
+    490     490  95  0.0 ksoftirqd/95
+  23098   23098   1  0.0 jbd2/dm-2-8
+   3482    3482   0  0.0 USIImmediateWkq
+   3481    3481   3  0.0 USIImmediateWkq
+    610     610 119  0.0 ksoftirqd/119
+   3484    3484   0  0.0 USIImmediateWkq
+   3480    3480   2  0.0 USIImmediateWkq
+   3483    3483   3  0.0 USIImmediateWkq
+   3485    3485   3  0.0 USIImmediateWkq
+2686858 2686858 102  0.0 kworker/102:2-events
+  55010   55010   2  0.0 hkidsd
+  54240   54240   0  0.0 up_hostinfo_lin
+2593611 2593611 102  0.0 kworker/102:0-events
+   1332    1332  38  0.0 kworker/38:1-mm_percpu_wq
+2095981 2095981 104  0.0 kworker/104:0-events
+2491375 2491375 112  0.0 kworker/112:1-events
+ 168537  168537  85  0.0 python
+  21791   21791   0  0.0 dms_save_except
+  73468   73468   3  0.0 virtlogd
+2075090 2075090  80  0.0 kworker/80:1-events
+1371333 1371333  95  0.0 kworker/95:2-events
+   3502    3502   0  0.0 vhba_barrier_4
+   3501    3501   3  0.0 vhba_barrier_3
+   3499    3499   2  0.0 vhba_barrier_1
+   3500    3500   0  0.0 vhba_barrier_2
+2639096 2639096  91  0.0 kworker/91:2-events
+2638618 2638618  80  0.0 kworker/80:2-events
+ 167608  167608   3  0.0 python
+2213336 2213336 119  0.0 kworker/119:2-events
+   3503    3503   0  0.0 VLMVLunNotifyWk
+   3495    3495   3  0.0 LPMSyncCmdPost_
+2419844 2419844  91  0.0 kworker/91:1-events
+   3498    3498   2  0.0 PIAPathMgr_1
+   3496    3496   0  0.0 LPMPathMgrWkq_1
+2415645 2415645 118  0.0 kworker/118:1-events
+   3494    3494   3  0.0 CodeStreamWorkQ
+  23184   23184  60  0.0 kworker/60:2-events
+   3493    3493   1  0.0 KLS_Merge_Log_T
+2494564 2494564  83  0.0 kworker/83:0-events
+3825069 3825069 192  0.0 kworker/192:0-events
+   1625    1625  41  0.0 kworker/41:2-mm_percpu_wq
+   1328    1328  32  0.0 kworker/32:1-mm_percpu_wq
+    570     570 111  0.0 ksoftirqd/111
+   3488    3488   1  0.0 USIDefererdWkq_
+   3489    3489   0  0.0 USIDefererdWkq_
+   3487    3487   1  0.0 USIDefererdWkq_
+   3486    3486   0  0.0 USIDefererdWkq_
+   3490    3490   1  0.0 USIDefererdWkq_
+   3491    3491   0  0.0 USIDefererdWkq_
+    625     625 122  0.0 ksoftirqd/122
+  23965   23965   0  0.0 systemd-logind
+1482601 1482601  94  0.0 kworker/94:2-events
+2417700 2417700 117  0.0 kworker/117:2-events
+  24068   24068   0  0.0 sysalarm
+2410764 2410764  65  0.0 kworker/65:2-mm_percpu_wq
+2048186 2048186  93  0.0 kworker/93:2-events
+2554250 2554250   3  0.0 kworker/3:1-events
+1031686 1031686  92  0.0 kworker/92:0-events
+   2803    2803  34  0.0 kworker/34:2-mm_percpu_wq
+   1693    1693  33  0.0 kworker/33:3-mm_percpu_wq
+  30996   30996   4  0.0 kworker/4:3-mm_percpu_wq
+  83354   83354   1  0.0 jbd2/dm-8-8
+ 726866  726866   5  0.0 kworker/5:0-mm_percpu_wq
+  31425   31425   2  0.0 crond
+2127098 2127098  81  0.0 kworker/81:1-mm_percpu_wq
+3206045 3206045  89  0.0 kworker/89:0-events
+   1562    1562   2  0.0 khugepaged
+ 236555  236555   0  0.0 python
+     27      27   3  0.0 migration/3
+     22      22   2  0.0 migration/2
+     17      17   1  0.0 migration/1
+2952441 2952441  85  0.0 kworker/85:1-mm_percpu_wq
+     14      14   0  0.0 migration/0
+3798321 3798321  68  0.0 kworker/68:1-events
+   3504    3504   1  0.0 PiaManager
+  21741   21741   0  0.0 dms_poll_task
+   1791    1791  53  0.0 kworker/53:3-mm_percpu_wq
+ 103030  103030   1  0.0 swap_io_monitor
+1019863 1019863 191  0.0 kworker/u515:0-hclge
+1260282 1260282 187  0.0 kworker/u515:2-hclge
+2423747 2423747 105  0.0 kworker/105:1-events
+3791937 3791937  36  0.0 kworker/36:0-mm_percpu_wq
+2291207 2291207 103  0.0 kworker/103:0-events
+1717425 1717425 122  0.0 kworker/122:1-events
+3942585 3942585 122  0.0 kworker/122:0-events
+   1333    1333  39  0.0 kworker/39:1-mm_percpu_wq
+   1781    1781  61  0.0 kworker/61:3-events
+   1329    1329  35  0.0 kworker/35:1-mm_percpu_wq
+  23085   23085   0  0.0 jbd2/dm-3-8
+    215     215  40  0.0 kworker/40:0-mm_percpu_wq
+1591467 1591467 120  0.0 kworker/120:2-events
+ 136061  136061  82  0.0 kworker/82:1-mm_percpu_wq
+    415     415  80  0.0 ksoftirqd/80
+   1331    1331  37  0.0 kworker/37:1-mm_percpu_wq
+    470     470  91  0.0 ksoftirqd/91
+   1338    1338  44  0.0 kworker/44:1-mm_percpu_wq
+1510852 1510852 113  0.0 kworker/113:1-events
+2424715 2424715  74  0.0 kworker/74:1-events
+   1341    1341  47  0.0 kworker/47:1-mm_percpu_wq
+   1336    1336  42  0.0 kworker/42:1-mm_percpu_wq
+   1342    1342  48  0.0 kworker/48:1-mm_percpu_wq
+ 135428  135428  67  0.0 kworker/67:1-events
+   1340    1340  46  0.0 kworker/46:1-mm_percpu_wq
+   1919    1919   2  0.0 kworker/2:1H-hb_read_work
+   1337    1337  43  0.0 kworker/43:1-mm_percpu_wq
+ 102938  102938   0  0.0 python
+  23968   23968   3  0.0 systemd-machine
+   1344    1344  50  0.0 kworker/50:1-mm_percpu_wq
+    295     295  56  0.0 kworker/56:0-mm_percpu_wq
+   1339    1339  45  0.0 kworker/45:1-events
+   1343    1343  49  0.0 kworker/49:1-mm_percpu_wq
+ 565421  565421  87  0.0 kworker/87:1-events
+   1348    1348  54  0.0 kworker/54:1-mm_percpu_wq
+   1358    1358  63  0.0 kworker/63:1-mm_percpu_wq
+   1357    1357  62  0.0 kworker/62:1-mm_percpu_wq
+2364520 2364520 189  0.0 kworker/u515:1-hclge
+   1789    1789  51  0.0 kworker/51:3-mm_percpu_wq
+ 103752  103752   1  0.0 vm_io_monitor.p
+ 448099  448099  94  0.0 kworker/94:0-events
+    430     430  83  0.0 ksoftirqd/83
+    290     290  55  0.0 kworker/55:0-mm_percpu_wq
+    300     300  57  0.0 kworker/57:0-mm_percpu_wq
+   1755    1755  58  0.0 kworker/58:3-mm_percpu_wq
+2035781 2035781 131  0.0 kworker/131:1-mm_percpu_wq
+   1346    1346  52  0.0 kworker/52:1-intf_cb_recycle
+   3250    3250  59  0.0 kworker/59:2-mm_percpu_wq
+ 251031  251031   1  0.0 python
+   3492    3492   2  0.0 KLSWriteLogWork
+   1303    1303   9  0.0 kworker/9:1-mm_percpu_wq
+   3261    3261   1  0.0 systemd-udevd
+  22842   22842  12  0.0 kworker/12:2-mm_percpu_wq
+1921240 1921240  75  0.0 kworker/75:1-events
+   3259    3259   6  0.0 kworker/6:2-mm_percpu_wq
+   1313    1313  19  0.0 kworker/19:1-mm_percpu_wq
+ 136515  136515  13  0.0 kworker/13:3-mm_percpu_wq
+   1305    1305  11  0.0 kworker/11:1-mm_percpu_wq
+   1309    1309  15  0.0 kworker/15:1-mm_percpu_wq
+    275     275  52  0.0 kworker/52:0-mm_percpu_wq
+   1310    1310  16  0.0 kworker/16:1-mm_percpu_wq
+   1308    1308  14  0.0 kworker/14:1-mm_percpu_wq
+   1311    1311  17  0.0 kworker/17:1-mm_percpu_wq
+3789702 3789702  72  0.0 kworker/72:1-events
+      2       2   2  0.0 kthreadd
+   1312    1312  18  0.0 kworker/18:1-mm_percpu_wq
+1009356 1009356  90  0.0 kworker/90:2-events
+ 736667  736667   8  0.0 kworker/8:0-mm_percpu_wq
+3768150 3768150 130  0.0 kworker/130:1-events
+2930133 2930133  76  0.0 kworker/76:2-events
+  23315   23315   3  0.0 haveged
+  37209   37209   7  0.0 kworker/7:3-events
+   1304    1304  10  0.0 kworker/10:1-mm_percpu_wq
+2250750 2250750  78  0.0 kworker/78:1-events
+1256801 1256801  93  0.0 kworker/93:1-events
+1602048 1602048 106  0.0 kworker/106:2-mm_percpu_wq
+   1559    1559   3  0.0 kcompactd2
+   1560    1560   3  0.0 kcompactd3
+2215140 2215140  65  0.0 kworker/65:0-events
+   1558    1558   2  0.0 kcompactd1
+2924866 2924866   0  0.0 systemd
+1611374 1611374  88  0.0 kworker/88:1-events
+ 103638  103638   1  0.0 vm_reboot_monit
+2382491 2382491  98  0.0 kworker/98:0-events
+   1557    1557   3  0.0 kcompactd0
+ 836259  836259  70  0.0 kworker/70:2-events
+2398943 2398943 108  0.0 kworker/108:1-events
+   1496    1496 202  0.0 kworker/202:1-mm_percpu_wq
+ 103949  103949   1  0.0 vm_panic_monito
+ 103271  103271   1  0.0 kvmtop_monitor.
+2410341 2410341  97  0.0 kworker/97:2-mm_percpu_wq
+2832543 2832543 168  0.0 kworker/168:1-mm_percpu_wq
+ 103888  103888   1  0.0 systemd_monitor
+3186247 3186247  73  0.0 kworker/73:0-events
+2411196 2411196  77  0.0 kworker/77:0-mm_percpu_wq
+2832361 2832361 160  0.0 kworker/160:1-mm_percpu_wq
+ 962560  962560 107  0.0 kworker/107:1-events
+3485714 3485714   3  0.0 bash
+   3286    3286   3  0.0 kworker/3:1H-kblockd
+   1862    1862   1  0.0 kworker/1:1H-kblockd
+1968988 1968988  78  0.0 kworker/78:0-events
+2781949 2781949 170  0.0 kworker/170:0-mm_percpu_wq
+    525     525 102  0.0 ksoftirqd/102
+1231220 1231220  96  0.0 kworker/96:1-events
+   1880    1880   0  0.0 kworker/0:1H-kblockd
+2832594 2832594 169  0.0 kworker/169:1-mm_percpu_wq
+   1421    1421 127  0.0 kworker/127:1-mm_percpu_wq
+2850056 2850056 148  0.0 kworker/148:1-events
+2409318 2409318 109  0.0 kworker/109:2-events
+   1501    1501 207  0.0 kworker/207:1-mm_percpu_wq
+1358220 1358220 130  0.0 kworker/130:2-events
+   1504    1504 210  0.0 kworker/210:1-events
+2796592 2796592 128  0.0 kworker/128:0-events
+3922295 3922295 146  0.0 kworker/146:0-mm_percpu_wq
+3199023 3199023  71  0.0 kworker/71:0-mm_percpu_wq
+   1554    1554   1  0.0 khungtaskd
+   1494    1494 200  0.0 kworker/200:1-mm_percpu_wq
+2667923 2667923  89  0.0 kworker/89:2-events
+2782107 2782107 171  0.0 kworker/171:1-mm_percpu_wq
+   1493    1493 199  0.0 kworker/199:1-mm_percpu_wq
+   1500    1500 206  0.0 kworker/206:1-mm_percpu_wq
+   1490    1490 196  0.0 kworker/196:1-mm_percpu_wq
+   1489    1489 195  0.0 kworker/195:1-mm_percpu_wq
+   1498    1498 204  0.0 kworker/204:1-mm_percpu_wq
+   1491    1491 197  0.0 kworker/197:1-mm_percpu_wq
+ 715991  715991 172  0.0 kworker/172:2-mm_percpu_wq
+   1495    1495 201  0.0 kworker/201:1-mm_percpu_wq
+1360192 1360192 158  0.0 kworker/158:257-mm_percpu_wq
+3958497 3958497 100  0.0 kworker/100:1-events
+   1497    1497 203  0.0 kworker/203:1-mm_percpu_wq
+2032107 2032107 164  0.0 kworker/164:0-mm_percpu_wq
+2030762 2030762 144  0.0 kworker/144:2-mm_percpu_wq
+   1492    1492 198  0.0 kworker/198:1-mm_percpu_wq
+3989919 3989919 174  0.0 kworker/174:0-mm_percpu_wq
+ 716784  716784 150  0.0 kworker/150:257-events
+1356762 1356762 156  0.0 kworker/156:0-mm_percpu_wq
+2924937 2924937   2  0.0 sshd
+3971088 3971088 162  0.0 kworker/162:1-mm_percpu_wq
+ 546477  546477 103  0.0 kworker/103:2-events
+1634088 1634088 121  0.0 kworker/121:1-events
+ 715981  715981 166  0.0 kworker/166:2-mm_percpu_wq
+3772369 3772369 136  0.0 kworker/136:1-mm_percpu_wq
+2847055 2847055 163  0.0 kworker/163:0-mm_percpu_wq
+1593770 1593770 126  0.0 kworker/126:1-events
+ 289503  289503 152  0.0 kworker/152:2-mm_percpu_wq
+3768723 3768723 138  0.0 kworker/138:2-mm_percpu_wq
+1326457 1326457  75  0.0 kworker/75:2-events
+2849042 2849042 145  0.0 kworker/145:0-mm_percpu_wq
+3556361 3556361 101  0.0 kworker/101:2-events
+ 289560  289560 154  0.0 kworker/154:2-mm_percpu_wq
+   1499    1499 205  0.0 kworker/205:1-mm_percpu_wq
+3834610 3834610 110  0.0 kworker/110:1-events
+3987867 3987867 173  0.0 kworker/173:0-mm_percpu_wq
+2019164 2019164 125  0.0 kworker/125:1-events
+  23592   23592   1  0.0 uvpkmcd
+   1434    1434 140  0.0 kworker/140:1-mm_percpu_wq
+   1488    1488 194  0.0 kworker/194:1-cgroup_pidlist_destroy
+3991872 3991872 175  0.0 kworker/175:0-mm_percpu_wq
+   1437    1437 143  0.0 kworker/143:1-mm_percpu_wq
+ 103374  103374   3  0.0 qemu_hotreplace
+2934227 2934227 101  0.0 kworker/101:1-mm_percpu_wq
+   1428    1428 134  0.0 kworker/134:1-mm_percpu_wq
+ 712552  712552 142  0.0 kworker/142:2-mm_percpu_wq
+1399601 1399601  79  0.0 kworker/79:1-events
+3922397 3922397 147  0.0 kworker/147:0-mm_percpu_wq
+ 309448  309448 132  0.0 kworker/132:0-mm_percpu_wq
+3970955 3970955 161  0.0 kworker/161:0-mm_percpu_wq
+2849905 2849905 113  0.0 kworker/113:0-events
+4022835 4022835 123  0.0 kworker/123:0-events
+1355885 1355885 193  0.0 kworker/193:0-mm_percpu_wq
+ 103314  103314   0  0.0 hotpatch_alarm.
+2672731 2672731 100  0.0 kworker/100:2-events
+ 289323  289323 151  0.0 kworker/151:2-mm_percpu_wq
+  83270   83270   2  0.0 jbd2/dm-5-8
+1358970 1358970 159  0.0 kworker/159:2-mm_percpu_wq
+ 532491  532491 121  0.0 kworker/121:0-events
+3903463 3903463 128  0.0 kworker/128:2-rcu_par_gp
+2517488 2517488  99  0.0 kworker/99:0-events
+3770492 3770492 167  0.0 kworker/167:0-mm_percpu_wq
+2850935 2850935 141  0.0 kworker/141:1-mm_percpu_wq
+ 289153  289153 149  0.0 kworker/149:2-mm_percpu_wq
+1356763 1356763 157  0.0 kworker/157:2-mm_percpu_wq
+1120949 1120949 111  0.0 kworker/111:0-events
+2031497 2031497 165  0.0 kworker/165:0-mm_percpu_wq
+    390     390  75  0.0 ksoftirqd/75
+1420018 1420018 114  0.0 kworker/114:0-events
+2832356 2832356 129  0.0 kworker/129:0-mm_percpu_wq
+1360957 1360957 133  0.0 kworker/133:2-mm_percpu_wq
+ 123860  123860   2  0.0 iscsid
+1861091 1861091 124  0.0 kworker/124:0-events
+2574914 2574914 116  0.0 kworker/116:0-events
+ 102876  102876   1  0.0 cdemu_tls_alarm
+ 289516  289516 153  0.0 kworker/153:2-mm_percpu_wq
+2562082 2562082 126  0.0 kworker/126:2-events
+ 104191  104191   0  0.0 ceilometer-poll
+1355509 1355509 194  0.0 kworker/194:2-mm_percpu_wq
+ 250024  250024   0  0.0 ovsdb-client
+   3180    3180 139  0.0 kworker/139:2-mm_percpu_wq
+3773284 3773284 137  0.0 kworker/137:257-mm_percpu_wq
+2014555 2014555 135  0.0 kworker/135:2-mm_percpu_wq
+ 289568  289568 155  0.0 kworker/155:2-mm_percpu_wq
+1837973 1837973  66  0.0 kworker/66:2-events
+   1517    1517 223  0.0 kworker/223:1-mm_percpu_wq
+2645092 2645092 115  0.0 kworker/115:1-events
+     33      33   4  0.0 ksoftirqd/4
+    480     480  93  0.0 ksoftirqd/93
+    816     816 160  0.0 ksoftirqd/160
+  25335   25335   3  0.0 evs_daemon
+  30222   30222  36  0.0 kworker/36:2-intf_cb_recycle
+ 452418  452418  73  0.0 kworker/73:1-events
+  58158   58158   8  0.0 kworker/8:2-intf_cb_recycle
+   1550    1550   7  0.0 kworker/7:1-intf_cb_recycle
+ 160371  160371  87  0.0 kworker/87:2-events
+2103221 2103221 192  0.0 kworker/192:2-events
+1472208 1472208 114  0.0 kworker/114:2-events
+    460     460  89  0.0 ksoftirqd/89
+   1553    1553 148  0.0 kworker/148:2-rcu_gp
+    976     976 192  0.0 ksoftirqd/192
+    405     405  78  0.0 ksoftirqd/78
+ 737233  737233  10  0.0 kworker/10:0-intf_cb_recycle
+   1502    1502 208  0.0 kworker/208:1-mm_percpu_wq
+    340     340  65  0.0 ksoftirqd/65
+     32      32   4  0.0 migration/4
+  23043   23043 131  0.0 kworker/131:1H-kblockd
+   1506    1506 212  0.0 kworker/212:1-mm_percpu_wq
+  89826   89826 129  0.0 kworker/129:1H-kblockd
+   1513    1513 219  0.0 kworker/219:1-mm_percpu_wq
+  31136   31136 130  0.0 kworker/130:1H-kblockd
+   1472    1472 178  0.0 kworker/178:1-events
+   1484    1484 190  0.0 kworker/190:1-events
+   1508    1508 214  0.0 kworker/214:1-mm_percpu_wq
+   1510    1510 216  0.0 kworker/216:1-mm_percpu_wq
+   1512    1512 218  0.0 kworker/218:1-mm_percpu_wq
+3272945 3272945  72  0.0 kworker/72:2-mm_percpu_wq
+   3045    3045 128  0.0 kworker/128:1H-kblockd
+ 103691  103691   0  0.0 python3
+   1470    1470 176  0.0 kworker/176:1-mm_percpu_wq
+   1474    1474 180  0.0 kworker/180:1-events
+   1480    1480 186  0.0 kworker/186:1-events
+   1515    1515 221  0.0 kworker/221:1-mm_percpu_wq
+     38      38   5  0.0 ksoftirqd/5
+   1476    1476 182  0.0 kworker/182:1-events
+   1507    1507 213  0.0 kworker/213:1-mm_percpu_wq
+    861     861 169  0.0 ksoftirqd/169
+   1503    1503 209  0.0 kworker/209:1-mm_percpu_wq
+   1505    1505 211  0.0 kworker/211:1-mm_percpu_wq
+ 941616  941616  67  0.0 kworker/67:0-events
+   1478    1478 184  0.0 kworker/184:1-events
+   1314    1314  20  0.0 kworker/20:1-mm_percpu_wq
+   1511    1511 217  0.0 kworker/217:1-mm_percpu_wq
+   1482    1482 188  0.0 kworker/188:1-events
+   1509    1509 215  0.0 kworker/215:1-mm_percpu_wq
+   1514    1514 220  0.0 kworker/220:1-mm_percpu_wq
+    871     871 171  0.0 ksoftirqd/171
+    826     826 162  0.0 ksoftirqd/162
+    485     485  94  0.0 ksoftirqd/94
+     52      52   8  0.0 migration/8
+    831     831 163  0.0 ksoftirqd/163
+    881     881 173  0.0 ksoftirqd/173
+    856     856 168  0.0 ksoftirqd/168
+    841     841 165  0.0 ksoftirqd/165
+     47      47   7  0.0 migration/7
+1105376 1105376  92  0.0 kworker/92:1-events
+     42      42   6  0.0 migration/6
+ 289667  289667 156  0.0 kworker/156:2-rcu_gp
+    821     821 161  0.0 ksoftirqd/161
+     72      72  12  0.0 migration/12
+     93      93  16  0.0 migration/16
+     37      37   5  0.0 migration/5
+    204     204  38  0.0 ksoftirqd/38
+ 714476  714476 145  0.0 kworker/145:2-kvm-irqfd-cleanup
+     62      62  10  0.0 migration/10
+    104     104  18  0.0 ksoftirqd/18
+    109     109  19  0.0 ksoftirqd/19
+     57      57   9  0.0 migration/9
+     67      67  11  0.0 migration/11
+ 103161  103161   0  0.0 ovsdb_flows_bac
+     94      94  16  0.0 ksoftirqd/16
+     99      99  17  0.0 ksoftirqd/17
+     88      88  15  0.0 ksoftirqd/15
+    113     113  20  0.0 migration/20
+     68      68  11  0.0 ksoftirqd/11
+     78      78  13  0.0 ksoftirqd/13
+     83      83  14  0.0 ksoftirqd/14
+     43      43   6  0.0 ksoftirqd/6
+3770493 3770493 168  0.0 kworker/168:0-kvm-irqfd-cleanup
+     73      73  12  0.0 ksoftirqd/12
+ 316674  316674 160  0.0 kworker/160:1H-kblockd
+    891     891 175  0.0 ksoftirqd/175
+    153     153  28  0.0 migration/28
+     63      63  10  0.0 ksoftirqd/10
+     77      77  13  0.0 migration/13
+ 715989  715989 170  0.0 kworker/170:2-rcu_gp
+    982     982 193  0.0 ksoftirqd/193
+    420     420  81  0.0 ksoftirqd/81
+    365     365  70  0.0 ksoftirqd/70
+     98      98  17  0.0 migration/17
+    133     133  24  0.0 migration/24
+     87      87  15  0.0 migration/15
+     48      48   7  0.0 ksoftirqd/7
+     53      53   8  0.0 ksoftirqd/8
+    103     103  18  0.0 migration/18
+    108     108  19  0.0 migration/19
+     58      58   9  0.0 ksoftirqd/9
+     82      82  14  0.0 migration/14
+3970907 3970907 160  0.0 kworker/160:0-rcu_gp
+2073916 2073916 106  0.0 kworker/106:1-events
+   1453    1453 159  0.0 kworker/159:1-rcu_gp
+    535     535 104  0.0 ksoftirqd/104
+   1315    1315  21  0.0 kworker/21:1-mm_percpu_wq
+    735     735 144  0.0 migration/144
+    475     475  92  0.0 ksoftirqd/92
+   1549    1549 255  0.0 kworker/255:1-mm_percpu_wq
+    775     775 152  0.0 migration/152
+    695     695 136  0.0 migration/136
+    654     654 128  0.0 migration/128
+   1528    1528 234  0.0 kworker/234:1-events
+    866     866 170  0.0 ksoftirqd/170
+    785     785 154  0.0 migration/154
+    795     795 156  0.0 migration/156
+    780     780 153  0.0 migration/153
+    666     666 130  0.0 ksoftirqd/130
+    671     671 131  0.0 ksoftirqd/131
+    370     370  71  0.0 ksoftirqd/71
+   1516    1516 222  0.0 kworker/222:1-mm_percpu_wq
+    895     895 176  0.0 migration/176
+    836     836 164  0.0 ksoftirqd/164
+    846     846 166  0.0 ksoftirqd/166
+    851     851 167  0.0 ksoftirqd/167
+    815     815 160  0.0 migration/160
+    740     740 145  0.0 migration/145
+    750     750 147  0.0 migration/147
+    665     665 130  0.0 migration/130
+    600     600 117  0.0 ksoftirqd/117
+3625485 3625485 123  0.0 kworker/123:2-events
+    886     886 174  0.0 ksoftirqd/174
+    825     825 162  0.0 migration/162
+    770     770 151  0.0 migration/151
+    715     715 140  0.0 migration/140
+    435     435  84  0.0 ksoftirqd/84
+3991030 3991030 171  0.0 kworker/171:0-kvm-irqfd-cleanup
+ 716001  716001 163  0.0 kworker/163:2-rcu_gp
+   1529    1529 235  0.0 kworker/235:1-events
+   1316    1316  22  0.0 kworker/22:1-mm_percpu_wq
+    755     755 148  0.0 migration/148
+    765     765 150  0.0 migration/150
+    720     720 141  0.0 migration/141
+    745     745 146  0.0 migration/146
+    690     690 135  0.0 migration/135
+    705     705 138  0.0 migration/138
+    660     660 129  0.0 migration/129
+    440     440  85  0.0 ksoftirqd/85
+    314     314  60  0.0 ksoftirqd/60
+    830     830 163  0.0 migration/163
+    790     790 155  0.0 migration/155
+    710     710 139  0.0 migration/139
+    685     685 134  0.0 migration/134
+    670     670 131  0.0 migration/131
+    530     530 103  0.0 ksoftirqd/103
+    173     173  32  0.0 migration/32
+   1451    1451 157  0.0 kworker/157:1-rcu_gp
+   1427    1427 133  0.0 kworker/133:1-rcu_gp
+    840     840 165  0.0 migration/165
+    805     805 158  0.0 migration/158
+    810     810 159  0.0 migration/159
+    820     820 161  0.0 migration/161
+    730     730 143  0.0 migration/143
+    313     313  60  0.0 migration/60
+3770495 3770495 169  0.0 kworker/169:0-kvm-irqfd-cleanup
+    800     800 157  0.0 migration/157
+    725     725 142  0.0 migration/142
+    680     680 133  0.0 migration/133
+    700     700 137  0.0 migration/137
+    675     675 132  0.0 migration/132
+    605     605 118  0.0 ksoftirqd/118
+    385     385  74  0.0 ksoftirqd/74
+    375     375  72  0.0 ksoftirqd/72
+    253     253  48  0.0 migration/48
+    273     273  52  0.0 migration/52
+    293     293  56  0.0 migration/56
+   1518    1518 224  0.0 kworker/224:1-events
+    915     915 180  0.0 migration/180
+    876     876 172  0.0 ksoftirqd/172
+    760     760 149  0.0 migration/149
+   1317    1317  23  0.0 kworker/23:1-mm_percpu_wq
+    955     955 188  0.0 migration/188
+    880     880 173  0.0 migration/173
+    885     885 174  0.0 migration/174
+    890     890 175  0.0 migration/175
+    845     845 166  0.0 migration/166
+    850     850 167  0.0 migration/167
+    233     233  44  0.0 migration/44
+    193     193  36  0.0 migration/36
+    213     213  40  0.0 migration/40
+    935     935 184  0.0 migration/184
+    870     870 171  0.0 migration/171
+    395     395  76  0.0 ksoftirqd/76
+    128     128  23  0.0 migration/23
+3985946 3985946 141  0.0 kworker/141:0-kvm-irqfd-cleanup
+   1271    1271 251  0.0 migration/251
+   1017    1017 200  0.0 ksoftirqd/200
+    875     875 172  0.0 migration/172
+    219     219  41  0.0 ksoftirqd/41
+    174     174  32  0.0 ksoftirqd/32
+    118     118  21  0.0 migration/21
+    123     123  22  0.0 migration/22
+ 256246  256246  97  0.0 kworker/97:0-events
+ 131768  131768  18  0.0 kworker/18:1H-kblockd
+ 103049  103049   3  0.0 check_swap.py
+   2454    2454  11  0.0 kworker/11:1H-kblockd
+   2426    2426  10  0.0 kworker/10:1H-kblockd
+   2339    2339  13  0.0 kworker/13:1H-kblockd
+   1318    1318  24  0.0 kworker/24:1-mm_percpu_wq
+   1241    1241 245  0.0 migration/245
+   1251    1251 247  0.0 migration/247
+   1261    1261 249  0.0 migration/249
+   1022    1022 201  0.0 ksoftirqd/201
+   1032    1032 203  0.0 ksoftirqd/203
+   1052    1052 207  0.0 ksoftirqd/207
+    975     975 192  0.0 migration/192
+    835     835 164  0.0 migration/164
+    278     278  53  0.0 migration/53
+    223     223  42  0.0 migration/42
+    203     203  38  0.0 migration/38
+ 250478  250478  17  0.0 kworker/17:1H-kblockd
+ 246027  246027  16  0.0 kworker/16:1H-kblockd
+ 228367  228367  15  0.0 kworker/15:1H-kblockd
+ 109380  109380  12  0.0 kworker/12:1H-kblockd
+   2882    2882   7  0.0 kworker/7:1H-kblockd
+   2829    2829   8  0.0 kworker/8:1H-kblockd
+   1873    1873  14  0.0 kworker/14:1H-kblockd
+   1869    1869   6  0.0 kworker/6:1H-kblockd
+   1246    1246 246  0.0 migration/246
+   1256    1256 248  0.0 migration/248
+   1012    1012 199  0.0 ksoftirqd/199
+    766     766 150  0.0 ksoftirqd/150
+    410     410  79  0.0 ksoftirqd/79
+    450     450  87  0.0 ksoftirqd/87
+    218     218  41  0.0 migration/41
+    148     148  27  0.0 migration/27
+    163     163  30  0.0 migration/30
+    168     168  31  0.0 migration/31
+    138     138  25  0.0 migration/25
+ 133517  133517  19  0.0 kworker/19:1H-kblockd
+   2463    2463   9  0.0 kworker/9:1H-kblockd
+   1863    1863   5  0.0 kworker/5:1H-kblockd
+   1319    1319  25  0.0 kworker/25:1-mm_percpu_wq
+   1281    1281 253  0.0 migration/253
+   1236    1236 244  0.0 migration/244
+   1266    1266 250  0.0 migration/250
+   1276    1276 252  0.0 migration/252
+   1027    1027 202  0.0 ksoftirqd/202
+   1037    1037 204  0.0 ksoftirqd/204
+    905     905 178  0.0 migration/178
+    910     910 179  0.0 migration/179
+    900     900 177  0.0 migration/177
+    855     855 168  0.0 migration/168
+    811     811 159  0.0 ksoftirqd/159
+    706     706 138  0.0 ksoftirqd/138
+    318     318  61  0.0 migration/61
+    178     178  33  0.0 migration/33
+    183     183  34  0.0 migration/34
+    208     208  39  0.0 migration/39
+    143     143  26  0.0 migration/26
+    158     158  29  0.0 migration/29
+ 103833  103833   0  0.0 python
+   1286    1286 254  0.0 migration/254
+   1291    1291 255  0.0 migration/255
+   1002    1002 197  0.0 ksoftirqd/197
+    940     940 185  0.0 migration/185
+    609     609 119  0.0 migration/119
+    345     345  66  0.0 ksoftirqd/66
+    303     303  58  0.0 migration/58
+    308     308  59  0.0 migration/59
+    323     323  62  0.0 migration/62
+    328     328  63  0.0 migration/63
+    258     258  49  0.0 migration/49
+    263     263  50  0.0 migration/50
+    268     268  51  0.0 migration/51
+    283     283  54  0.0 migration/54
+    288     288  55  0.0 migration/55
+    298     298  57  0.0 migration/57
+    228     228  43  0.0 migration/43
+    238     238  45  0.0 migration/45
+    243     243  46  0.0 migration/46
+    248     248  47  0.0 migration/47
+    188     188  35  0.0 migration/35
+    198     198  37  0.0 migration/37
+2924953 2924953   1  0.0 bash
+   3067    3067 169  0.0 kworker/169:1H-kblockd
+   1519    1519 225  0.0 kworker/225:1-events
+   1056    1056 208  0.0 migration/208
+   1047    1047 206  0.0 ksoftirqd/206
+    992     992 195  0.0 ksoftirqd/195
+    920     920 181  0.0 migration/181
+    860     860 169  0.0 migration/169
+    865     865 170  0.0 migration/170
+    771     771 151  0.0 ksoftirqd/151
+    716     716 140  0.0 ksoftirqd/140
+    701     701 137  0.0 ksoftirqd/137
+    425     425  82  0.0 ksoftirqd/82
+   1928    1928   4  0.0 kworker/4:1H-kblockd
+    945     945 186  0.0 migration/186
+    925     925 182  0.0 migration/182
+    645     645 126  0.0 ksoftirqd/126
+    559     559 109  0.0 migration/109
+    564     564 110  0.0 migration/110
+    574     574 112  0.0 migration/112
+    584     584 114  0.0 migration/114
+    549     549 107  0.0 migration/107
+    494     494  96  0.0 migration/96
+    495     495  96  0.0 ksoftirqd/96
+    499     499  97  0.0 migration/97
+    524     524 102  0.0 migration/102
+    380     380  73  0.0 ksoftirqd/73
+   1171    1171 231  0.0 migration/231
+   1181    1181 233  0.0 migration/233
+   1191    1191 235  0.0 migration/235
+   1196    1196 236  0.0 migration/236
+   1141    1141 225  0.0 migration/225
+   1146    1146 226  0.0 migration/226
+   1151    1151 227  0.0 migration/227
+   1096    1096 216  0.0 migration/216
+   1116    1116 220  0.0 migration/220
+   1076    1076 212  0.0 migration/212
+    997     997 196  0.0 ksoftirqd/196
+   1007    1007 198  0.0 ksoftirqd/198
+    930     930 183  0.0 migration/183
+    721     721 141  0.0 ksoftirqd/141
+    736     736 144  0.0 ksoftirqd/144
+    741     741 145  0.0 ksoftirqd/145
+    696     696 136  0.0 ksoftirqd/136
+    639     639 125  0.0 migration/125
+    644     644 126  0.0 migration/126
+    604     604 118  0.0 migration/118
+    619     619 121  0.0 migration/121
+    624     624 122  0.0 migration/122
+    569     569 111  0.0 migration/111
+    579     579 113  0.0 migration/113
+    589     589 115  0.0 migration/115
+    599     599 117  0.0 migration/117
+    529     529 103  0.0 migration/103
+    539     539 105  0.0 migration/105
+    544     544 106  0.0 migration/106
+    509     509  99  0.0 migration/99
+    519     519 101  0.0 migration/101
+    445     445  86  0.0 ksoftirqd/86
+    333     333  64  0.0 migration/64
+4072272 4072272  88  0.0 kworker/88:0-events
+2521215 2521215 119  0.0 kworker/u517:2-udis_dma_6
+   2819    2819 173  0.0 kworker/173:1H-kblockd
+   1520    1520 226  0.0 kworker/226:1-events
+   1320    1320  26  0.0 kworker/26:1-mm_percpu_wq
+   1206    1206 238  0.0 migration/238
+   1211    1211 239  0.0 migration/239
+   1221    1221 241  0.0 migration/241
+   1226    1226 242  0.0 migration/242
+   1231    1231 243  0.0 migration/243
+   1161    1161 229  0.0 migration/229
+   1166    1166 230  0.0 migration/230
+   1176    1176 232  0.0 migration/232
+   1186    1186 234  0.0 migration/234
+   1201    1201 237  0.0 migration/237
+   1136    1136 224  0.0 migration/224
+   1156    1156 228  0.0 migration/228
+    987     987 194  0.0 ksoftirqd/194
+    970     970 191  0.0 migration/191
+    731     731 143  0.0 ksoftirqd/143
+    746     746 146  0.0 ksoftirqd/146
+    634     634 124  0.0 migration/124
+    649     649 127  0.0 migration/127
+    614     614 120  0.0 migration/120
+    629     629 123  0.0 migration/123
+    594     594 116  0.0 migration/116
+    534     534 104  0.0 migration/104
+    540     540 105  0.0 ksoftirqd/105
+    554     554 108  0.0 migration/108
+    504     504  98  0.0 migration/98
+    514     514 100  0.0 migration/100
+    414     414  80  0.0 migration/80
+    434     434  84  0.0 migration/84
+    394     394  76  0.0 migration/76
+    350     350  67  0.0 ksoftirqd/67
+    354     354  68  0.0 migration/68
+    374     374  72  0.0 migration/72
+ 613854  613854  69  0.0 kworker/69:2-events
+ 314663  314663 171  0.0 kworker/171:1H-kblockd
+   2996    2996 165  0.0 kworker/165:1H-kblockd
+   2821    2821 161  0.0 kworker/161:1H-kblockd
+   1216    1216 240  0.0 migration/240
+   1011    1011 199  0.0 migration/199
+   1016    1016 200  0.0 migration/200
+   1006    1006 198  0.0 migration/198
+    950     950 187  0.0 migration/187
+    960     960 189  0.0 migration/189
+    965     965 190  0.0 migration/190
+    786     786 154  0.0 ksoftirqd/154
+    686     686 134  0.0 ksoftirqd/134
+    676     676 132  0.0 ksoftirqd/132
+    580     580 113  0.0 ksoftirqd/113
+    489     489  95  0.0 migration/95
+    474     474  92  0.0 migration/92
+    429     429  83  0.0 migration/83
+    389     389  75  0.0 migration/75
+   2817    2817 168  0.0 kworker/168:1H-kblockd
+   2844    2844 162  0.0 kworker/162:1H-kblockd
+   2428    2428 163  0.0 kworker/163:1H-kblockd
+   1026    1026 202  0.0 migration/202
+   1036    1036 204  0.0 migration/204
+   1041    1041 205  0.0 migration/205
+   1046    1046 206  0.0 migration/206
+   1051    1051 207  0.0 migration/207
+    986     986 194  0.0 migration/194
+    991     991 195  0.0 migration/195
+    996     996 196  0.0 migration/196
+   1001    1001 197  0.0 migration/197
+    801     801 157  0.0 ksoftirqd/157
+    761     761 149  0.0 ksoftirqd/149
+    711     711 139  0.0 ksoftirqd/139
+    681     681 133  0.0 ksoftirqd/133
+    454     454  88  0.0 migration/88
+    464     464  90  0.0 migration/90
+    465     465  90  0.0 ksoftirqd/90
+    469     469  91  0.0 migration/91
+    479     479  93  0.0 migration/93
+    419     419  81  0.0 migration/81
+    444     444  86  0.0 migration/86
+    449     449  87  0.0 migration/87
+    379     379  73  0.0 migration/73
+    384     384  74  0.0 migration/74
+    399     399  77  0.0 migration/77
+    339     339  65  0.0 migration/65
+    349     349  67  0.0 migration/67
+    359     359  69  0.0 migration/69
+    369     369  71  0.0 migration/71
+   1321    1321  27  0.0 kworker/27:1-mm_percpu_wq
+   1111    1111 219  0.0 migration/219
+   1021    1021 201  0.0 migration/201
+   1031    1031 203  0.0 migration/203
+    981     981 193  0.0 migration/193
+    791     791 155  0.0 ksoftirqd/155
+    776     776 152  0.0 ksoftirqd/152
+    484     484  94  0.0 migration/94
+    459     459  89  0.0 migration/89
+    409     409  79  0.0 migration/79
+    424     424  82  0.0 migration/82
+    439     439  85  0.0 migration/85
+    404     404  78  0.0 migration/78
+    344     344  66  0.0 migration/66
+    355     355  68  0.0 ksoftirqd/68
+    364     364  70  0.0 migration/70
+3986710 3986710  86  0.0 kworker/86:0-mm_percpu_wq
+   1825    1825  28  0.0 kworker/28:2-mm_percpu_wq
+   1086    1086 214  0.0 migration/214
+   1091    1091 215  0.0 migration/215
+   1101    1101 217  0.0 migration/217
+   1106    1106 218  0.0 migration/218
+   1126    1126 222  0.0 migration/222
+   1061    1061 209  0.0 migration/209
+   1066    1066 210  0.0 migration/210
+   1071    1071 211  0.0 migration/211
+    756     756 148  0.0 ksoftirqd/148
+    781     781 153  0.0 ksoftirqd/153
+    751     751 147  0.0 ksoftirqd/147
+    691     691 135  0.0 ksoftirqd/135
+2328677 2328677  79  0.0 kworker/79:0-events
+   1131    1131 223  0.0 migration/223
+   1121    1121 221  0.0 migration/221
+   1081    1081 213  0.0 migration/213
+    796     796 156  0.0 ksoftirqd/156
+    545     545 106  0.0 ksoftirqd/106
+    455     455  88  0.0 ksoftirqd/88
+    274     274  52  0.0 ksoftirqd/52
+    179     179  33  0.0 ksoftirqd/33
+    184     184  34  0.0 ksoftirqd/34
+ 314453  314453 164  0.0 kworker/164:1H-kblockd
+   3035    3035 175  0.0 kworker/175:1H-kblockd
+   3014    3014 167  0.0 kworker/167:1H-kblockd
+   1521    1521 227  0.0 kworker/227:1-events
+   1323    1323  29  0.0 kworker/29:1-mm_percpu_wq
+    806     806 158  0.0 ksoftirqd/158
+    400     400  77  0.0 ksoftirqd/77
+2396227 2396227 124  0.0 kworker/124:1-events
+   2813    2813 166  0.0 kworker/166:1H-kblockd
+   1522    1522 228  0.0 kworker/228:1-events
+   1533    1533 239  0.0 kworker/239:1-mm_percpu_wq
+    726     726 142  0.0 ksoftirqd/142
+    661     661 129  0.0 ksoftirqd/129
+    585     585 114  0.0 ksoftirqd/114
+    505     505  98  0.0 ksoftirqd/98
+    279     279  53  0.0 ksoftirqd/53
+   2841    2841 174  0.0 kworker/174:1H-kblockd
+    500     500  97  0.0 ksoftirqd/97
+    209     209  39  0.0 ksoftirqd/39
+2609080 2609080 120  0.0 kworker/u517:4-udis_dma_7
+   2849    2849 170  0.0 kworker/170:1H-kblockd
+   1324    1324  30  0.0 kworker/30:1-mm_percpu_wq
+   1042    1042 205  0.0 ksoftirqd/205
+    560     560 109  0.0 ksoftirqd/109
+    360     360  69  0.0 ksoftirqd/69
+    319     319  61  0.0 ksoftirqd/61
+   1325    1325  31  0.0 kworker/31:1-mm_percpu_wq
+    194     194  36  0.0 ksoftirqd/36
+4057548 4057548 201  0.0 kworker/201:1H-kblockd
+4045350 4045350 207  0.0 kworker/207:1H-kblockd
+ 376327  376327 172  0.0 kworker/172:1H-kblockd
+   1534    1534 240  0.0 kworker/240:1-events
+   1440    1440 146  0.0 kworker/146:1-kvm-irqfd-cleanup
+    655     655 128  0.0 ksoftirqd/128
+    615     615 120  0.0 ksoftirqd/120
+    630     630 123  0.0 ksoftirqd/123
+    520     520 101  0.0 ksoftirqd/101
+    189     189  35  0.0 ksoftirqd/35
+1846752 1846752 199  0.0 kworker/199:1H-kblockd
+2922363 2922363   1  0.0 sshd
+4058573 4058573 204  0.0 kworker/204:1H-kblockd
+4057768 4057768 202  0.0 kworker/202:1H-kblockd
+4057771 4057771 203  0.0 kworker/203:1H-kblockd
+4047105 4047105 197  0.0 kworker/197:1H-kblockd
+ 715996  715996 174  0.0 kworker/174:2-kvm-irqfd-cleanup
+ 716000  716000 162  0.0 kworker/162:0-kvm-irqfd-cleanup
+    555     555 108  0.0 ksoftirqd/108
+    510     510  99  0.0 ksoftirqd/99
+    224     224  42  0.0 ksoftirqd/42
+    214     214  40  0.0 ksoftirqd/40
+2142646 2142646 125  0.0 kworker/125:0-events
+4045841 4045841 206  0.0 kworker/206:1H-kblockd
+4035384 4035384 195  0.0 kworker/195:1H-kblockd
+ 316188  316188 136  0.0 kworker/136:1H-kblockd
+   1168    1168 230  0.0 kworker/230:0-events
+    640     640 125  0.0 ksoftirqd/125
+    620     620 121  0.0 ksoftirqd/121
+    595     595 116  0.0 ksoftirqd/116
+    550     550 107  0.0 ksoftirqd/107
+    199     199  37  0.0 ksoftirqd/37
+ 305826  305826 138  0.0 kworker/138:1H-kblockd
+   2482    2482 200  0.0 kworker/200:1H-kblockd
+   1523    1523 229  0.0 kworker/229:1-mm_percpu_wq
+    324     324  62  0.0 ksoftirqd/62
+    329     329  63  0.0 ksoftirqd/63
+    229     229  43  0.0 ksoftirqd/43
+    249     249  47  0.0 ksoftirqd/47
+4057699 4057699 196  0.0 kworker/196:1H-kblockd
+4039178 4039178 194  0.0 kworker/194:1H-kblockd
+ 715985  715985 167  0.0 kworker/167:2-rcu_gp
+ 320734  320734 140  0.0 kworker/140:1H-kblockd
+   2853    2853 159  0.0 kworker/159:1H-kblockd
+   2340    2340 132  0.0 kworker/132:1H-kblockd
+   1535    1535 241  0.0 kworker/241:1-events
+   1536    1536 242  0.0 kworker/242:1-events
+   1538    1538 244  0.0 kworker/244:1-events
+   1432    1432 138  0.0 kworker/138:1-rcu_par_gp
+   1178    1178 232  0.0 kworker/232:0-events
+    565     565 110  0.0 ksoftirqd/110
+    590     590 115  0.0 ksoftirqd/115
+    515     515 100  0.0 ksoftirqd/100
+    254     254  48  0.0 ksoftirqd/48
+    234     234  44  0.0 ksoftirqd/44
+    244     244  46  0.0 ksoftirqd/46
+3782868 3782868  83  0.0 kworker/83:1H-kblockd
+4049309 4049309 205  0.0 kworker/205:1H-kblockd
+2014660 2014660 136  0.0 kworker/136:0-kvm-irqfd-cleanup
+ 323557  323557 151  0.0 kworker/151:1H-kblockd
+ 320744  320744 141  0.0 kworker/141:1H-kblockd
+ 313600  313600 137  0.0 kworker/137:1H-kblockd
+ 103191  103191   2  0.0 python
+  24114   24114 133  0.0 kworker/133:1H-kblockd
+   3172    3172 236  0.0 kworker/236:2-events
+   2985    2985 143  0.0 kworker/143:1H-kblockd
+   2832    2832 198  0.0 kworker/198:1H-kblockd
+   1552    1552 147  0.0 kworker/147:2-kvm-irqfd-cleanup
+   1132    1132 223  0.0 ksoftirqd/223
+    635     635 124  0.0 ksoftirqd/124
+    259     259  49  0.0 ksoftirqd/49
+    264     264  50  0.0 ksoftirqd/50
+    284     284  54  0.0 ksoftirqd/54
+    289     289  55  0.0 ksoftirqd/55
+    239     239  45  0.0 ksoftirqd/45
+ 322479  322479 154  0.0 kworker/154:1H-kblockd
+ 314478  314478 153  0.0 kworker/153:1H-kblockd
+ 314229  314229 145  0.0 kworker/145:1H-kblockd
+  24355   24355 134  0.0 kworker/134:1H-kblockd
+   3260    3260 231  0.0 kworker/231:2-events
+   3016    3016 144  0.0 kworker/144:1H-kblockd
+   2824    2824 193  0.0 kworker/193:1H-kblockd
+   2487    2487 139  0.0 kworker/139:1H-kblockd
+   1540    1540 246  0.0 kworker/246:1-events
+    269     269  51  0.0 ksoftirqd/51
+    299     299  57  0.0 ksoftirqd/57
+1286698 1286698 120  0.0 kworker/120:1-events
+ 321416  321416 150  0.0 kworker/150:1H-kblockd
+ 320673  320673 152  0.0 kworker/152:1H-kblockd
+ 313471  313471 146  0.0 kworker/146:1H-kblockd
+ 305413  305413 135  0.0 kworker/135:1H-kblockd
+   2981    2981 148  0.0 kworker/148:1H-kblockd
+   2991    2991 147  0.0 kworker/147:1H-kblockd
+   3004    3004 149  0.0 kworker/149:1H-kblockd
+   1532    1532 238  0.0 kworker/238:1-events
+   1122    1122 221  0.0 ksoftirqd/221
+   1057    1057 208  0.0 ksoftirqd/208
+   1067    1067 210  0.0 ksoftirqd/210
+   1077    1077 212  0.0 ksoftirqd/212
+    304     304  58  0.0 ksoftirqd/58
+    309     309  59  0.0 ksoftirqd/59
+    294     294  56  0.0 ksoftirqd/56
+ 586385  586385  93  0.0 kworker/93:1H-kblockd
+1555242 1555242  90  0.0 kworker/90:1-events
+3033756 3033756 223  0.0 kworker/223:1H-kblockd
+ 724083  724083  91  0.0 kworker/91:1H-kblockd
+ 300203  300203 157  0.0 kworker/157:1H-kblockd
+  23461   23461   1  0.0 smartd
+   2828    2828  92  0.0 kworker/92:1H-kblockd
+   2809    2809  84  0.0 kworker/84:1H-kblockd
+   1527    1527 233  0.0 kworker/233:1-mm_percpu_wq
+   1542    1542 248  0.0 kworker/248:1-events
+   1544    1544 250  0.0 kworker/250:1-events
+   1087    1087 214  0.0 ksoftirqd/214
+   1092    1092 215  0.0 ksoftirqd/215
+   1097    1097 216  0.0 ksoftirqd/216
+   1102    1102 217  0.0 ksoftirqd/217
+   1107    1107 218  0.0 ksoftirqd/218
+   1112    1112 219  0.0 ksoftirqd/219
+   1062    1062 209  0.0 ksoftirqd/209
+   1072    1072 211  0.0 ksoftirqd/211
+ 917819  917819  74  0.0 kworker/74:2-intf_cb_recycle
+ 715997  715997 175  0.0 kworker/175:2-rcu_gp
+ 103982  103982   3  0.0 coredump_monito
+  50486   50486 158  0.0 kworker/158:1H-kblockd
+  24342   24342   1  0.0 rasdaemon
+   3073    3073 156  0.0 kworker/156:1H-kblockd
+   3001    3001 142  0.0 kworker/142:1H-kblockd
+   2840    2840  81  0.0 kworker/81:1H-kblockd
+   2850    2850  76  0.0 kworker/76:1H-kblockd
+   2851    2851  32  0.0 kworker/32:1H-kblockd
+   2804    2804  80  0.0 kworker/80:1H-kblockd
+   1537    1537 243  0.0 kworker/243:1-events
+   1546    1546 252  0.0 kworker/252:1-events
+   1548    1548 254  0.0 kworker/254:1-events
+   1082    1082 213  0.0 ksoftirqd/213
+4091981 4091981 105  0.0 kworker/105:0-events
+3077727 3077727 219  0.0 kworker/219:1H-kblockd
+3055242 3055242 218  0.0 kworker/218:1H-kblockd
+3052349 3052349 221  0.0 kworker/221:1H-kblockd
+3035165 3035165 213  0.0 kworker/213:1H-kblockd
+1392886 1392886  90  0.0 kworker/90:1H-kblockd
+3386966 3386966 217  0.0 kworker/217:1H-kblockd
+1596448 1596448  51  0.0 kworker/51:1H-kblockd
+1590961 1590961  45  0.0 kworker/45:1H-kblockd
+ 715999  715999 161  0.0 kworker/161:2-rcu_gp
+ 319063  319063 155  0.0 kworker/155:1H-kblockd
+ 207542  207542  39  0.0 kworker/39:1H-kblockd
+ 103130  103130   0  0.0 python
+  59093   59093  43  0.0 kworker/43:1H-kblockd
+  54433   54433  41  0.0 kworker/41:1H-kblockd
+  24548   24548  55  0.0 kworker/55:1H-kblockd
+  24416   24416  57  0.0 kworker/57:1H-kblockd
+  21927   21927  36  0.0 kworker/36:1H-kblockd
+   3107    3107  49  0.0 kworker/49:1H-kblockd
+   3089    3089  35  0.0 kworker/35:1H-kblockd
+   2848    2848  37  0.0 kworker/37:1H-kblockd
+   2807    2807  82  0.0 kworker/82:1H-kblockd
+   2519    2519  53  0.0 kworker/53:1H-kblockd
+   2390    2390  33  0.0 kworker/33:1H-kblockd
+   1987    1987  47  0.0 kworker/47:1H-kblockd
+   1865    1865  46  0.0 kworker/46:1H-kblockd
+   1626    1626  42  0.0 kworker/42:1H-kblockd
+   1539    1539 245  0.0 kworker/245:1-events
+2435939 2435939  77  0.0 kworker/77:1-events
+ 462136  462136  61  0.0 kworker/61:1H-kblockd
+ 213933  213933   3  0.0 sshd
+  24414   24414  56  0.0 kworker/56:1H-kblockd
+  23154   23154  54  0.0 kworker/54:1H-kblockd
+  23079   23079  62  0.0 kworker/62:1H-kblockd
+  23047   23047  60  0.0 kworker/60:1H-kblockd
+   3252    3252  59  0.0 kworker/59:1H-kblockd
+   3248    3248  58  0.0 kworker/58:1H-kblockd
+   3160    3160  50  0.0 kworker/50:1H-kblockd
+   2827    2827  44  0.0 kworker/44:1H-kblockd
+   2835    2835  40  0.0 kworker/40:1H-kblockd
+   2847    2847  94  0.0 kworker/94:1H-kblockd
+   2812    2812  85  0.0 kworker/85:1H-kblockd
+   2507    2507  52  0.0 kworker/52:1H-kblockd
+   2061    2061  34  0.0 kworker/34:1H-kblockd
+   2019    2019  48  0.0 kworker/48:1H-kblockd
+   1875    1875  63  0.0 kworker/63:1H-kblockd
+   1680    1680  38  0.0 kworker/38:1H-kblockd
+   1531    1531 237  0.0 kworker/237:1-mm_percpu_wq
+   1541    1541 247  0.0 kworker/247:1-mm_percpu_wq
+   1127    1127 222  0.0 ksoftirqd/222
+ 816805  816805 109  0.0 kworker/109:0-events
+1781587 1781587 210  0.0 kworker/210:1H-kblockd
+3339886 3339886 214  0.0 kworker/214:1H-kblockd
+2771779 2771779 208  0.0 kworker/208:1H-kblockd
+3051103 3051103 222  0.0 kworker/222:1H-kblockd
+3018319 3018319 216  0.0 kworker/216:1H-kblockd
+1115344 1115344 111  0.0 kworker/111:1-events
+3782814 3782814  88  0.0 kworker/88:1H-kblockd
+3780859 3780859  67  0.0 kworker/67:1H-kblockd
+ 423398  423398  77  0.0 kworker/77:1H-kblockd
+  96593   96593  71  0.0 kworker/71:1H-kblockd
+  31129   31129  65  0.0 kworker/65:1H-kblockd
+  22830   22830 211  0.0 kworker/211:1H-kblockd
+  21803   21803   0  0.0 svm_recycle_thr
+  21801   21801 192  0.0 kworker/192:1H-kblockd
+   3245    3245 215  0.0 kworker/215:1H-kblockd
+   2946    2946  87  0.0 kworker/87:1H-kblockd
+   2833    2833 209  0.0 kworker/209:1H-kblockd
+   2808    2808 212  0.0 kworker/212:1H-kblockd
+   2810    2810  78  0.0 kworker/78:1H-kblockd
+   2427    2427  95  0.0 kworker/95:1H-kblockd
+   1543    1543 249  0.0 kworker/249:1-events
+   1295    1295   2  0.0 kdevtmpfs
+2501736 2501736 110  0.0 kworker/110:0-events
+1555746 1555746 184  0.0 kworker/184:1H-kblockd
+ 465945  465945 189  0.0 kworker/189:1H-kblockd
+ 426804  426804 187  0.0 kworker/187:1H-kblockd
+  13669   13669 188  0.0 kworker/188:1H-kblockd
+3835786 3835786 186  0.0 kworker/186:1H-kblockd
+ 108628  108628  89  0.0 kworker/89:1H-kblockd
+  31354   31354   0  0.0 atd
+  24103   24103 185  0.0 kworker/185:1H-kblockd
+   3075    3075 183  0.0 kworker/183:1H-kblockd
+   3081    3081  86  0.0 kworker/86:1H-kblockd
+   3066    3066 181  0.0 kworker/181:1H-kblockd
+   3065    3065 177  0.0 kworker/177:1H-kblockd
+   3019    3019 176  0.0 kworker/176:1H-kblockd
+   2820    2820 179  0.0 kworker/179:1H-kblockd
+   2834    2834  69  0.0 kworker/69:1H-kblockd
+   2836    2836  68  0.0 kworker/68:1H-kblockd
+   2838    2838 191  0.0 kworker/191:1H-kblockd
+   2842    2842 178  0.0 kworker/178:1H-kblockd
+   2846    2846 180  0.0 kworker/180:1H-kblockd
+   2805    2805  74  0.0 kworker/74:1H-kblockd
+   2814    2814  70  0.0 kworker/70:1H-kblockd
+   2429    2429 182  0.0 kworker/182:1H-kblockd
+   1547    1547 253  0.0 kworker/253:1-events
+   1117    1117 220  0.0 ksoftirqd/220
+    896     896 176  0.0 ksoftirqd/176
+3115779 3115779 220  0.0 kworker/220:1H-kblockd
+3081665 3081665  79  0.0 kworker/79:1H-kblockd
+ 185204  185204  73  0.0 kworker/73:1H-kblockd
+1541642 1541642 190  0.0 kworker/190:1H-kblockd
+ 539257  539257  24  0.0 kworker/24:1H-kblockd
+ 374930  374930  22  0.0 kworker/22:1H-kblockd
+ 322598  322598  20  0.0 kworker/20:1H-kblockd
+  93566   93566  66  0.0 kworker/66:1H-kblockd
+  24390   24390  72  0.0 kworker/72:1H-kblockd
+  23086   23086   0  0.0 jbd2/dm-4-8
+  21946   21946  25  0.0 kworker/25:1H-kblockd
+   2816    2816  23  0.0 kworker/23:1H-kblockd
+   2811    2811  21  0.0 kworker/21:1H-kblockd
+   2386    2386   3  0.0 scsi_eh_8
+   2378    2378   3  0.0 scsi_eh_7
+   1471    1471 177  0.0 kworker/177:1-mm_percpu_wq
+   1473    1473 179  0.0 kworker/179:1-mm_percpu_wq
+   1475    1475 181  0.0 kworker/181:1-mm_percpu_wq
+   1545    1545 251  0.0 kworker/251:1-events
+   1334    1334  40  0.0 kworker/40:1-events
+      3       3 137  0.0 rcu_gp
+      4       4   1  0.0 rcu_par_gp
+      6       6   0  0.0 kworker/0:0H-events_highpri
+      9       9 243  0.0 mm_percpu_wq
+     10      10   0  0.0 rcu_tasks_rude_
+     11      11   0  0.0 rcu_tasks_trace
+     15      15   0  0.0 cpuhp/0
+     16      16   1  0.0 cpuhp/1
+     20      20   1  0.0 kworker/1:0H-events_highpri
+     21      21   2  0.0 cpuhp/2
+     25      25   2  0.0 kworker/2:0H-events_highpri
+     26      26   3  0.0 cpuhp/3
+     30      30   3  0.0 kworker/3:0H-events_highpri
+     31      31   4  0.0 cpuhp/4
+     35      35   4  0.0 kworker/4:0H-events_highpri
+     36      36   5  0.0 cpuhp/5
+     40      40   5  0.0 kworker/5:0H-events_highpri
+     41      41   6  0.0 cpuhp/6
+     45      45   6  0.0 kworker/6:0H-events_highpri
+     46      46   7  0.0 cpuhp/7
+     50      50   7  0.0 kworker/7:0H-kblockd
+     51      51   8  0.0 cpuhp/8
+     55      55   8  0.0 kworker/8:0H-events_highpri
+     56      56   9  0.0 cpuhp/9
+     60      60   9  0.0 kworker/9:0H-events_highpri
+     61      61  10  0.0 cpuhp/10
+     65      65  10  0.0 kworker/10:0H-events_highpri
+     66      66  11  0.0 cpuhp/11
+     70      70  11  0.0 kworker/11:0H-events_highpri
+     71      71  12  0.0 cpuhp/12
+     75      75  12  0.0 kworker/12:0H-kblockd
+     76      76  13  0.0 cpuhp/13
+     80      80  13  0.0 kworker/13:0H-events_highpri
+     81      81  14  0.0 cpuhp/14
+     84      84  14  0.0 kworker/14:0-mm_percpu_wq
+     85      85  14  0.0 kworker/14:0H-events_highpri
+     86      86  15  0.0 cpuhp/15
+     89      89  15  0.0 kworker/15:0-mm_percpu_wq
+     90      90  15  0.0 kworker/15:0H-kblockd
+     92      92  16  0.0 cpuhp/16
+     95      95  16  0.0 kworker/16:0-mm_percpu_wq
+     96      96  16  0.0 kworker/16:0H-kblockd
+     97      97  17  0.0 cpuhp/17
+    100     100  17  0.0 kworker/17:0-mm_percpu_wq
+    101     101  17  0.0 kworker/17:0H-kblockd
+    102     102  18  0.0 cpuhp/18
+    105     105  18  0.0 kworker/18:0-mm_percpu_wq
+    106     106  18  0.0 kworker/18:0H-kblockd
+    107     107  19  0.0 cpuhp/19
+    110     110  19  0.0 kworker/19:0-mm_percpu_wq
+    111     111  19  0.0 kworker/19:0H-kblockd
+    112     112  20  0.0 cpuhp/20
+    114     114  20  0.0 ksoftirqd/20
+    115     115  20  0.0 kworker/20:0-mm_percpu_wq
+    116     116  20  0.0 kworker/20:0H-kblockd
+    117     117  21  0.0 cpuhp/21
+    119     119  21  0.0 ksoftirqd/21
+    120     120  21  0.0 kworker/21:0-mm_percpu_wq
+    121     121  21  0.0 kworker/21:0H-events_highpri
+    122     122  22  0.0 cpuhp/22
+    124     124  22  0.0 ksoftirqd/22
+    125     125  22  0.0 kworker/22:0-mm_percpu_wq
+    126     126  22  0.0 kworker/22:0H-kblockd
+    127     127  23  0.0 cpuhp/23
+    129     129  23  0.0 ksoftirqd/23
+    130     130  23  0.0 kworker/23:0-mm_percpu_wq
+    131     131  23  0.0 kworker/23:0H-events_highpri
+    132     132  24  0.0 cpuhp/24
+    134     134  24  0.0 ksoftirqd/24
+    135     135  24  0.0 kworker/24:0-mm_percpu_wq
+    136     136  24  0.0 kworker/24:0H-kblockd
+    137     137  25  0.0 cpuhp/25
+    139     139  25  0.0 ksoftirqd/25
+    140     140  25  0.0 kworker/25:0-mm_percpu_wq
+    141     141  25  0.0 kworker/25:0H-kblockd
+    142     142  26  0.0 cpuhp/26
+    144     144  26  0.0 ksoftirqd/26
+    145     145  26  0.0 kworker/26:0-mm_percpu_wq
+    146     146  26  0.0 kworker/26:0H-kblockd
+    147     147  27  0.0 cpuhp/27
+    149     149  27  0.0 ksoftirqd/27
+    150     150  27  0.0 kworker/27:0-mm_percpu_wq
+    151     151  27  0.0 kworker/27:0H-events_highpri
+    152     152  28  0.0 cpuhp/28
+    154     154  28  0.0 ksoftirqd/28
+    156     156  28  0.0 kworker/28:0H-events_highpri
+    157     157  29  0.0 cpuhp/29
+    159     159  29  0.0 ksoftirqd/29
+    160     160  29  0.0 kworker/29:0-mm_percpu_wq
+    161     161  29  0.0 kworker/29:0H-kblockd
+    162     162  30  0.0 cpuhp/30
+    164     164  30  0.0 ksoftirqd/30
+    165     165  30  0.0 kworker/30:0-mm_percpu_wq
+    166     166  30  0.0 kworker/30:0H-kblockd
+    167     167  31  0.0 cpuhp/31
+    169     169  31  0.0 ksoftirqd/31
+    170     170  31  0.0 kworker/31:0-mm_percpu_wq
+    171     171  31  0.0 kworker/31:0H-kblockd
+    172     172  32  0.0 cpuhp/32
+    175     175  32  0.0 kworker/32:0-rcu_gp
+    176     176  32  0.0 kworker/32:0H-events_highpri
+    177     177  33  0.0 cpuhp/33
+    181     181  33  0.0 kworker/33:0H-events_highpri
+    182     182  34  0.0 cpuhp/34
+    186     186  34  0.0 kworker/34:0H-events_highpri
+    187     187  35  0.0 cpuhp/35
+    190     190  35  0.0 kworker/35:0-intf_cb_recycle
+    191     191  35  0.0 kworker/35:0H-events_highpri
+    192     192  36  0.0 cpuhp/36
+    196     196  36  0.0 kworker/36:0H-events_highpri
+    197     197  37  0.0 cpuhp/37
+    201     201  37  0.0 kworker/37:0H-events_highpri
+    202     202  38  0.0 cpuhp/38
+    205     205  38  0.0 kworker/38:0-mm_percpu_wq
+    206     206  38  0.0 kworker/38:0H-events_highpri
+    207     207  39  0.0 cpuhp/39
+    210     210  39  0.0 kworker/39:0-mm_percpu_wq
+    211     211  39  0.0 kworker/39:0H-kblockd
+    212     212  40  0.0 cpuhp/40
+    216     216  40  0.0 kworker/40:0H-events_highpri
+    217     217  41  0.0 cpuhp/41
+    221     221  41  0.0 kworker/41:0H-events_highpri
+    222     222  42  0.0 cpuhp/42
+    225     225  42  0.0 kworker/42:0-mm_percpu_wq
+    226     226  42  0.0 kworker/42:0H-events_highpri
+    227     227  43  0.0 cpuhp/43
+    230     230  43  0.0 kworker/43:0-mm_percpu_wq
+    231     231  43  0.0 kworker/43:0H-kblockd
+    232     232  44  0.0 cpuhp/44
+    235     235  44  0.0 kworker/44:0-mm_percpu_wq
+    236     236  44  0.0 kworker/44:0H-events_highpri
+    237     237  45  0.0 cpuhp/45
+    240     240  45  0.0 kworker/45:0-mm_percpu_wq
+    241     241  45  0.0 kworker/45:0H-kblockd
+    242     242  46  0.0 cpuhp/46
+    246     246  46  0.0 kworker/46:0H-events_highpri
+    247     247  47  0.0 cpuhp/47
+    251     251  47  0.0 kworker/47:0H-events_highpri
+    252     252  48  0.0 cpuhp/48
+    256     256  48  0.0 kworker/48:0H-events_highpri
+    257     257  49  0.0 cpuhp/49
+    261     261  49  0.0 kworker/49:0H-events_highpri
+    262     262  50  0.0 cpuhp/50
+    265     265  50  0.0 kworker/50:0-mm_percpu_wq
+    266     266  50  0.0 kworker/50:0H-events_highpri
+    267     267  51  0.0 cpuhp/51
+    271     271  51  0.0 kworker/51:0H-kblockd
+    272     272  52  0.0 cpuhp/52
+    276     276  52  0.0 kworker/52:0H-events_highpri
+    277     277  53  0.0 cpuhp/53
+    281     281  53  0.0 kworker/53:0H-events_highpri
+    282     282  54  0.0 cpuhp/54
+    286     286  54  0.0 kworker/54:0H-events_highpri
+    287     287  55  0.0 cpuhp/55
+    291     291  55  0.0 kworker/55:0H-events_highpri
+    292     292  56  0.0 cpuhp/56
+    296     296  56  0.0 kworker/56:0H-events_highpri
+    297     297  57  0.0 cpuhp/57
+    301     301  57  0.0 kworker/57:0H-events_highpri
+    302     302  58  0.0 cpuhp/58
+    306     306  58  0.0 kworker/58:0H-events_highpri
+    307     307  59  0.0 cpuhp/59
+    311     311  59  0.0 kworker/59:0H-events_highpri
+    312     312  60  0.0 cpuhp/60
+    316     316  60  0.0 kworker/60:0H-events_highpri
+    317     317  61  0.0 cpuhp/61
+    321     321  61  0.0 kworker/61:0H-kblockd
+    322     322  62  0.0 cpuhp/62
+    326     326  62  0.0 kworker/62:0H-events_highpri
+    327     327  63  0.0 cpuhp/63
+    331     331  63  0.0 kworker/63:0H-events_highpri
+    332     332  64  0.0 cpuhp/64
+    336     336  64  0.0 kworker/64:0H-events_highpri
+    338     338  65  0.0 cpuhp/65
+    342     342  65  0.0 kworker/65:0H-events_highpri
+    343     343  66  0.0 cpuhp/66
+    347     347  66  0.0 kworker/66:0H-events_highpri
+    348     348  67  0.0 cpuhp/67
+    352     352  67  0.0 kworker/67:0H-events_highpri
+    353     353  68  0.0 cpuhp/68
+    357     357  68  0.0 kworker/68:0H-events_highpri
+    358     358  69  0.0 cpuhp/69
+    362     362  69  0.0 kworker/69:0H-events_highpri
+    363     363  70  0.0 cpuhp/70
+    367     367  70  0.0 kworker/70:0H-events_highpri
+    368     368  71  0.0 cpuhp/71
+    372     372  71  0.0 kworker/71:0H-events_highpri
+    373     373  72  0.0 cpuhp/72
+    377     377  72  0.0 kworker/72:0H-events_highpri
+    378     378  73  0.0 cpuhp/73
+    382     382  73  0.0 kworker/73:0H-events_highpri
+    383     383  74  0.0 cpuhp/74
+    387     387  74  0.0 kworker/74:0H-events_highpri
+    388     388  75  0.0 cpuhp/75
+    392     392  75  0.0 kworker/75:0H-events_highpri
+    393     393  76  0.0 cpuhp/76
+    397     397  76  0.0 kworker/76:0H-events_highpri
+    398     398  77  0.0 cpuhp/77
+    402     402  77  0.0 kworker/77:0H-events_highpri
+    403     403  78  0.0 cpuhp/78
+    407     407  78  0.0 kworker/78:0H-events_highpri
+    408     408  79  0.0 cpuhp/79
+    412     412  79  0.0 kworker/79:0H-kblockd
+    413     413  80  0.0 cpuhp/80
+    417     417  80  0.0 kworker/80:0H-events_highpri
+    418     418  81  0.0 cpuhp/81
+    422     422  81  0.0 kworker/81:0H-events_highpri
+    423     423  82  0.0 cpuhp/82
+    427     427  82  0.0 kworker/82:0H-events_highpri
+    428     428  83  0.0 cpuhp/83
+    432     432  83  0.0 kworker/83:0H-events_highpri
+    433     433  84  0.0 cpuhp/84
+    437     437  84  0.0 kworker/84:0H-events_highpri
+    438     438  85  0.0 cpuhp/85
+    442     442  85  0.0 kworker/85:0H-events_highpri
+    443     443  86  0.0 cpuhp/86
+    447     447  86  0.0 kworker/86:0H-events_highpri
+    448     448  87  0.0 cpuhp/87
+    452     452  87  0.0 kworker/87:0H-events_highpri
+    453     453  88  0.0 cpuhp/88
+    457     457  88  0.0 kworker/88:0H-events_highpri
+    458     458  89  0.0 cpuhp/89
+    462     462  89  0.0 kworker/89:0H-events_highpri
+    463     463  90  0.0 cpuhp/90
+    467     467  90  0.0 kworker/90:0H-events_highpri
+    468     468  91  0.0 cpuhp/91
+    472     472  91  0.0 kworker/91:0H-events_highpri
+    473     473  92  0.0 cpuhp/92
+    477     477  92  0.0 kworker/92:0H-events_highpri
+    478     478  93  0.0 cpuhp/93
+    482     482  93  0.0 kworker/93:0H-events_highpri
+    483     483  94  0.0 cpuhp/94
+    487     487  94  0.0 kworker/94:0H-events_highpri
+    488     488  95  0.0 cpuhp/95
+    492     492  95  0.0 kworker/95:0H-events_highpri
+    493     493  96  0.0 cpuhp/96
+    497     497  96  0.0 kworker/96:0H-events_highpri
+    498     498  97  0.0 cpuhp/97
+    502     502  97  0.0 kworker/97:0H-events_highpri
+    503     503  98  0.0 cpuhp/98
+    507     507  98  0.0 kworker/98:0H-events_highpri
+    508     508  99  0.0 cpuhp/99
+    512     512  99  0.0 kworker/99:0H-events_highpri
+    513     513 100  0.0 cpuhp/100
+    517     517 100  0.0 kworker/100:0H-events_highpri
+    518     518 101  0.0 cpuhp/101
+    522     522 101  0.0 kworker/101:0H-events_highpri
+    523     523 102  0.0 cpuhp/102
+    527     527 102  0.0 kworker/102:0H
+    528     528 103  0.0 cpuhp/103
+    532     532 103  0.0 kworker/103:0H-kblockd
+    533     533 104  0.0 cpuhp/104
+    537     537 104  0.0 kworker/104:0H-kblockd
+    538     538 105  0.0 cpuhp/105
+    542     542 105  0.0 kworker/105:0H-events_highpri
+    543     543 106  0.0 cpuhp/106
+    547     547 106  0.0 kworker/106:0H-events_highpri
+    548     548 107  0.0 cpuhp/107
+    552     552 107  0.0 kworker/107:0H-events_highpri
+    553     553 108  0.0 cpuhp/108
+    557     557 108  0.0 kworker/108:0H-events_highpri
+    558     558 109  0.0 cpuhp/109
+    562     562 109  0.0 kworker/109:0H-events_highpri
+    563     563 110  0.0 cpuhp/110
+    567     567 110  0.0 kworker/110:0H-events_highpri
+    568     568 111  0.0 cpuhp/111
+    572     572 111  0.0 kworker/111:0H-events_highpri
+    573     573 112  0.0 cpuhp/112
+    577     577 112  0.0 kworker/112:0H
+    578     578 113  0.0 cpuhp/113
+    582     582 113  0.0 kworker/113:0H-events_highpri
+    583     583 114  0.0 cpuhp/114
+    587     587 114  0.0 kworker/114:0H-events_highpri
+    588     588 115  0.0 cpuhp/115
+    592     592 115  0.0 kworker/115:0H-events_highpri
+    593     593 116  0.0 cpuhp/116
+    597     597 116  0.0 kworker/116:0H-events_highpri
+    598     598 117  0.0 cpuhp/117
+    602     602 117  0.0 kworker/117:0H-events_highpri
+    603     603 118  0.0 cpuhp/118
+    607     607 118  0.0 kworker/118:0H-events_highpri
+    608     608 119  0.0 cpuhp/119
+    612     612 119  0.0 kworker/119:0H-events_highpri
+    613     613 120  0.0 cpuhp/120
+    617     617 120  0.0 kworker/120:0H-events_highpri
+    618     618 121  0.0 cpuhp/121
+    622     622 121  0.0 kworker/121:0H-events_highpri
+    623     623 122  0.0 cpuhp/122
+    627     627 122  0.0 kworker/122:0H-events_highpri
+    628     628 123  0.0 cpuhp/123
+    632     632 123  0.0 kworker/123:0H-events_highpri
+    633     633 124  0.0 cpuhp/124
+    637     637 124  0.0 kworker/124:0H-events_highpri
+    638     638 125  0.0 cpuhp/125
+    642     642 125  0.0 kworker/125:0H-events_highpri
+    643     643 126  0.0 cpuhp/126
+    647     647 126  0.0 kworker/126:0H-events_highpri
+    648     648 127  0.0 cpuhp/127
+    650     650 127  0.0 ksoftirqd/127
+    652     652 127  0.0 kworker/127:0H-events_highpri
+    653     653 128  0.0 cpuhp/128
+    657     657 128  0.0 kworker/128:0H-events_highpri
+    659     659 129  0.0 cpuhp/129
+    663     663 129  0.0 kworker/129:0H-events_highpri
+    664     664 130  0.0 cpuhp/130
+    668     668 130  0.0 kworker/130:0H-events_highpri
+    669     669 131  0.0 cpuhp/131
+    673     673 131  0.0 kworker/131:0H-events_highpri
+    674     674 132  0.0 cpuhp/132
+    678     678 132  0.0 kworker/132:0H-events_highpri
+    679     679 133  0.0 cpuhp/133
+    683     683 133  0.0 kworker/133:0H-events_highpri
+    684     684 134  0.0 cpuhp/134
+    687     687 134  0.0 kworker/134:0-mm_percpu_wq
+    688     688 134  0.0 kworker/134:0H-events_highpri
+    689     689 135  0.0 cpuhp/135
+    693     693 135  0.0 kworker/135:0H-kblockd
+    694     694 136  0.0 cpuhp/136
+    698     698 136  0.0 kworker/136:0H-kblockd
+    699     699 137  0.0 cpuhp/137
+    703     703 137  0.0 kworker/137:0H-kblockd
+    704     704 138  0.0 cpuhp/138
+    708     708 138  0.0 kworker/138:0H-kblockd
+    709     709 139  0.0 cpuhp/139
+    713     713 139  0.0 kworker/139:0H-events_highpri
+    714     714 140  0.0 cpuhp/140
+    718     718 140  0.0 kworker/140:0H-kblockd
+    719     719 141  0.0 cpuhp/141
+    723     723 141  0.0 kworker/141:0H-kblockd
+    724     724 142  0.0 cpuhp/142
+    728     728 142  0.0 kworker/142:0H-events_highpri
+    729     729 143  0.0 cpuhp/143
+    733     733 143  0.0 kworker/143:0H-events_highpri
+    734     734 144  0.0 cpuhp/144
+    738     738 144  0.0 kworker/144:0H-events_highpri
+    739     739 145  0.0 cpuhp/145
+    743     743 145  0.0 kworker/145:0H-kblockd
+    744     744 146  0.0 cpuhp/146
+    748     748 146  0.0 kworker/146:0H-kblockd
+    749     749 147  0.0 cpuhp/147
+    753     753 147  0.0 kworker/147:0H-events_highpri
+    754     754 148  0.0 cpuhp/148
+    758     758 148  0.0 kworker/148:0H-events_highpri
+    759     759 149  0.0 cpuhp/149
+    763     763 149  0.0 kworker/149:0H-events_highpri
+    764     764 150  0.0 cpuhp/150
+    768     768 150  0.0 kworker/150:0H-kblockd
+    769     769 151  0.0 cpuhp/151
+    773     773 151  0.0 kworker/151:0H-kblockd
+    774     774 152  0.0 cpuhp/152
+    778     778 152  0.0 kworker/152:0H-kblockd
+    779     779 153  0.0 cpuhp/153
+    783     783 153  0.0 kworker/153:0H-kblockd
+    784     784 154  0.0 cpuhp/154
+    788     788 154  0.0 kworker/154:0H-kblockd
+    789     789 155  0.0 cpuhp/155
+    793     793 155  0.0 kworker/155:0H-kblockd
+    794     794 156  0.0 cpuhp/156
+    798     798 156  0.0 kworker/156:0H-events_highpri
+    799     799 157  0.0 cpuhp/157
+    803     803 157  0.0 kworker/157:0H-kblockd
+    804     804 158  0.0 cpuhp/158
+    808     808 158  0.0 kworker/158:0H-kblockd
+    809     809 159  0.0 cpuhp/159
+    813     813 159  0.0 kworker/159:0H-events_highpri
+    814     814 160  0.0 cpuhp/160
+    818     818 160  0.0 kworker/160:0H-kblockd
+    819     819 161  0.0 cpuhp/161
+    823     823 161  0.0 kworker/161:0H-events_highpri
+    824     824 162  0.0 cpuhp/162
+    828     828 162  0.0 kworker/162:0H-events_highpri
+    829     829 163  0.0 cpuhp/163
+    833     833 163  0.0 kworker/163:0H-events_highpri
+    834     834 164  0.0 cpuhp/164
+    838     838 164  0.0 kworker/164:0H-kblockd
+    839     839 165  0.0 cpuhp/165
+    843     843 165  0.0 kworker/165:0H-events_highpri
+    844     844 166  0.0 cpuhp/166
+    848     848 166  0.0 kworker/166:0H-events_highpri
+    849     849 167  0.0 cpuhp/167
+    853     853 167  0.0 kworker/167:0H-events_highpri
+    854     854 168  0.0 cpuhp/168
+    858     858 168  0.0 kworker/168:0H-events_highpri
+    859     859 169  0.0 cpuhp/169
+    863     863 169  0.0 kworker/169:0H-events_highpri
+    864     864 170  0.0 cpuhp/170
+    868     868 170  0.0 kworker/170:0H-events_highpri
+    869     869 171  0.0 cpuhp/171
+    873     873 171  0.0 kworker/171:0H-kblockd
+    874     874 172  0.0 cpuhp/172
+    878     878 172  0.0 kworker/172:0H-kblockd
+    879     879 173  0.0 cpuhp/173
+    883     883 173  0.0 kworker/173:0H-events_highpri
+    884     884 174  0.0 cpuhp/174
+    888     888 174  0.0 kworker/174:0H-events_highpri
+    889     889 175  0.0 cpuhp/175
+    893     893 175  0.0 kworker/175:0H-events_highpri
+    894     894 176  0.0 cpuhp/176
+    897     897 176  0.0 kworker/176:0-mm_percpu_wq
+    898     898 176  0.0 kworker/176:0H-events_highpri
+    899     899 177  0.0 cpuhp/177
+    901     901 177  0.0 ksoftirqd/177
+    902     902 177  0.0 kworker/177:0-mm_percpu_wq
+    903     903 177  0.0 kworker/177:0H-events_highpri
+    904     904 178  0.0 cpuhp/178
+    906     906 178  0.0 ksoftirqd/178
+    907     907 178  0.0 kworker/178:0-mm_percpu_wq
+    908     908 178  0.0 kworker/178:0H-events_highpri
+    909     909 179  0.0 cpuhp/179
+    911     911 179  0.0 ksoftirqd/179
+    913     913 179  0.0 kworker/179:0H-events_highpri
+    914     914 180  0.0 cpuhp/180
+    916     916 180  0.0 ksoftirqd/180
+    917     917 180  0.0 kworker/180:0-mm_percpu_wq
+    918     918 180  0.0 kworker/180:0H-events_highpri
+    919     919 181  0.0 cpuhp/181
+    921     921 181  0.0 ksoftirqd/181
+    922     922 181  0.0 kworker/181:0-mm_percpu_wq
+    923     923 181  0.0 kworker/181:0H-events_highpri
+    924     924 182  0.0 cpuhp/182
+    926     926 182  0.0 ksoftirqd/182
+    927     927 182  0.0 kworker/182:0-mm_percpu_wq
+    928     928 182  0.0 kworker/182:0H-events_highpri
+    929     929 183  0.0 cpuhp/183
+    931     931 183  0.0 ksoftirqd/183
+    932     932 183  0.0 kworker/183:0-mm_percpu_wq
+    933     933 183  0.0 kworker/183:0H-events_highpri
+    934     934 184  0.0 cpuhp/184
+    936     936 184  0.0 ksoftirqd/184
+    937     937 184  0.0 kworker/184:0-mm_percpu_wq
+    938     938 184  0.0 kworker/184:0H-kblockd
+    939     939 185  0.0 cpuhp/185
+    941     941 185  0.0 ksoftirqd/185
+    942     942 185  0.0 kworker/185:0-mm_percpu_wq
+    943     943 185  0.0 kworker/185:0H-events_highpri
+    944     944 186  0.0 cpuhp/186
+    946     946 186  0.0 ksoftirqd/186
+    947     947 186  0.0 kworker/186:0-mm_percpu_wq
+    948     948 186  0.0 kworker/186:0H-kblockd
+    949     949 187  0.0 cpuhp/187
+    951     951 187  0.0 ksoftirqd/187
+    952     952 187  0.0 kworker/187:0-mm_percpu_wq
+    953     953 187  0.0 kworker/187:0H-kblockd
+    954     954 188  0.0 cpuhp/188
+    956     956 188  0.0 ksoftirqd/188
+    957     957 188  0.0 kworker/188:0-mm_percpu_wq
+    958     958 188  0.0 kworker/188:0H-kblockd
+    959     959 189  0.0 cpuhp/189
+    961     961 189  0.0 ksoftirqd/189
+    962     962 189  0.0 kworker/189:0-mm_percpu_wq
+    963     963 189  0.0 kworker/189:0H-kblockd
+    964     964 190  0.0 cpuhp/190
+    966     966 190  0.0 ksoftirqd/190
+    967     967 190  0.0 kworker/190:0-mm_percpu_wq
+    968     968 190  0.0 kworker/190:0H-kblockd
+    969     969 191  0.0 cpuhp/191
+    971     971 191  0.0 ksoftirqd/191
+    972     972 191  0.0 kworker/191:0-mm_percpu_wq
+    973     973 191  0.0 kworker/191:0H-events_highpri
+    974     974 192  0.0 cpuhp/192
+    978     978 192  0.0 kworker/192:0H-events_highpri
+    979     979 193  0.0 kworker/u516:0-events_unbound
+    980     980 193  0.0 cpuhp/193
+    984     984 193  0.0 kworker/193:0H-events_highpri
+    985     985 194  0.0 cpuhp/194
+    989     989 194  0.0 kworker/194:0H-kblockd
+    990     990 195  0.0 cpuhp/195
+    993     993 195  0.0 kworker/195:0-mm_percpu_wq
+    994     994 195  0.0 kworker/195:0H-kblockd
+    995     995 196  0.0 cpuhp/196
+    998     998 196  0.0 kworker/196:0-mm_percpu_wq
+    999     999 196  0.0 kworker/196:0H-kblockd
+   1000    1000 197  0.0 cpuhp/197
+   1003    1003 197  0.0 kworker/197:0-mm_percpu_wq
+   1004    1004 197  0.0 kworker/197:0H-kblockd
+   1005    1005 198  0.0 cpuhp/198
+   1008    1008 198  0.0 kworker/198:0-mm_percpu_wq
+   1009    1009 198  0.0 kworker/198:0H-events_highpri
+   1010    1010 199  0.0 cpuhp/199
+   1013    1013 199  0.0 kworker/199:0-mm_percpu_wq
+   1014    1014 199  0.0 kworker/199:0H-events_highpri
+   1015    1015 200  0.0 cpuhp/200
+   1018    1018 200  0.0 kworker/200:0-mm_percpu_wq
+   1019    1019 200  0.0 kworker/200:0H-events_highpri
+   1020    1020 201  0.0 cpuhp/201
+   1023    1023 201  0.0 kworker/201:0-mm_percpu_wq
+   1024    1024 201  0.0 kworker/201:0H-kblockd
+   1025    1025 202  0.0 cpuhp/202
+   1028    1028 202  0.0 kworker/202:0-mm_percpu_wq
+   1029    1029 202  0.0 kworker/202:0H-kblockd
+   1030    1030 203  0.0 cpuhp/203
+   1033    1033 203  0.0 kworker/203:0-mm_percpu_wq
+   1034    1034 203  0.0 kworker/203:0H-kblockd
+   1035    1035 204  0.0 cpuhp/204
+   1038    1038 204  0.0 kworker/204:0-mm_percpu_wq
+   1039    1039 204  0.0 kworker/204:0H-kblockd
+   1040    1040 205  0.0 cpuhp/205
+   1043    1043 205  0.0 kworker/205:0-mm_percpu_wq
+   1044    1044 205  0.0 kworker/205:0H-kblockd
+   1045    1045 206  0.0 cpuhp/206
+   1048    1048 206  0.0 kworker/206:0-mm_percpu_wq
+   1049    1049 206  0.0 kworker/206:0H-kblockd
+   1050    1050 207  0.0 cpuhp/207
+   1054    1054 207  0.0 kworker/207:0H-kblockd
+   1055    1055 208  0.0 cpuhp/208
+   1058    1058 208  0.0 kworker/208:0-mm_percpu_wq
+   1059    1059 208  0.0 kworker/208:0H-events_highpri
+   1060    1060 209  0.0 cpuhp/209
+   1063    1063 209  0.0 kworker/209:0-mm_percpu_wq
+   1064    1064 209  0.0 kworker/209:0H-events_highpri
+   1065    1065 210  0.0 cpuhp/210
+   1068    1068 210  0.0 kworker/210:0-mm_percpu_wq
+   1069    1069 210  0.0 kworker/210:0H-events_highpri
+   1070    1070 211  0.0 cpuhp/211
+   1074    1074 211  0.0 kworker/211:0H-kblockd
+   1075    1075 212  0.0 cpuhp/212
+   1078    1078 212  0.0 kworker/212:0-mm_percpu_wq
+   1079    1079 212  0.0 kworker/212:0H-events_highpri
+   1080    1080 213  0.0 cpuhp/213
+   1083    1083 213  0.0 kworker/213:0-mm_percpu_wq
+   1084    1084 213  0.0 kworker/213:0H-kblockd
+   1085    1085 214  0.0 cpuhp/214
+   1088    1088 214  0.0 kworker/214:0-mm_percpu_wq
+   1089    1089 214  0.0 kworker/214:0H-events_highpri
+   1090    1090 215  0.0 cpuhp/215
+   1093    1093 215  0.0 kworker/215:0-mm_percpu_wq
+   1094    1094 215  0.0 kworker/215:0H-events_highpri
+   1095    1095 216  0.0 cpuhp/216
+   1098    1098 216  0.0 kworker/216:0-mm_percpu_wq
+   1099    1099 216  0.0 kworker/216:0H-kblockd
+   1100    1100 217  0.0 cpuhp/217
+   1103    1103 217  0.0 kworker/217:0-mm_percpu_wq
+   1104    1104 217  0.0 kworker/217:0H-events_highpri
+   1105    1105 218  0.0 cpuhp/218
+   1108    1108 218  0.0 kworker/218:0-mm_percpu_wq
+   1109    1109 218  0.0 kworker/218:0H-kblockd
+   1110    1110 219  0.0 cpuhp/219
+   1113    1113 219  0.0 kworker/219:0-mm_percpu_wq
+   1114    1114 219  0.0 kworker/219:0H-kblockd
+   1115    1115 220  0.0 cpuhp/220
+   1118    1118 220  0.0 kworker/220:0-mm_percpu_wq
+   1119    1119 220  0.0 kworker/220:0H-kblockd
+   1120    1120 221  0.0 cpuhp/221
+   1123    1123 221  0.0 kworker/221:0-mm_percpu_wq
+   1124    1124 221  0.0 kworker/221:0H-kblockd
+   1125    1125 222  0.0 cpuhp/222
+   1128    1128 222  0.0 kworker/222:0-mm_percpu_wq
+   1129    1129 222  0.0 kworker/222:0H-kblockd
+   1130    1130 223  0.0 cpuhp/223
+   1133    1133 223  0.0 kworker/223:0-mm_percpu_wq
+   1134    1134 223  0.0 kworker/223:0H-kblockd
+   1135    1135 224  0.0 cpuhp/224
+   1137    1137 224  0.0 ksoftirqd/224
+   1138    1138 224  0.0 kworker/224:0-mm_percpu_wq
+   1139    1139 224  0.0 kworker/224:0H
+   1140    1140 225  0.0 cpuhp/225
+   1142    1142 225  0.0 ksoftirqd/225
+   1143    1143 225  0.0 kworker/225:0-mm_percpu_wq
+   1144    1144 225  0.0 kworker/225:0H-events_highpri
+   1145    1145 226  0.0 cpuhp/226
+   1147    1147 226  0.0 ksoftirqd/226
+   1148    1148 226  0.0 kworker/226:0-mm_percpu_wq
+   1149    1149 226  0.0 kworker/226:0H-events_highpri
+   1150    1150 227  0.0 cpuhp/227
+   1152    1152 227  0.0 ksoftirqd/227
+   1153    1153 227  0.0 kworker/227:0-mm_percpu_wq
+   1154    1154 227  0.0 kworker/227:0H-events_highpri
+   1155    1155 228  0.0 cpuhp/228
+   1157    1157 228  0.0 ksoftirqd/228
+   1158    1158 228  0.0 kworker/228:0-mm_percpu_wq
+   1159    1159 228  0.0 kworker/228:0H
+   1160    1160 229  0.0 cpuhp/229
+   1162    1162 229  0.0 ksoftirqd/229
+   1163    1163 229  0.0 kworker/229:0-mm_percpu_wq
+   1164    1164 229  0.0 kworker/229:0H
+   1165    1165 230  0.0 cpuhp/230
+   1167    1167 230  0.0 ksoftirqd/230
+   1169    1169 230  0.0 kworker/230:0H-events_highpri
+   1170    1170 231  0.0 cpuhp/231
+   1172    1172 231  0.0 ksoftirqd/231
+   1174    1174 231  0.0 kworker/231:0H-events_highpri
+   1175    1175 232  0.0 cpuhp/232
+   1177    1177 232  0.0 ksoftirqd/232
+   1179    1179 232  0.0 kworker/232:0H-events_highpri
+   1180    1180 233  0.0 cpuhp/233
+   1182    1182 233  0.0 ksoftirqd/233
+   1183    1183 233  0.0 kworker/233:0-mm_percpu_wq
+   1184    1184 233  0.0 kworker/233:0H-events_highpri
+   1185    1185 234  0.0 cpuhp/234
+   1187    1187 234  0.0 ksoftirqd/234
+   1188    1188 234  0.0 kworker/234:0-mm_percpu_wq
+   1189    1189 234  0.0 kworker/234:0H-events_highpri
+   1190    1190 235  0.0 cpuhp/235
+   1192    1192 235  0.0 ksoftirqd/235
+   1193    1193 235  0.0 kworker/235:0-mm_percpu_wq
+   1194    1194 235  0.0 kworker/235:0H
+   1195    1195 236  0.0 cpuhp/236
+   1197    1197 236  0.0 ksoftirqd/236
+   1199    1199 236  0.0 kworker/236:0H-events_highpri
+   1200    1200 237  0.0 cpuhp/237
+   1202    1202 237  0.0 ksoftirqd/237
+   1204    1204 237  0.0 kworker/237:0H
+   1205    1205 238  0.0 cpuhp/238
+   1207    1207 238  0.0 ksoftirqd/238
+   1208    1208 238  0.0 kworker/238:0-mm_percpu_wq
+   1209    1209 238  0.0 kworker/238:0H
+   1210    1210 239  0.0 cpuhp/239
+   1212    1212 239  0.0 ksoftirqd/239
+   1213    1213 239  0.0 kworker/239:0-mm_percpu_wq
+   1214    1214 239  0.0 kworker/239:0H-events_highpri
+   1215    1215 240  0.0 cpuhp/240
+   1217    1217 240  0.0 ksoftirqd/240
+   1219    1219 240  0.0 kworker/240:0H-events_highpri
+   1220    1220 241  0.0 cpuhp/241
+   1222    1222 241  0.0 ksoftirqd/241
+   1223    1223 241  0.0 kworker/241:0-mm_percpu_wq
+   1224    1224 241  0.0 kworker/241:0H-events_highpri
+   1225    1225 242  0.0 cpuhp/242
+   1227    1227 242  0.0 ksoftirqd/242
+   1228    1228 242  0.0 kworker/242:0-mm_percpu_wq
+   1229    1229 242  0.0 kworker/242:0H-events_highpri
+   1230    1230 243  0.0 cpuhp/243
+   1232    1232 243  0.0 ksoftirqd/243
+   1233    1233 243  0.0 kworker/243:0
+   1234    1234 243  0.0 kworker/243:0H
+   1235    1235 244  0.0 cpuhp/244
+   1237    1237 244  0.0 ksoftirqd/244
+   1238    1238 244  0.0 kworker/244:0-mm_percpu_wq
+   1239    1239 244  0.0 kworker/244:0H
+   1240    1240 245  0.0 cpuhp/245
+   1242    1242 245  0.0 ksoftirqd/245
+   1243    1243 245  0.0 kworker/245:0
+   1244    1244 245  0.0 kworker/245:0H
+   1245    1245 246  0.0 cpuhp/246
+   1247    1247 246  0.0 ksoftirqd/246
+   1248    1248 246  0.0 kworker/246:0-mm_percpu_wq
+   1249    1249 246  0.0 kworker/246:0H-events_highpri
+   1250    1250 247  0.0 cpuhp/247
+   1252    1252 247  0.0 ksoftirqd/247
+   1253    1253 247  0.0 kworker/247:0-mm_percpu_wq
+   1254    1254 247  0.0 kworker/247:0H
+   1255    1255 248  0.0 cpuhp/248
+   1257    1257 248  0.0 ksoftirqd/248
+   1258    1258 248  0.0 kworker/248:0
+   1259    1259 248  0.0 kworker/248:0H-events_highpri
+   1260    1260 249  0.0 cpuhp/249
+   1262    1262 249  0.0 ksoftirqd/249
+   1263    1263 249  0.0 kworker/249:0-mm_percpu_wq
+   1264    1264 249  0.0 kworker/249:0H
+   1265    1265 250  0.0 cpuhp/250
+   1267    1267 250  0.0 ksoftirqd/250
+   1268    1268 250  0.0 kworker/250:0
+   1269    1269 250  0.0 kworker/250:0H
+   1270    1270 251  0.0 cpuhp/251
+   1272    1272 251  0.0 ksoftirqd/251
+   1273    1273 251  0.0 kworker/251:0-mm_percpu_wq
+   1274    1274 251  0.0 kworker/251:0H
+   1275    1275 252  0.0 cpuhp/252
+   1277    1277 252  0.0 ksoftirqd/252
+   1278    1278 252  0.0 kworker/252:0-mm_percpu_wq
+   1279    1279 252  0.0 kworker/252:0H
+   1280    1280 253  0.0 cpuhp/253
+   1282    1282 253  0.0 ksoftirqd/253
+   1283    1283 253  0.0 kworker/253:0
+   1284    1284 253  0.0 kworker/253:0H
+   1285    1285 254  0.0 cpuhp/254
+   1287    1287 254  0.0 ksoftirqd/254
+   1288    1288 254  0.0 kworker/254:0-mm_percpu_wq
+   1289    1289 254  0.0 kworker/254:0H
+   1290    1290 255  0.0 cpuhp/255
+   1292    1292 255  0.0 ksoftirqd/255
+   1293    1293 255  0.0 kworker/255:0
+   1294    1294 255  0.0 kworker/255:0H
+   1306    1306  12  0.0 kworker/12:1-intf_cb_recycle
+   1322    1322  28  0.0 kworker/28:1-rcu_gp
+   1326    1326  33  0.0 kworker/33:1-events
+   1327    1327  34  0.0 kworker/34:1-events
+   1345    1345  51  0.0 kworker/51:1-events
+   1349    1349  55  0.0 kworker/55:1-intf_cb_recycle
+   1351    1351  56  0.0 kworker/56:1-events
+   1352    1352  57  0.0 kworker/57:1-intf_cb_recycle
+   1353    1353  58  0.0 kworker/58:1-events
+   1354    1354  59  0.0 kworker/59:1-events
+   1355    1355  60  0.0 kworker/60:1-events_power_efficient
+   1356    1356  61  0.0 kworker/61:1-events
+   1426    1426 132  0.0 kworker/132:1-kvm-irqfd-cleanup
+   1429    1429 135  0.0 kworker/135:1-kvm-irqfd-cleanup
+   1433    1433 139  0.0 kworker/139:1-cgroup_pidlist_destroy
+   1436    1436 142  0.0 kworker/142:1-rcu_gp
+   1438    1438 144  0.0 kworker/144:1-kvm-irqfd-cleanup
+   1443    1443 149  0.0 kworker/149:1-kvm-irqfd-cleanup
+   1446    1446 152  0.0 kworker/152:1-rcu_gp
+   1447    1447 153  0.0 kworker/153:1-kvm-irqfd-cleanup
+   1448    1448 154  0.0 kworker/154:1-kvm-irqfd-cleanup
+   1477    1477 183  0.0 kworker/183:1-mm_percpu_wq
+   1479    1479 185  0.0 kworker/185:1-mm_percpu_wq
+   1481    1481 187  0.0 kworker/187:1-events
+   1483    1483 189  0.0 kworker/189:1-events
+   1485    1485 191  0.0 kworker/191:1-mm_percpu_wq
+   1524    1524 230  0.0 kworker/230:1-intf_cb_recycle
+   1525    1525 231  0.0 kworker/231:1-intf_cb_recycle
+   1526    1526 232  0.0 kworker/232:1-events
+   1530    1530 236  0.0 kworker/236:1-rcu_gp
+   1551    1551  62  0.0 netns
+   1555    1555  63  0.0 oom_reaper
+   1556    1556 148  0.0 writeback
+   1561    1561   0  0.0 ksmd
+   1617    1617  33  0.0 kintegrityd
+   1618    1618  34  0.0 kblockd
+   1619    1619  35  0.0 blkcg_punt_bio
+   1620    1620  36  0.0 tpm_dev_wq
+   1621    1621  37  0.0 md
+   1622    1622  38  0.0 md_bitmap
+   1623    1623  39  0.0 edac-poller
+   1624    1624  40  0.0 watchdogd
+   1629    1629  43  0.0 kswapd0
+   1630    1630  64  0.0 kswapd1
+   1631    1631 128  0.0 kswapd2
+   1632    1632 192  0.0 kswapd3
+   1633    1633  45  0.0 kthrotld
+   1634    1634   0  0.0 irq/17-ACPI:Ged
+   1635    1635   0  0.0 irq/22-ACPI:Ged
+   1636    1636  48  0.0 acpi_thermal_pm
+   1637    1637  49  0.0 pmas_thread[0]
+   1638    1638  49  0.0 pmas_thread[1]
+   1639    1639  50  0.0 pmas_thread[2]
+   1640    1640   0  0.0 irq/32-arm-smmu
+   1641    1641   2  0.0 irq/34-arm-smmu
+   1642    1642   3  0.0 irq/35-arm-smmu
+   1643    1643   5  0.0 irq/37-arm-smmu
+   1644    1644   6  0.0 irq/38-arm-smmu
+   1645    1645   8  0.0 irq/40-arm-smmu
+   1646    1646   9  0.0 irq/41-arm-smmu
+   1647    1647  11  0.0 irq/43-arm-smmu
+   1648    1648  64  0.0 irq/44-arm-smmu
+   1649    1649  66  0.0 irq/46-arm-smmu
+   1650    1650  67  0.0 irq/47-arm-smmu
+   1651    1651  69  0.0 irq/49-arm-smmu
+   1652    1652  70  0.0 irq/50-arm-smmu
+   1653    1653  72  0.0 irq/52-arm-smmu
+   1654    1654  73  0.0 irq/53-arm-smmu
+   1655    1655  75  0.0 irq/55-arm-smmu
+   1656    1656 128  0.0 irq/56-arm-smmu
+   1657    1657 130  0.0 irq/58-arm-smmu
+   1658    1658 131  0.0 irq/59-arm-smmu
+   1659    1659 133  0.0 irq/61-arm-smmu
+   1660    1660 134  0.0 irq/62-arm-smmu
+   1661    1661 136  0.0 irq/64-arm-smmu
+   1662    1662 137  0.0 irq/65-arm-smmu
+   1663    1663 139  0.0 irq/67-arm-smmu
+   1664    1664 192  0.0 irq/68-arm-smmu
+   1665    1665 194  0.0 irq/70-arm-smmu
+   1666    1666 195  0.0 irq/71-arm-smmu
+   1667    1667 197  0.0 irq/73-arm-smmu
+   1668    1668 198  0.0 irq/74-arm-smmu
+   1669    1669 200  0.0 irq/76-arm-smmu
+   1670    1670 201  0.0 irq/77-arm-smmu
+   1671    1671 203  0.0 irq/79-arm-smmu
+   1672    1672  35  0.0 kmpath_rdacd
+   1673    1673  36  0.0 kaluad
+   1674    1674  37  0.0 spi0
+   1681    1681  38  0.0 ipv6_addrconf
+   1682    1682  39  0.0 kstrp
+   1690    1690  32  0.0 cryptd
+   1802    1802  16  0.0 irq/94-aerdrv
+   1803    1803  18  0.0 irq/96-aerdrv
+   1804    1804  20  0.0 irq/98-aerdrv
+   1805    1805  22  0.0 irq/100-aerdrv
+   1806    1806  24  0.0 irq/102-aerdrv
+   1807    1807  80  0.0 irq/104-aerdrv
+   1808    1808  82  0.0 irq/106-aerdrv
+   1809    1809  84  0.0 irq/108-aerdrv
+   1810    1810 144  0.0 irq/110-aerdrv
+   1811    1811 146  0.0 irq/112-aerdrv
+   1812    1812 148  0.0 irq/114-aerdrv
+   1813    1813 147  0.0 irq/113-pciehp
+   1814    1814 150  0.0 irq/116-aerdrv
+   1815    1815 149  0.0 irq/115-pciehp
+   1816    1816 208  0.0 irq/118-aerdrv
+   1817    1817 210  0.0 irq/120-aerdrv
+   1818    1818 212  0.0 irq/122-aerdrv
+   1821    1821  29  0.0 kworker/u518:0
+   1822    1822  64  0.0 kworker/u519:0
+   1823    1823 128  0.0 kworker/u520:0
+   1824    1824 192  0.0 kworker/u521:0
+   1870    1870   8  0.0 hiraid-wq
+   1871    1871   9  0.0 scsi_eh_0
+   1872    1872  10  0.0 scsi_tmf_0
+   2155    2155 244  0.0 ipmi-msghandler
+   2167    2167 150  0.0 ata_sff
+   2341    2341 115  0.0 kworker/115:1H
+   2355    2355 116  0.0 kworker/116:1H
+   2356    2356   2  0.0 scsi_eh_1
+   2357    2357  12  0.0 scsi_tmf_1
+   2358    2358   0  0.0 scsi_eh_2
+   2359    2359  15  0.0 scsi_tmf_2
+   2360    2360  16  0.0 scsi_eh_3
+   2361    2361  17  0.0 scsi_tmf_3
+   2362    2362  18  0.0 0000:34:02.0
+   2363    2363   1  0.0 scsi_eh_4
+   2364    2364  21  0.0 scsi_tmf_4
+   2365    2365  22  0.0 scsi_wq_3
+   2366    2366   3  0.0 scsi_eh_5
+   2367    2367  23  0.0 scsi_tmf_5
+   2368    2368  24  0.0 0000:34:02.0_ev
+   2369    2369  25  0.0 0000:34:02.0_di
+   2376    2376   1  0.0 scsi_eh_6
+   2377    2377 129  0.0 scsi_tmf_6
+   2379    2379 129  0.0 scsi_tmf_7
+   2387    2387  40  0.0 scsi_tmf_8
+   2388    2388   1  0.0 scsi_eh_9
+   2389    2389  38  0.0 scsi_tmf_9
+   2391    2391 195  0.0 kworker/u516:1-flush-253:8
+   2397    2397  65  0.0 irq/403-hisi_sa
+   2398    2398  81  0.0 irq/404-hisi_sa
+   2399    2399  97  0.0 irq/405-hisi_sa
+   2400    2400 113  0.0 irq/406-hisi_sa
+   2401    2401 129  0.0 irq/407-hisi_sa
+   2402    2402 145  0.0 irq/408-hisi_sa
+   2403    2403 161  0.0 irq/409-hisi_sa
+   2404    2404 177  0.0 irq/410-hisi_sa
+   2405    2405 193  0.0 irq/411-hisi_sa
+   2406    2406 209  0.0 irq/412-hisi_sa
+   2407    2407 225  0.0 irq/413-hisi_sa
+   2408    2408 241  0.0 irq/414-hisi_sa
+   2409    2409   1  0.0 irq/415-hisi_sa
+   2410    2410  17  0.0 irq/416-hisi_sa
+   2411    2411  33  0.0 irq/417-hisi_sa
+   2412    2412  49  0.0 irq/418-hisi_sa
+   2413    2413  49  0.0 scsi_eh_10
+   2414    2414  49  0.0 scsi_tmf_10
+   2415    2415  38  0.0 0000:34:04.0
+   2416    2416   3  0.0 scsi_wq_10
+   2417    2417   3  0.0 0000:34:04.0_ev
+   2418    2418   3  0.0 0000:34:04.0_di
+   2432    2432  67  0.0 irq/1089-hisi_s
+   2433    2433  83  0.0 irq/1090-hisi_s
+   2434    2434  99  0.0 irq/1091-hisi_s
+   2435    2435 115  0.0 irq/1092-hisi_s
+   2436    2436 131  0.0 irq/1093-hisi_s
+   2437    2437 147  0.0 irq/1094-hisi_s
+   2438    2438 163  0.0 irq/1095-hisi_s
+   2439    2439 179  0.0 irq/1096-hisi_s
+   2440    2440 195  0.0 irq/1097-hisi_s
+   2441    2441 211  0.0 irq/1098-hisi_s
+   2442    2442 227  0.0 irq/1099-hisi_s
+   2443    2443 243  0.0 irq/1100-hisi_s
+   2444    2444   3  0.0 irq/1101-hisi_s
+   2445    2445  19  0.0 irq/1102-hisi_s
+   2446    2446  35  0.0 irq/1103-hisi_s
+   2447    2447  51  0.0 irq/1104-hisi_s
+   2448    2448   5  0.0 scsi_eh_11
+   2449    2449   6  0.0 scsi_tmf_11
+   2450    2450   7  0.0 0000:74:02.0
+   2451    2451   8  0.0 scsi_wq_11
+   2452    2452   9  0.0 0000:74:02.0_ev
+   2453    2453  10  0.0 0000:74:02.0_di
+   2461    2461 122  0.0 kworker/122:1H
+   2472    2472  69  0.0 irq/1121-hisi_s
+   2473    2473  85  0.0 irq/1122-hisi_s
+   2474    2474 101  0.0 irq/1123-hisi_s
+   2475    2475 117  0.0 irq/1124-hisi_s
+   2476    2476 133  0.0 irq/1125-hisi_s
+   2477    2477 149  0.0 irq/1126-hisi_s
+   2478    2478 165  0.0 irq/1127-hisi_s
+   2479    2479 181  0.0 irq/1128-hisi_s
+   2480    2480 197  0.0 irq/1129-hisi_s
+   2481    2481 213  0.0 irq/1130-hisi_s
+   2483    2483 229  0.0 irq/1131-hisi_s
+   2484    2484 245  0.0 irq/1132-hisi_s
+   2485    2485   5  0.0 irq/1133-hisi_s
+   2486    2486  21  0.0 irq/1134-hisi_s
+   2488    2488  37  0.0 irq/1135-hisi_s
+   2489    2489  53  0.0 irq/1136-hisi_s
+   2490    2490  33  0.0 scsi_eh_12
+   2491    2491  65  0.0 scsi_tmf_12
+   2492    2492  34  0.0 0000:74:04.0
+   2493    2493   4  0.0 scsi_wq_12
+   2495    2495  65  0.0 0000:74:04.0_ev
+   2496    2496  65  0.0 0000:74:04.0_di
+   2521    2521  71  0.0 irq/1153-hisi_s
+   2522    2522  87  0.0 irq/1154-hisi_s
+   2523    2523 103  0.0 irq/1155-hisi_s
+   2524    2524 119  0.0 irq/1156-hisi_s
+   2525    2525 135  0.0 irq/1157-hisi_s
+   2526    2526 151  0.0 irq/1158-hisi_s
+   2527    2527 167  0.0 irq/1159-hisi_s
+   2528    2528 183  0.0 irq/1160-hisi_s
+   2529    2529 199  0.0 irq/1161-hisi_s
+   2530    2530 215  0.0 irq/1162-hisi_s
+   2531    2531 231  0.0 irq/1163-hisi_s
+   2532    2532 247  0.0 irq/1164-hisi_s
+   2533    2533   7  0.0 irq/1165-hisi_s
+   2534    2534  23  0.0 irq/1166-hisi_s
+   2535    2535  39  0.0 irq/1167-hisi_s
+   2536    2536  55  0.0 irq/1168-hisi_s
+   2537    2537 129  0.0 scsi_eh_13
+   2538    2538 129  0.0 scsi_tmf_13
+   2539    2539   3  0.0 0000:b4:02.0
+   2540    2540 129  0.0 scsi_wq_13
+   2541    2541 129  0.0 0000:b4:02.0_ev
+   2542    2542 129  0.0 0000:b4:02.0_di
+   2793    2793 225  0.0 kworker/225:1H
+   2797    2797  36  0.0 nvme-wq
+   2799    2799 198  0.0 nvme-reset-wq
+   2801    2801  42  0.0 nvme-delete-wq
+   2806    2806  75  0.0 kworker/75:1H-kblockd
+   2815    2815 109  0.0 kworker/109:1H
+   2818    2818 246  0.0 kworker/246:1H
+   2822    2822 230  0.0 kworker/230:1H
+   2823    2823  28  0.0 kworker/28:1H-kblockd
+   2825    2825 117  0.0 kworker/117:1H-kblockd
+   2826    2826 233  0.0 kworker/233:1H
+   2830    2830 107  0.0 kworker/107:1H
+   2831    2831 236  0.0 kworker/236:1H
+   2837    2837  98  0.0 kworker/98:1H
+   2839    2839 111  0.0 kworker/111:1H
+   2843    2843 226  0.0 kworker/226:1H
+   2845    2845 113  0.0 kworker/113:1H
+   2852    2852  27  0.0 kworker/27:1H-kblockd
+   2858    2858  73  0.0 irq/1185-hisi_s
+   2859    2859  89  0.0 irq/1186-hisi_s
+   2860    2860 105  0.0 irq/1187-hisi_s
+   2861    2861 121  0.0 irq/1188-hisi_s
+   2862    2862 137  0.0 irq/1189-hisi_s
+   2863    2863 153  0.0 irq/1190-hisi_s
+   2864    2864 169  0.0 irq/1191-hisi_s
+   2865    2865 185  0.0 irq/1192-hisi_s
+   2866    2866 201  0.0 irq/1193-hisi_s
+   2867    2867 217  0.0 irq/1194-hisi_s
+   2868    2868 233  0.0 irq/1195-hisi_s
+   2869    2869 249  0.0 irq/1196-hisi_s
+   2870    2870   9  0.0 irq/1197-hisi_s
+   2871    2871  25  0.0 irq/1198-hisi_s
+   2872    2872  41  0.0 irq/1199-hisi_s
+   2873    2873  57  0.0 irq/1200-hisi_s
+   2874    2874 231  0.0 scsi_eh_14
+   2875    2875 129  0.0 scsi_tmf_14
+   2876    2876 231  0.0 0000:b4:04.0
+   2877    2877 129  0.0 scsi_wq_14
+   2878    2878 129  0.0 0000:b4:04.0_ev
+   2879    2879 129  0.0 0000:b4:04.0_di
+   2883    2883  64  0.0 irq/1217-hisi_s
+   2884    2884  93  0.0 irq/1218-hisi_s
+   2885    2885 107  0.0 irq/1219-hisi_s
+   2886    2886 123  0.0 irq/1220-hisi_s
+   2887    2887 139  0.0 irq/1221-hisi_s
+   2888    2888 155  0.0 irq/1222-hisi_s
+   2889    2889 171  0.0 irq/1223-hisi_s
+   2890    2890 187  0.0 irq/1224-hisi_s
+   2891    2891 203  0.0 irq/1225-hisi_s
+   2892    2892 219  0.0 irq/1226-hisi_s
+   2893    2893 235  0.0 irq/1227-hisi_s
+   2894    2894 251  0.0 irq/1228-hisi_s
+   2895    2895  11  0.0 irq/1229-hisi_s
+   2896    2896  27  0.0 irq/1230-hisi_s
+   2897    2897  43  0.0 irq/1231-hisi_s
+   2898    2898  59  0.0 irq/1232-hisi_s
+   2899    2899 191  0.0 scsi_eh_15
+   2900    2900 193  0.0 scsi_tmf_15
+   2901    2901 191  0.0 0000:f4:02.0
+   2902    2902 193  0.0 scsi_wq_15
+   2903    2903 193  0.0 0000:f4:02.0_ev
+   2904    2904 193  0.0 0000:f4:02.0_di
+   2905    2905  65  0.0 irq/1249-hisi_s
+   2906    2906  80  0.0 irq/1250-hisi_s
+   2907    2907  96  0.0 irq/1251-hisi_s
+   2908    2908 127  0.0 irq/1252-hisi_s
+   2909    2909 141  0.0 irq/1253-hisi_s
+   2910    2910 157  0.0 irq/1254-hisi_s
+   2911    2911 173  0.0 irq/1255-hisi_s
+   2912    2912 189  0.0 irq/1256-hisi_s
+   2913    2913 205  0.0 irq/1257-hisi_s
+   2914    2914 221  0.0 irq/1258-hisi_s
+   2915    2915 237  0.0 irq/1259-hisi_s
+   2916    2916 253  0.0 irq/1260-hisi_s
+   2917    2917  13  0.0 irq/1261-hisi_s
+   2918    2918  29  0.0 irq/1262-hisi_s
+   2919    2919  45  0.0 irq/1263-hisi_s
+   2920    2920  61  0.0 irq/1264-hisi_s
+   2921    2921 225  0.0 scsi_eh_16
+   2922    2922 193  0.0 scsi_tmf_16
+   2923    2923 225  0.0 0000:f4:04.0
+   2924    2924 193  0.0 scsi_wq_16
+   2925    2925 193  0.0 0000:f4:04.0_ev
+   2926    2926 193  0.0 0000:f4:04.0_di
+   2927    2927  66  0.0 irq/1281-hisi_s
+   2928    2928  81  0.0 irq/1282-hisi_s
+   2929    2929  97  0.0 irq/1283-hisi_s
+   2930    2930 112  0.0 irq/1284-hisi_s
+   2931    2931 128  0.0 irq/1285-hisi_s
+   2932    2932 144  0.0 irq/1286-hisi_s
+   2933    2933 160  0.0 irq/1287-hisi_s
+   2934    2934 176  0.0 irq/1288-hisi_s
+   2935    2935 207  0.0 irq/1289-hisi_s
+   2936    2936 223  0.0 irq/1290-hisi_s
+   2937    2937 239  0.0 irq/1291-hisi_s
+   2938    2938 255  0.0 irq/1292-hisi_s
+   2939    2939  15  0.0 irq/1293-hisi_s
+   2940    2940  31  0.0 irq/1294-hisi_s
+   2941    2941  47  0.0 irq/1295-hisi_s
+   2942    2942  63  0.0 irq/1296-hisi_s
+   2972    2972 252  0.0 kdmflush
+   2973    2973 252  0.0 kdmflush
+   2975    2975 252  0.0 kdmflush
+   2978    2978 252  0.0 kdmflush
+   2980    2980 252  0.0 kdmflush
+   2982    2982 252  0.0 kdmflush
+   2986    2986 252  0.0 kdmflush
+   2989    2989 252  0.0 kdmflush
+   2993    2993 252  0.0 kdmflush
+   2998    2998 252  0.0 kdmflush
+   3006    3006 120  0.0 kworker/120:1H
+   3046    3046  96  0.0 kworker/96:1H
+   3080    3080 108  0.0 kworker/108:1H
+   3083    3083 119  0.0 kworker/119:1H
+   3101    3101  46  0.0 kworker/46:2-cgroup_pidlist_destroy
+   3103    3103  48  0.0 ext4-rsv-conver
+   3105    3105  47  0.0 kworker/47:2-cgroup_destroy
+   3173    3173 237  0.0 kworker/237:2
+   3183    3183 179  0.0 kworker/179:2
+   3184    3184 127  0.0 kworker/127:1H
+   3185    3185 127  0.0 kworker/127:2
+   3206    3206  63  0.0 kworker/63:3-events
+   3207    3207 227  0.0 kworker/227:1H
+   3243    3243 231  0.0 kworker/231:1H-kblockd
+   3478    3478   3  0.0 PiaBaseMgr
+   4233    4233  70  0.0 vfio-irqfd-clea
+   4234    4234  70  0.0 ttm_swap
+   4235    4235   1  0.0 card0-crtc0
+  21238   21238   3  0.0 intf_cb_recycle
+  21239   21239   2  0.0 intf_cb_recycle
+  21240   21240   3  0.0 intf_cb_recycle
+  21241   21241   2  0.0 intf_cb_recycle
+  21242   21242   0  0.0 intf_cb_recycle
+  21243   21243   1  0.0 intf_cb_recycle
+  21244   21244   1  0.0 intf_cb_recycle
+  21245   21245   3  0.0 intf_cb_recycle
+  21246   21246  64  0.0 mlx5_health0000
+  21247   21247  97  0.0 mlx5_page_alloc
+  21248   21248 182  0.0 mlx5_cmd_0000:4
+  21296   21296  64  0.0 mlx5_events
+  21297   21297  64  0.0 mlx5_fw_reset_e
+  21298   21298  64  0.0 mlx5_esw_wq
+  21299   21299  64  0.0 mlx5_fc
+  21300   21300  64  0.0 mlx5_fw_tracer
+  21301   21301  64  0.0 mlx5_lag
+  21302   21302  97  0.0 mlx5_lag_mp
+  21303   21303  64  0.0 mlx5e
+  21304   21304  64  0.0 kworker/64:1H-kblockd
+  21306   21306  64  0.0 mlx5e_arfs
+  21308   21308  64  0.0 mlx5_health0000
+  21309   21309  89  0.0 mlx5_page_alloc
+  21313   21313 181  0.0 mlx5_cmd_0000:4
+  21732   21732  64  0.0 mlx5_events
+  21733   21733  64  0.0 mlx5_fw_reset_e
+  21734   21734  64  0.0 mlx5_esw_wq
+  21735   21735  64  0.0 mlx5_fc
+  21736   21736  64  0.0 mlx5_fw_tracer
+  21738   21738  64  0.0 mlx5e
+  21740   21740  88  0.0 mlx5e_arfs
+  21761   21761  48  0.0 kworker/48:3-intf_cb_recycle
+  21786   21786  64  0.0 mlx5_health0000
+  21787   21787  64  0.0 mlx5_page_alloc
+  21788   21788  64  0.0 mlx5_cmd_0000:c
+  21789   21789   4  0.0 dms_timer_commo
+  21790   21790   4  0.0 dev_manager_wor
+  21792   21792  64  0.0 mlx5_events
+  21793   21793  64  0.0 mlx5_fw_reset_e
+  21795   21795  64  0.0 mlx5_esw_wq
+  21796   21796  64  0.0 mlx5_fc
+  21797   21797  64  0.0 mlx5_fw_tracer
+  21798   21798  64  0.0 mlx5_lag
+  21799   21799  64  0.0 mlx5_lag_mp
+  21800   21800  64  0.0 mlx5e
+  21802   21802  70  0.0 mlx5e_arfs
+  21804   21804  64  0.0 mlx5_health0000
+  21805   21805  64  0.0 mlx5_page_alloc
+  21806   21806  64  0.0 mlx5_cmd_0000:c
+  21807   21807 128  0.0 udis_timer
+  21808   21808  70  0.0 mlx5_events
+  21809   21809  70  0.0 mlx5_fw_reset_e
+  21810   21810  70  0.0 mlx5_esw_wq
+  21811   21811  70  0.0 mlx5_fc
+  21812   21812  70  0.0 mlx5_fw_tracer
+  21813   21813  64  0.0 mlx5e
+  21814   21814  70  0.0 mlx5e_arfs
+  21815   21815  64  0.0 hdcdrv-async-re
+  21836   21836   4  0.0 ib-comp-wq
+  21837   21837   4  0.0 ib-comp-unb-wq
+  21838   21838   4  0.0 ib_mcast
+  21839   21839   4  0.0 ib_nl_sa_wq
+  21888   21888 183  0.0 mlx5_ib_sigerr_
+  21889   21889  64  0.0 ib_mad1
+  21890   21890   1  0.0 to_fifo
+  21891   21891   1  0.0 mkey_cache
+  21892   21892  88  0.0 ib_mad1
+  21893   21893   1  0.0 to_fifo
+  21894   21894   1  0.0 mkey_cache
+  21901   21901   0  0.0 ib_mad1
+  21902   21902   1  0.0 to_fifo
+  21903   21903   9  0.0 mkey_cache
+  21916   21916   0  0.0 ib_mad1
+  21917   21917  37  0.0 to_fifo
+  21918   21918  38  0.0 mkey_cache
+  21934   21934 110  0.0 kworker/110:1H
+  21944   21944   0  0.0 rdma-ndd
+  22246   22246 211  0.0 kworker/211:2
+  22855   22855 104  0.0 kworker/104:1H-events_highpri
+  22943   22943  49  0.0 kworker/49:2
+  23012   23012 103  0.0 kworker/103:1H-events_highpri
+  23074   23074  61  0.0 jbd2/dm-7-8
+  23075   23075  62  0.0 ext4-rsv-conver
+  23087   23087  32  0.0 ext4-rsv-conver
+  23088   23088  33  0.0 ext4-rsv-conver
+  23094   23094   2  0.0 jbd2/sda2-8
+  23095   23095   1  0.0 ext4-rsv-conver
+  23099   23099   0  0.0 ext4-rsv-conver
+  23105   23105  62  0.0 kworker/62:2-events
+  23181   23181  61  0.0 rpciod
+  23182   23182  63  0.0 xprtiod
+  23249   23249   2  0.0 acpid
+  23272   23272   1  0.0 rdma_cm
+  23874   23874 118  0.0 kworker/118:1H
+  25022   25022   3  0.0 python3
+  30556   30556   1  0.0 gssproxy
+  31474   31474   3  0.0 agetty
+  31533   31533   0  0.0 agetty
+  33153   33153   6  0.0 kworker/6:3-events
+  37796   37796  29  0.0 kworker/29:1H-kblockd
+  37797   37797  30  0.0 kworker/30:1H-kblockd
+  49937   49937  26  0.0 kworker/26:1H-kblockd
+  79466   79466   1  0.0 trunk0
+  80183   80183   3  0.0 trunk1
+  80388   80388 240  0.0 kworker/240:2
+  80615   80615 241  0.0 kworker/241:1H
+  83174   83174 240  0.0 kworker/240:1H
+  83271   83271   2  0.0 ext4-rsv-conver
+  83326   83326   0  0.0 jbd2/dm-6-8
+  83327   83327   2  0.0 ext4-rsv-conver
+  83355   83355   4  0.0 ext4-rsv-conver
+  83390   83390   2  0.0 jbd2/dm-9-8
+  83391   83391   2  0.0 ext4-rsv-conver
+  96796   96796  97  0.0 kworker/97:1H
+ 114851  114851   0  0.0 sudo
+ 123868  123868   3  0.0 iscsi_eh
+ 123869  123869   2  0.0 iscsi_conn_clea
+ 125104  125104   3  0.0 sudo
+ 136404  136404 126  0.0 kworker/126:1H
+ 136406  136406 125  0.0 kworker/125:1H
+ 140020  140020  99  0.0 kworker/99:1H
+ 241362  241362 108  0.0 kworker/108:0
+ 250016  250016   0  0.0 sudo
+ 250022  250022   1  0.0 safe_ovsdb-clie
+ 250630  250630   0  0.0 sudo
+ 252359  252359   4  0.0 scsi_eh_18
+ 252362  252362   4  0.0 scsi_tmf_18
+ 423541  423541  41  0.0 kworker/41:0-events
+ 540575  540575  31  0.0 kworker/31:1H-kblockd
+ 712548  712548 140  0.0 kworker/140:3
+ 712553  712553 143  0.0 kworker/143:2
+ 716002  716002 164  0.0 kworker/164:2-rcu_gp
+ 716003  716003 165  0.0 kworker/165:2-kvm-irqfd-cleanup
+ 716685  716685 150  0.0 kworker/150:162-cgroup_pidlist_destroy
+ 737242  737242  54  0.0 kworker/54:0
+ 836078  836078 116  0.0 kworker/116:1-events
+ 933287  933287  85  0.0 kworker/85:2
+1287656 1287656 242  0.0 kworker/242:1H
+1355882 1355882 207  0.0 kworker/207:3
+1356583 1356583 129  0.0 kworker/129:2-rcu_gp
+1356759 1356759 155  0.0 kworker/155:3-rcu_gp
+1357828 1357828 193  0.0 kworker/193:3-events
+1359955 1359955 158  0.0 kworker/158:35-kvm-irqfd-cleanup
+1366309 1366309 151  0.0 kworker/151:0
+1375920 1375920 131  0.0 kworker/131:0-events
+1376281 1376281   4  0.0 kworker/4:0-events
+1389137 1389137  11  0.0 kworker/11:0
+1389521 1389521  53  0.0 kworker/53:0
+1389523 1389523   9  0.0 kworker/9:2
+1435005 1435005  98  0.0 kworker/98:1
+1493701 1493701 115  0.0 kworker/115:2
+1498441 1498441  96  0.0 kworker/96:0
+1638031 1638031 118  0.0 kworker/118:2-events
+1816836 1816836  82  0.0 kworker/82:0-events
+1946146 1946146  13  0.0 kworker/13:1
+2025358 2025358 101  0.0 kworker/101:1H
+2219413 2219413  69  0.0 kworker/69:0-events
+2232602 2232602 239  0.0 kworker/239:1H
+2344432 2344432   1  0.0 kworker/1:2-cgroup_destroy
+2383932 2383932  71  0.0 kworker/71:2-mm_percpu_wq
+2454696 2454696 107  0.0 kworker/107:2-events
+2464540 2464540  86  0.0 kworker/86:2-events
+2475371 2475371 232  0.0 kworker/232:1H
+2524008 2524008   2  0.0 kworker/2:0-intf_cb_recycle
+2530369 2530369   0  0.0 kworker/0:1-intf_cb_recycle
+2544159 2544159  84  0.0 kworker/84:1-events
+2545744 2545744 117  0.0 kworker/117:1
+2547709 2547709 104  0.0 kworker/104:2-events
+2554251 2554251   0  0.0 kworker/0:3-intf_cb_recycle
+2592099 2592099  76  0.0 kworker/76:1
+2614979 2614979  95  0.0 kworker/95:1
+2627253 2627253  83  0.0 kworker/83:1-events
+2630977 2630977  84  0.0 kworker/84:0-mm_percpu_wq
+2645140 2645140 112  0.0 kworker/112:0-events
+2646552 2646552 190  0.0 kworker/u515:3-hclge
+2649455 2649455 119  0.0 kworker/119:1-events
+2671744 2671744 104  0.0 kworker/104:1-events
+2673806 2673806 124  0.0 kworker/124:1H
+2703950 2703950   0  0.0 kworker/0:2-events
+2703955 2703955   0  0.0 kworker/0:4
+2704381 2704381   1  0.0 kworker/1:3
+2720492 2720492   0  0.0 kworker/u512:4-mlx5_cmd_0000:43:00.0
+2720493 2720493   1  0.0 kworker/u512:5
+2720494 2720494   3  0.0 kworker/u512:6
+2724399 2724399   2  0.0 sar
+2732578 2732578  80  0.0 kworker/80:0-mm_percpu_wq
+2734255 2734255   3  0.0 crond
+2734259 2734259   2  0.0 bash
+2734261 2734261   2  0.0 crond
+2734267 2734267   0  0.0 bash
+2741377 2741377   2  0.0 sh
+2741378 2741378   3  0.0 sh
+2741382 2741382   1  0.0 ps
+2747294 2747294   0  0.0 scsi_eh_17
+2747295 2747295   2  0.0 scsi_tmf_17
+2747296 2747296   1  0.0 iscsi_q_17
+2747297 2747297   1  0.0 scsi_wq_17
+2747536 2747536   4  0.0 scsi_eh_19
+2747537 2747537   4  0.0 scsi_tmf_19
+2747538 2747538   4  0.0 iscsi_q_19
+2747540 2747540   4  0.0 scsi_wq_19
+2748019 2748019   4  0.0 scsi_eh_20
+2748020 2748020   3  0.0 scsi_tmf_20
+2748025 2748025   4  0.0 iscsi_q_20
+2748028 2748028   4  0.0 scsi_wq_20
+2748250 2748250   1  0.0 scsi_eh_21
+2748251 2748251   0  0.0 scsi_tmf_21
+2748252 2748252   4  0.0 iscsi_q_21
+2748254 2748254   4  0.0 scsi_wq_21
+2782148 2782148 172  0.0 kworker/172:0-rcu_gp
+2782221 2782221 173  0.0 kworker/173:1-rcu_gp
+2877121 2877121   4  0.0 scsi_eh_22
+2877122 2877122   4  0.0 scsi_tmf_22
+2877123 2877123   4  0.0 iscsi_q_22
+2877124 2877124   4  0.0 scsi_wq_22
+2877203 2877203   2  0.0 scsi_eh_23
+2877204 2877204   3  0.0 scsi_tmf_23
+2877205 2877205   0  0.0 iscsi_q_23
+2877208 2877208   1  0.0 scsi_wq_23
+2877309 2877309   4  0.0 scsi_eh_24
+2877311 2877311   4  0.0 scsi_tmf_24
+2877317 2877317   4  0.0 iscsi_q_24
+2877326 2877326   4  0.0 scsi_wq_24
+2877379 2877379   1  0.0 scsi_eh_25
+2877380 2877380   4  0.0 scsi_tmf_25
+2877382 2877382   1  0.0 iscsi_q_25
+2877383 2877383   4  0.0 scsi_wq_25
+2924871 2924871   3  0.0 (sd-pam)
+2966793 2966793 114  0.0 kworker/114:1H
+2994867 2994867   4  0.0 scsi_eh_26
+2994868 2994868   3  0.0 scsi_tmf_26
+2994870 2994870   4  0.0 iscsi_q_26
+2994872 2994872   4  0.0 scsi_wq_26
+2995172 2995172   4  0.0 scsi_eh_27
+2995193 2995193   3  0.0 scsi_tmf_27
+2995194 2995194   3  0.0 iscsi_q_27
+2995195 2995195   3  0.0 scsi_wq_27
+2995596 2995596   3  0.0 scsi_eh_28
+2995597 2995597   0  0.0 scsi_tmf_28
+2995598 2995598   4  0.0 iscsi_q_28
+2995602 2995602   2  0.0 scsi_wq_28
+2995883 2995883   4  0.0 scsi_eh_29
+2995884 2995884   3  0.0 scsi_tmf_29
+2995885 2995885   3  0.0 iscsi_q_29
+2995889 2995889   1  0.0 scsi_wq_29
+3069347 3069347   0  0.0 scsi_eh_30
+3069348 3069348   2  0.0 scsi_tmf_30
+3069349 3069349   0  0.0 iscsi_q_30
+3069350 3069350   1  0.0 scsi_wq_30
+3069380 3069380   3  0.0 scsi_eh_31
+3069381 3069381   1  0.0 scsi_tmf_31
+3069385 3069385   4  0.0 iscsi_q_31
+3069386 3069386   0  0.0 scsi_wq_31
+3069445 3069445   4  0.0 scsi_eh_32
+3069446 3069446   4  0.0 scsi_tmf_32
+3069451 3069451   4  0.0 iscsi_q_32
+3069452 3069452   0  0.0 scsi_wq_32
+3069566 3069566   0  0.0 scsi_eh_33
+3069567 3069567   0  0.0 scsi_tmf_33
+3069568 3069568   3  0.0 iscsi_q_33
+3069570 3069570   4  0.0 scsi_wq_33
+3070799 3070799 106  0.0 kworker/106:1H
+3085410 3085410 234  0.0 kworker/234:1H
+3085573 3085573 248  0.0 kworker/248:1H
+3116968 3116968 121  0.0 kworker/121:1H
+3258842 3258842  99  0.0 kworker/99:2
+3289255 3289255  81  0.0 kworker/81:0-events
+3479727 3479727   1  0.0 su
+3709818 3709818 123  0.0 kworker/123:1H
+3770490 3770490 166  0.0 kworker/166:3
+3772987 3772987 100  0.0 kworker/100:1H
+3773152 3773152 137  0.0 kworker/137:135-events
+3782006 3782006   5  0.0 kworker/5:1-events
+3791947 3791947  37  0.0 kworker/37:2
+3854533 3854533 105  0.0 kworker/105:1H
+
+[exit=0]
+
+===== cpu_sample.tsv =====
+cpu	numa	busy_pct	idle_pct	iowait_pct	steal_pct
+0	node0	26.81	73.09	0.10	0.00
+1	node0	28.23	71.64	0.13	0.00
+2	node0	27.21	72.69	0.10	0.00
+3	node0	26.67	73.26	0.07	0.00
+4	node0	18.68	81.32	0.00	0.00
+5	node0	12.32	87.68	0.00	0.00
+6	node0	13.38	86.62	0.00	0.00
+7	node0	17.09	82.91	0.00	0.00
+8	node0	13.75	86.25	0.00	0.00
+9	node0	16.22	83.78	0.00	0.00
+10	node0	13.52	86.48	0.00	0.00
+11	node0	17.92	82.08	0.00	0.00
+12	node0	15.58	84.42	0.00	0.00
+13	node0	14.82	85.18	0.00	0.00
+14	node0	13.62	86.38	0.00	0.00
+15	node0	13.84	86.16	0.00	0.00
+16	node0	12.96	87.04	0.00	0.00
+17	node0	13.02	86.98	0.00	0.00
+18	node0	13.45	86.55	0.00	0.00
+19	node0	15.95	84.05	0.00	0.00
+20	node0	0.03	99.97	0.00	0.00
+21	node0	0.03	99.97	0.00	0.00
+22	node0	0.07	99.93	0.00	0.00
+23	node0	0.03	99.97	0.00	0.00
+24	node0	0.07	99.93	0.00	0.00
+25	node0	0.03	99.97	0.00	0.00
+26	node0	0.03	99.97	0.00	0.00
+27	node0	0.07	99.93	0.00	0.00
+28	node0	0.03	99.97	0.00	0.00
+29	node0	0.07	99.93	0.00	0.00
+30	node0	0.03	99.97	0.00	0.00
+31	node0	0.03	99.97	0.00	0.00
+32	node0	0.50	99.50	0.00	0.00
+33	node0	0.47	99.53	0.00	0.00
+34	node0	0.30	99.70	0.00	0.00
+35	node0	0.57	99.43	0.00	0.00
+36	node0	0.50	99.50	0.00	0.00
+37	node0	0.47	99.53	0.00	0.00
+38	node0	0.27	99.73	0.00	0.00
+39	node0	0.27	99.73	0.00	0.00
+40	node0	0.27	99.73	0.00	0.00
+41	node0	0.23	99.77	0.00	0.00
+42	node0	0.87	99.13	0.00	0.00
+43	node0	0.73	99.27	0.00	0.00
+44	node0	0.57	99.43	0.00	0.00
+45	node0	0.70	99.30	0.00	0.00
+46	node0	0.40	99.60	0.00	0.00
+47	node0	0.40	99.60	0.00	0.00
+48	node0	0.17	99.83	0.00	0.00
+49	node0	0.10	99.90	0.00	0.00
+50	node0	0.13	99.87	0.00	0.00
+51	node0	0.10	99.90	0.00	0.00
+52	node0	0.10	99.90	0.00	0.00
+53	node0	0.10	99.90	0.00	0.00
+54	node0	0.10	99.90	0.00	0.00
+55	node0	0.10	99.90	0.00	0.00
+56	node0	0.20	99.80	0.00	0.00
+57	node0	0.70	99.30	0.00	0.00
+58	node0	0.60	99.40	0.00	0.00
+59	node0	0.50	99.50	0.00	0.00
+60	node0	0.70	99.30	0.00	0.00
+61	node0	0.43	99.57	0.00	0.00
+62	node0	0.37	99.63	0.00	0.00
+63	node0	0.50	99.50	0.00	0.00
+64	node1	3.69	96.31	0.00	0.00
+65	node1	1.90	98.10	0.00	0.00
+66	node1	2.03	97.97	0.00	0.00
+67	node1	1.90	98.10	0.00	0.00
+68	node1	2.23	97.77	0.00	0.00
+69	node1	2.16	97.84	0.00	0.00
+70	node1	2.06	97.94	0.00	0.00
+71	node1	1.57	98.43	0.00	0.00
+72	node1	1.27	98.73	0.00	0.00
+73	node1	1.63	98.37	0.00	0.00
+74	node1	1.90	98.10	0.00	0.00
+75	node1	1.93	98.07	0.00	0.00
+76	node1	2.23	97.77	0.00	0.00
+77	node1	2.06	97.94	0.00	0.00
+78	node1	2.03	97.97	0.00	0.00
+79	node1	2.13	97.87	0.00	0.00
+80	node1	2.16	97.84	0.00	0.00
+81	node1	1.67	98.33	0.00	0.00
+82	node1	2.00	98.00	0.00	0.00
+83	node1	2.06	97.94	0.00	0.00
+84	node1	1.90	98.10	0.00	0.00
+85	node1	2.23	97.77	0.00	0.00
+86	node1	4.13	95.87	0.00	0.00
+87	node1	2.13	97.87	0.00	0.00
+88	node1	2.33	97.67	0.00	0.00
+89	node1	2.33	97.67	0.00	0.00
+90	node1	2.20	97.80	0.00	0.00
+91	node1	2.56	97.44	0.00	0.00
+92	node1	2.20	97.80	0.00	0.00
+93	node1	2.26	97.74	0.00	0.00
+94	node1	1.67	98.33	0.00	0.00
+95	node1	2.27	97.73	0.00	0.00
+96	node1	0.13	99.87	0.00	0.00
+97	node1	0.10	99.90	0.00	0.00
+98	node1	0.10	99.90	0.00	0.00
+99	node1	0.10	99.90	0.00	0.00
+100	node1	0.10	99.90	0.00	0.00
+101	node1	0.10	99.90	0.00	0.00
+102	node1	0.63	99.37	0.00	0.00
+103	node1	0.20	99.80	0.00	0.00
+104	node1	0.20	99.80	0.00	0.00
+105	node1	0.10	99.90	0.00	0.00
+106	node1	0.10	99.90	0.00	0.00
+107	node1	0.10	99.90	0.00	0.00
+108	node1	0.13	99.87	0.00	0.00
+109	node1	0.10	99.90	0.00	0.00
+110	node1	0.20	99.80	0.00	0.00
+111	node1	0.10	99.90	0.00	0.00
+112	node1	0.20	99.80	0.00	0.00
+113	node1	0.10	99.90	0.00	0.00
+114	node1	0.10	99.90	0.00	0.00
+115	node1	0.07	99.93	0.00	0.00
+116	node1	0.10	99.90	0.00	0.00
+117	node1	0.20	99.80	0.00	0.00
+118	node1	0.23	99.77	0.00	0.00
+119	node1	0.13	99.87	0.00	0.00
+120	node1	0.10	99.90	0.00	0.00
+121	node1	0.07	99.93	0.00	0.00
+122	node1	0.10	99.90	0.00	0.00
+123	node1	0.17	99.83	0.00	0.00
+124	node1	0.07	99.93	0.00	0.00
+125	node1	0.10	99.90	0.00	0.00
+126	node1	0.10	99.90	0.00	0.00
+127	node1	0.10	99.90	0.00	0.00
+128	node2	3.00	97.00	0.00	0.00
+129	node2	16.42	83.58	0.00	0.00
+130	node2	6.66	93.34	0.00	0.00
+131	node2	2.90	97.10	0.00	0.00
+132	node2	3.56	96.44	0.00	0.00
+133	node2	4.36	95.64	0.00	0.00
+134	node2	2.70	97.30	0.00	0.00
+135	node2	2.36	97.64	0.00	0.00
+136	node2	9.06	90.94	0.00	0.00
+137	node2	5.36	94.64	0.00	0.00
+138	node2	2.03	97.97	0.00	0.00
+139	node2	7.73	92.27	0.00	0.00
+140	node2	3.46	96.54	0.00	0.00
+141	node2	3.60	96.40	0.00	0.00
+142	node2	4.53	95.47	0.00	0.00
+143	node2	4.26	95.74	0.00	0.00
+144	node2	2.43	97.57	0.00	0.00
+145	node2	17.78	82.22	0.00	0.00
+146	node2	2.33	97.67	0.00	0.00
+147	node2	3.06	96.94	0.00	0.00
+148	node2	6.99	93.01	0.00	0.00
+149	node2	3.86	96.14	0.00	0.00
+150	node2	3.73	96.27	0.00	0.00
+151	node2	27.32	72.68	0.00	0.00
+152	node2	3.16	96.84	0.00	0.00
+153	node2	3.36	96.64	0.00	0.00
+154	node2	3.83	96.17	0.00	0.00
+155	node2	6.19	93.81	0.00	0.00
+156	node2	12.62	87.38	0.00	0.00
+157	node2	4.40	95.60	0.00	0.00
+158	node2	12.02	87.98	0.00	0.00
+159	node2	3.23	96.77	0.00	0.00
+160	node2	3.50	96.50	0.00	0.00
+161	node2	12.26	87.74	0.00	0.00
+162	node2	3.96	96.04	0.00	0.00
+163	node2	4.66	95.34	0.00	0.00
+164	node2	3.40	96.60	0.00	0.00
+165	node2	10.49	89.51	0.00	0.00
+166	node2	3.16	96.84	0.00	0.00
+167	node2	8.79	91.21	0.00	0.00
+168	node2	4.53	95.47	0.00	0.00
+169	node2	3.56	96.44	0.00	0.00
+170	node2	4.76	95.24	0.00	0.00
+171	node2	2.60	97.40	0.00	0.00
+172	node2	4.03	95.97	0.00	0.00
+173	node2	4.63	95.37	0.00	0.00
+174	node2	4.53	95.47	0.00	0.00
+175	node2	12.12	87.88	0.00	0.00
+176	node2	0.03	99.97	0.00	0.00
+177	node2	0.03	99.97	0.00	0.00
+178	node2	0.07	99.93	0.00	0.00
+179	node2	0.03	99.97	0.00	0.00
+180	node2	0.03	99.97	0.00	0.00
+181	node2	0.07	99.93	0.00	0.00
+182	node2	0.03	99.97	0.00	0.00
+183	node2	0.03	99.97	0.00	0.00
+184	node2	0.07	99.93	0.00	0.00
+185	node2	0.07	99.93	0.00	0.00
+186	node2	0.07	99.93	0.00	0.00
+187	node2	0.03	99.97	0.00	0.00
+188	node2	0.07	99.93	0.00	0.00
+189	node2	0.03	99.97	0.00	0.00
+190	node2	0.07	99.93	0.00	0.00
+191	node2	0.07	99.93	0.00	0.00
+192	node3	1.50	98.50	0.00	0.00
+193	node3	1.67	98.33	0.00	0.00
+194	node3	1.20	98.80	0.00	0.00
+195	node3	1.23	98.77	0.00	0.00
+196	node3	1.23	98.77	0.00	0.00
+197	node3	0.93	99.07	0.00	0.00
+198	node3	1.36	98.64	0.00	0.00
+199	node3	1.13	98.87	0.00	0.00
+200	node3	1.37	98.63	0.00	0.00
+201	node3	1.50	98.50	0.00	0.00
+202	node3	1.60	98.40	0.00	0.00
+203	node3	1.40	98.60	0.00	0.00
+204	node3	0.73	99.27	0.00	0.00
+205	node3	1.63	98.37	0.00	0.00
+206	node3	0.93	99.07	0.00	0.00
+207	node3	1.33	98.67	0.00	0.00
+208	node3	1.43	98.57	0.00	0.00
+209	node3	1.20	98.80	0.00	0.00
+210	node3	1.20	98.80	0.00	0.00
+211	node3	2.17	97.83	0.00	0.00
+212	node3	1.33	98.67	0.00	0.00
+213	node3	1.23	98.77	0.00	0.00
+214	node3	2.26	97.74	0.00	0.00
+215	node3	1.10	98.90	0.00	0.00
+216	node3	1.23	98.77	0.00	0.00
+217	node3	0.97	99.03	0.00	0.00
+218	node3	1.73	98.27	0.00	0.00
+219	node3	1.33	98.67	0.00	0.00
+220	node3	1.53	98.47	0.00	0.00
+221	node3	1.50	98.50	0.00	0.00
+222	node3	1.20	98.80	0.00	0.00
+223	node3	0.93	99.07	0.00	0.00
+224	node3	0.10	99.90	0.00	0.00
+225	node3	0.07	99.93	0.00	0.00
+226	node3	0.13	99.87	0.00	0.00
+227	node3	0.10	99.90	0.00	0.00
+228	node3	0.10	99.90	0.00	0.00
+229	node3	0.10	99.90	0.00	0.00
+230	node3	0.10	99.90	0.00	0.00
+231	node3	0.03	99.97	0.00	0.00
+232	node3	0.03	99.97	0.00	0.00
+233	node3	0.03	99.97	0.00	0.00
+234	node3	0.07	99.93	0.00	0.00
+235	node3	0.07	99.93	0.00	0.00
+236	node3	0.03	99.97	0.00	0.00
+237	node3	0.13	99.87	0.00	0.00
+238	node3	0.03	99.97	0.00	0.00
+239	node3	0.10	99.90	0.00	0.00
+240	node3	0.10	99.90	0.00	0.00
+241	node3	0.03	99.97	0.00	0.00
+242	node3	0.10	99.90	0.00	0.00
+243	node3	0.07	99.93	0.00	0.00
+244	node3	0.10	99.90	0.00	0.00
+245	node3	0.10	99.90	0.00	0.00
+246	node3	0.10	99.90	0.00	0.00
+247	node3	0.07	99.93	0.00	0.00
+248	node3	0.03	99.97	0.00	0.00
+249	node3	0.10	99.90	0.00	0.00
+250	node3	0.10	99.90	0.00	0.00
+251	node3	0.13	99.87	0.00	0.00
+252	node3	0.07	99.93	0.00	0.00
+253	node3	0.10	99.90	0.00	0.00
+254	node3	0.10	99.90	0.00	0.00
+255	node3	0.13	99.87	0.00	0.00
+
+===== node0_meminfo.txt =====
+Node 0 MemTotal:       527584764 kB
+Node 0 MemFree:        392922836 kB
+Node 0 MemUsed:        134661928 kB
+Node 0 Active:          1180616 kB
+Node 0 Inactive:        3313640 kB
+Node 0 Active(anon):     123508 kB
+Node 0 Inactive(anon):  2353268 kB
+Node 0 Active(file):    1057108 kB
+Node 0 Inactive(file):   960372 kB
+Node 0 Unevictable:    125970968 kB
+Node 0 Mlocked:        125969336 kB
+Node 0 Dirty:              4612 kB
+Node 0 Writeback:             0 kB
+Node 0 FilePages:       2218860 kB
+Node 0 Mapped:           143760 kB
+Node 0 AnonPages:      128104680 kB
+Node 0 Shmem:            188128 kB
+Node 0 KernelStack:       25952 kB
+Node 0 PageTables:       266024 kB
+Node 0 NFS_Unstable:          0 kB
+Node 0 Bounce:                0 kB
+Node 0 WritebackTmp:          0 kB
+Node 0 KReclaimable:     829308 kB
+Node 0 Slab:            1783628 kB
+Node 0 SReclaimable:     829308 kB
+Node 0 SUnreclaim:       954320 kB
+Node 0 AnonHugePages:  126410752 kB
+Node 0 ShmemHugePages:    28672 kB
+Node 0 ShmemPmdMapped:     2048 kB
+Node 0 FileHugePages:        0 kB
+Node 0 FilePmdMapped:        0 kB
+Node 0 HugePages_Total:     0
+Node 0 HugePages_Free:      0
+Node 0 HugePages_Surp:      0
+
+===== node1_meminfo.txt =====
+Node 1 MemTotal:       528431636 kB
+Node 1 MemFree:        274140964 kB
+Node 1 MemUsed:        254290672 kB
+Node 1 Active:            56808 kB
+Node 1 Inactive:         272432 kB
+Node 1 Active(anon):       8808 kB
+Node 1 Inactive(anon):   218704 kB
+Node 1 Active(file):      48000 kB
+Node 1 Inactive(file):    53728 kB
+Node 1 Unevictable:    251664248 kB
+Node 1 Mlocked:        251664248 kB
+Node 1 Dirty:                 4 kB
+Node 1 Writeback:             0 kB
+Node 1 FilePages:        136412 kB
+Node 1 Mapped:            44096 kB
+Node 1 AnonPages:      251857076 kB
+Node 1 Shmem:             28676 kB
+Node 1 KernelStack:        8288 kB
+Node 1 PageTables:       494312 kB
+Node 1 NFS_Unstable:          0 kB
+Node 1 Bounce:                0 kB
+Node 1 WritebackTmp:          0 kB
+Node 1 KReclaimable:      18324 kB
+Node 1 Slab:             366840 kB
+Node 1 SReclaimable:      18324 kB
+Node 1 SUnreclaim:       348516 kB
+Node 1 AnonHugePages:  251836416 kB
+Node 1 ShmemHugePages:    28672 kB
+Node 1 ShmemPmdMapped:     2048 kB
+Node 1 FileHugePages:        0 kB
+Node 1 FilePmdMapped:        0 kB
+Node 1 HugePages_Total:     0
+Node 1 HugePages_Free:      0
+Node 1 HugePages_Surp:      0
+
+===== node2_meminfo.txt =====
+Node 2 MemTotal:       528472832 kB
+Node 2 MemFree:        273942260 kB
+Node 2 MemUsed:        254530572 kB
+Node 2 Active:            53320 kB
+Node 2 Inactive:         341416 kB
+Node 2 Active(anon):      27316 kB
+Node 2 Inactive(anon):   331608 kB
+Node 2 Active(file):      26004 kB
+Node 2 Inactive(file):     9808 kB
+Node 2 Unevictable:    251658240 kB
+Node 2 Mlocked:        251658240 kB
+Node 2 Dirty:                 0 kB
+Node 2 Writeback:             0 kB
+Node 2 FilePages:         64484 kB
+Node 2 Mapped:            31408 kB
+Node 2 AnonPages:      251988492 kB
+Node 2 Shmem:             28672 kB
+Node 2 KernelStack:        8336 kB
+Node 2 PageTables:      1561672 kB
+Node 2 NFS_Unstable:          0 kB
+Node 2 Bounce:                0 kB
+Node 2 WritebackTmp:          0 kB
+Node 2 KReclaimable:      17492 kB
+Node 2 Slab:             221244 kB
+Node 2 SReclaimable:      17492 kB
+Node 2 SUnreclaim:       203752 kB
+Node 2 AnonHugePages:  251951104 kB
+Node 2 ShmemHugePages:    28672 kB
+Node 2 ShmemPmdMapped:     2048 kB
+Node 2 FileHugePages:        0 kB
+Node 2 FilePmdMapped:        0 kB
+Node 2 HugePages_Total:     0
+Node 2 HugePages_Free:      0
+Node 2 HugePages_Surp:      0
+
+===== node3_meminfo.txt =====
+Node 3 MemTotal:       528458440 kB
+Node 3 MemFree:        274413436 kB
+Node 3 MemUsed:        254045004 kB
+Node 3 Active:            30484 kB
+Node 3 Inactive:         230992 kB
+Node 3 Active(anon):       8820 kB
+Node 3 Inactive(anon):   225344 kB
+Node 3 Active(file):      21664 kB
+Node 3 Inactive(file):     5648 kB
+Node 3 Unevictable:    251658240 kB
+Node 3 Mlocked:        251658240 kB
+Node 3 Dirty:                 0 kB
+Node 3 Writeback:             0 kB
+Node 3 FilePages:         55984 kB
+Node 3 Mapped:            19036 kB
+Node 3 AnonPages:      251863732 kB
+Node 3 Shmem:             28672 kB
+Node 3 KernelStack:        9232 kB
+Node 3 PageTables:       494420 kB
+Node 3 NFS_Unstable:          0 kB
+Node 3 Bounce:                0 kB
+Node 3 WritebackTmp:          0 kB
+Node 3 KReclaimable:      18896 kB
+Node 3 Slab:             340352 kB
+Node 3 SReclaimable:      18896 kB
+Node 3 SUnreclaim:       321456 kB
+Node 3 AnonHugePages:  251832320 kB
+Node 3 ShmemHugePages:    28672 kB
+Node 3 ShmemPmdMapped:     2048 kB
+Node 3 FileHugePages:        0 kB
+Node 3 FilePmdMapped:        0 kB
+Node 3 HugePages_Total:     0
+Node 3 HugePages_Free:      0
+Node 3 HugePages_Surp:      0
+
+===== hostdev_mapping.tsv =====
+domain	guest_bdf	host_bdf	host_numa	local_cpulist	driver
+instance-00000950	0000:0e:00.0	0000:82:00.0	2	128-191	vfio-pci
+instance-00000950	0000:0d:00.0	0000:81:00.0	2	128-191	vfio-pci
+instance-00000950	0000:10:00.0	0000:c2:00.0	3	192-255	vfio-pci
+instance-00000950	0000:0f:00.0	0000:c1:00.0	3	192-255	vfio-pci
+instance-00000950	0000:0a:00.0	0000:02:00.0	0	0-63	vfio-pci
+instance-00000950	0000:09:00.0	0000:01:00.0	0	0-63	vfio-pci
+instance-00000950	0000:0c:00.0	0000:42:00.0	1	64-127	vfio-pci
+instance-00000950	0000:0b:00.0	0000:41:00.0	1	64-127	vfio-pci
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 
+
+
+
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # for f in domains/*/resources.txt; do
+>     printf '\n===== %s =====\n' "$f"
+>     cat "$f"
+> done
+
+===== domains/instance-00000950/resources.txt =====
+$ virsh dominfo instance-00000950
+Id:             5
+Name:           instance-00000950
+UUID:           b90fe589-3cad-4ffa-9bbf-684652039e15
+OS Type:        hvm
+State:          running
+CPU(s):         48
+CPU time:       6400661.1s
+Max memory:     251658240 KiB
+Used memory:    251658240 KiB
+Persistent:     yes
+Autostart:      disable
+Managed save:   no
+Security model: none
+Security DOI:   0
+
+
+[exit=0]
+
+$ virsh vcpucount instance-00000950
+maximum      config        48
+maximum      live          48
+current      config        48
+current      live          48
+
+
+[exit=0]
+
+$ virsh dommemstat instance-00000950
+actual 251658240
+swap_in 0
+swap_out 0
+major_fault 4431499
+minor_fault 8168423045
+unused 86162748
+available 246864728
+usable 172745532
+last_update 1793935257
+disk_caches 85530768
+hugetlb_pgalloc 0
+hugetlb_pgfail 0
+rss 252027716
+
+
+[exit=0]
+
+$ virsh memtune instance-00000950
+hard_limit     : unlimited
+soft_limit     : unlimited
+swap_hard_limit: unlimited
+min_guarantee  : 251658240
+shares         : 0
+
+
+[exit=0]
+
+$ virsh schedinfo instance-00000950
+Scheduler      : posix
+cpu_shares     : 49152
+vcpu_min_guarantee: 0
+vcpu_period    : 100000
+vcpu_quota     : -1
+emulator_period: 100000
+emulator_quota : -1
+global_period  : 100000
+global_quota   : -1
+iothread_period: 100000
+iothread_quota : -1
+
+
+[exit=0]
+
+$ virsh numatune instance-00000950
+numa_mode      : interleave
+numa_nodeset   : 2
+
+
+[exit=0]
+
+$ virsh vcpupin instance-00000950 --live
+ VCPU   CPU Affinity
+----------------------
+ 0      128
+ 1      129
+ 2      130
+ 3      131
+ 4      132
+ 5      133
+ 6      134
+ 7      135
+ 8      136
+ 9      137
+ 10     138
+ 11     139
+ 12     140
+ 13     141
+ 14     142
+ 15     143
+ 16     144
+ 17     145
+ 18     146
+ 19     147
+ 20     148
+ 21     149
+ 22     150
+ 23     151
+ 24     152
+ 25     153
+ 26     154
+ 27     155
+ 28     156
+ 29     157
+ 30     158
+ 31     159
+ 32     160
+ 33     161
+ 34     162
+ 35     163
+ 36     164
+ 37     165
+ 38     166
+ 39     167
+ 40     168
+ 41     169
+ 42     170
+ 43     171
+ 44     172
+ 45     173
+ 46     174
+ 47     175
+
+
+[exit=0]
+
+$ virsh emulatorpin instance-00000950 --live
+emulator: CPU Affinity
+----------------------------------
+       *: 128-175
+
+
+[exit=0]
+
+$ virsh iothreadinfo instance-00000950 --live
+No IOThreads found for the domain
+
+[exit=0]
+
+$ virsh vcpupin instance-00000950 --config
+ VCPU   CPU Affinity
+----------------------
+ 0      128
+ 1      129
+ 2      130
+ 3      131
+ 4      132
+ 5      133
+ 6      134
+ 7      135
+ 8      136
+ 9      137
+ 10     138
+ 11     139
+ 12     140
+ 13     141
+ 14     142
+ 15     143
+ 16     144
+ 17     145
+ 18     146
+ 19     147
+ 20     148
+ 21     149
+ 22     150
+ 23     151
+ 24     152
+ 25     153
+ 26     154
+ 27     155
+ 28     156
+ 29     157
+ 30     158
+ 31     159
+ 32     160
+ 33     161
+ 34     162
+ 35     163
+ 36     164
+ 37     165
+ 38     166
+ 39     167
+ 40     168
+ 41     169
+ 42     170
+ 43     171
+ 44     172
+ 45     173
+ 46     174
+ 47     175
+
+
+[exit=0]
+
+$ virsh emulatorpin instance-00000950 --config
+emulator: CPU Affinity
+----------------------------------
+       *: 128-175
+
+
+[exit=0]
+
+$ virsh iothreadinfo instance-00000950 --config
+No IOThreads found for the domain
+
+[exit=0]
+
+===== domains/instance-00000959/resources.txt =====
+$ virsh dominfo instance-00000959
+Id:             8
+Name:           instance-00000959
+UUID:           5caa4753-3b9f-49ea-9dcf-cac9c99fa3cb
+OS Type:        hvm
+State:          running
+CPU(s):         16
+CPU time:       958600.9s
+Max memory:     125829120 KiB
+Used memory:    125829120 KiB
+Persistent:     yes
+Autostart:      disable
+Managed save:   no
+Security model: none
+Security DOI:   0
+
+
+[exit=0]
+
+$ virsh vcpucount instance-00000959
+maximum      config        16
+maximum      live          16
+current      config        16
+current      live          16
+
+
+[exit=0]
+
+$ virsh dommemstat instance-00000959
+actual 125829120
+swap_in 0
+swap_out 0
+major_fault 2664827
+minor_fault 18050749048
+unused 72134620
+available 123104616
+usable 97106128
+last_update 1793935259
+disk_caches 23207348
+hugetlb_pgalloc 0
+hugetlb_pgfail 0
+rss 125983632
+
+
+[exit=0]
+
+$ virsh memtune instance-00000959
+hard_limit     : unlimited
+soft_limit     : unlimited
+swap_hard_limit: unlimited
+min_guarantee  : 125829120
+shares         : 0
+
+
+[exit=0]
+
+$ virsh schedinfo instance-00000959
+Scheduler      : posix
+cpu_shares     : 16384
+vcpu_min_guarantee: 0
+vcpu_period    : 100000
+vcpu_quota     : -1
+emulator_period: 100000
+emulator_quota : -1
+global_period  : 100000
+global_quota   : -1
+iothread_period: 100000
+iothread_quota : -1
+
+
+[exit=0]
+
+$ virsh numatune instance-00000959
+numa_mode      : interleave
+numa_nodeset   : 0
+
+
+[exit=0]
+
+$ virsh vcpupin instance-00000959 --live
+ VCPU   CPU Affinity
+----------------------
+ 0      4
+ 1      5
+ 2      6
+ 3      7
+ 4      8
+ 5      9
+ 6      10
+ 7      11
+ 8      12
+ 9      13
+ 10     14
+ 11     15
+ 12     16
+ 13     17
+ 14     18
+ 15     19
+
+
+[exit=0]
+
+$ virsh emulatorpin instance-00000959 --live
+emulator: CPU Affinity
+----------------------------------
+       *: 4-19
+
+
+[exit=0]
+
+$ virsh iothreadinfo instance-00000959 --live
+No IOThreads found for the domain
+
+[exit=0]
+
+$ virsh vcpupin instance-00000959 --config
+ VCPU   CPU Affinity
+----------------------
+ 0      4
+ 1      5
+ 2      6
+ 3      7
+ 4      8
+ 5      9
+ 6      10
+ 7      11
+ 8      12
+ 9      13
+ 10     14
+ 11     15
+ 12     16
+ 13     17
+ 14     18
+ 15     19
+
+
+[exit=0]
+
+$ virsh emulatorpin instance-00000959 --config
+emulator: CPU Affinity
+----------------------------------
+       *: 4-19
+
+
+[exit=0]
+
+$ virsh iothreadinfo instance-00000959 --config
+No IOThreads found for the domain
+
+[exit=0]
+
+===== domains/instance-00000968/resources.txt =====
+$ virsh dominfo instance-00000968
+Id:             7
+Name:           instance-00000968
+UUID:           9c9b5f06-3390-4d0d-a357-3b71fc05cd76
+OS Type:        hvm
+State:          running
+CPU(s):         32
+CPU time:       167601.9s
+Max memory:     251658240 KiB
+Used memory:    251658240 KiB
+Persistent:     yes
+Autostart:      disable
+Managed save:   no
+Security model: none
+Security DOI:   0
+
+
+[exit=0]
+
+$ virsh vcpucount instance-00000968
+maximum      config        32
+maximum      live          32
+current      config        32
+current      live          32
+
+
+[exit=0]
+
+$ virsh dommemstat instance-00000968
+actual 251658240
+swap_in 0
+swap_out 0
+major_fault 38479
+minor_fault 3718612674
+unused 235769540
+available 246867032
+usable 242244576
+last_update 1793935251
+disk_caches 7709088
+hugetlb_pgalloc 0
+hugetlb_pgfail 0
+rss 251885040
+
+
+[exit=0]
+
+$ virsh memtune instance-00000968
+hard_limit     : unlimited
+soft_limit     : unlimited
+swap_hard_limit: unlimited
+min_guarantee  : 251658240
+shares         : 0
+
+
+[exit=0]
+
+$ virsh schedinfo instance-00000968
+Scheduler      : posix
+cpu_shares     : 32768
+vcpu_min_guarantee: 0
+vcpu_period    : 100000
+vcpu_quota     : -1
+emulator_period: 100000
+emulator_quota : -1
+global_period  : 100000
+global_quota   : -1
+iothread_period: 100000
+iothread_quota : -1
+
+
+[exit=0]
+
+$ virsh numatune instance-00000968
+numa_mode      : interleave
+numa_nodeset   : 3
+
+
+[exit=0]
+
+$ virsh vcpupin instance-00000968 --live
+ VCPU   CPU Affinity
+----------------------
+ 0      192
+ 1      193
+ 2      194
+ 3      195
+ 4      196
+ 5      197
+ 6      198
+ 7      199
+ 8      200
+ 9      201
+ 10     202
+ 11     203
+ 12     204
+ 13     205
+ 14     206
+ 15     207
+ 16     208
+ 17     209
+ 18     210
+ 19     211
+ 20     212
+ 21     213
+ 22     214
+ 23     215
+ 24     216
+ 25     217
+ 26     218
+ 27     219
+ 28     220
+ 29     221
+ 30     222
+ 31     223
+
+
+[exit=0]
+
+$ virsh emulatorpin instance-00000968 --live
+emulator: CPU Affinity
+----------------------------------
+       *: 192-223
+
+
+[exit=0]
+
+$ virsh iothreadinfo instance-00000968 --live
+No IOThreads found for the domain
+
+[exit=0]
+
+$ virsh vcpupin instance-00000968 --config
+ VCPU   CPU Affinity
+----------------------
+ 0      192
+ 1      193
+ 2      194
+ 3      195
+ 4      196
+ 5      197
+ 6      198
+ 7      199
+ 8      200
+ 9      201
+ 10     202
+ 11     203
+ 12     204
+ 13     205
+ 14     206
+ 15     207
+ 16     208
+ 17     209
+ 18     210
+ 19     211
+ 20     212
+ 21     213
+ 22     214
+ 23     215
+ 24     216
+ 25     217
+ 26     218
+ 27     219
+ 28     220
+ 29     221
+ 30     222
+ 31     223
+
+
+[exit=0]
+
+$ virsh emulatorpin instance-00000968 --config
+emulator: CPU Affinity
+----------------------------------
+       *: 192-223
+
+
+[exit=0]
+
+$ virsh iothreadinfo instance-00000968 --config
+No IOThreads found for the domain
+
+[exit=0]
+
+===== domains/instance-00000969/resources.txt =====
+$ virsh dominfo instance-00000969
+Id:             6
+Name:           instance-00000969
+UUID:           39b57fdd-3dc3-437a-a33b-f955edb3af7b
+OS Type:        hvm
+State:          running
+CPU(s):         32
+CPU time:       247662.4s
+Max memory:     251658240 KiB
+Used memory:    251658240 KiB
+Persistent:     yes
+Autostart:      disable
+Managed save:   no
+Security model: none
+Security DOI:   0
+
+
+[exit=0]
+
+$ virsh vcpucount instance-00000969
+maximum      config        32
+maximum      live          32
+current      config        32
+current      live          32
+
+
+[exit=0]
+
+$ virsh dommemstat instance-00000969
+actual 251658240
+swap_in 0
+swap_out 0
+major_fault 1864489
+minor_fault 6532392392
+unused 234105204
+available 246867032
+usable 241608880
+last_update 1793935251
+disk_caches 8844000
+hugetlb_pgalloc 0
+hugetlb_pgfail 0
+rss 251897272
+
+
+[exit=0]
+
+$ virsh memtune instance-00000969
+hard_limit     : unlimited
+soft_limit     : unlimited
+swap_hard_limit: unlimited
+min_guarantee  : 251658240
+shares         : 0
+
+
+[exit=0]
+
+$ virsh schedinfo instance-00000969
+Scheduler      : posix
+cpu_shares     : 32768
+vcpu_min_guarantee: 0
+vcpu_period    : 100000
+vcpu_quota     : -1
+emulator_period: 100000
+emulator_quota : -1
+global_period  : 100000
+global_quota   : -1
+iothread_period: 100000
+iothread_quota : -1
+
+
+[exit=0]
+
+$ virsh numatune instance-00000969
+numa_mode      : interleave
+numa_nodeset   : 1
+
+
+[exit=0]
+
+$ virsh vcpupin instance-00000969 --live
+ VCPU   CPU Affinity
+----------------------
+ 0      64
+ 1      65
+ 2      66
+ 3      67
+ 4      68
+ 5      69
+ 6      70
+ 7      71
+ 8      72
+ 9      73
+ 10     74
+ 11     75
+ 12     76
+ 13     77
+ 14     78
+ 15     79
+ 16     80
+ 17     81
+ 18     82
+ 19     83
+ 20     84
+ 21     85
+ 22     86
+ 23     87
+ 24     88
+ 25     89
+ 26     90
+ 27     91
+ 28     92
+ 29     93
+ 30     94
+ 31     95
+
+
+[exit=0]
+
+$ virsh emulatorpin instance-00000969 --live
+emulator: CPU Affinity
+----------------------------------
+       *: 64-95
+
+
+[exit=0]
+
+$ virsh iothreadinfo instance-00000969 --live
+No IOThreads found for the domain
+
+[exit=0]
+
+$ virsh vcpupin instance-00000969 --config
+ VCPU   CPU Affinity
+----------------------
+ 0      64
+ 1      65
+ 2      66
+ 3      67
+ 4      68
+ 5      69
+ 6      70
+ 7      71
+ 8      72
+ 9      73
+ 10     74
+ 11     75
+ 12     76
+ 13     77
+ 14     78
+ 15     79
+ 16     80
+ 17     81
+ 18     82
+ 19     83
+ 20     84
+ 21     85
+ 22     86
+ 23     87
+ 24     88
+ 25     89
+ 26     90
+ 27     91
+ 28     92
+ 29     93
+ 30     94
+ 31     95
+
+
+[exit=0]
+
+$ virsh emulatorpin instance-00000969 --config
+emulator: CPU Affinity
+----------------------------------
+       *: 64-95
+
+
+[exit=0]
+
+$ virsh iothreadinfo instance-00000969 --config
+No IOThreads found for the domain
+
+[exit=0]
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 
+
+
+
+
+
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # for f in domains/instance-00000950/live.xml domains/instance-00000950/inactive.xml; do
+>     printf '\n===== %s =====\n' "$f"
+>     cat "$f"
+> done
+
+===== domains/instance-00000950/live.xml =====
+<domain type='kvm' id='5' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
+  <name>instance-00000950</name>
+  <uuid>b90fe589-3cad-4ffa-9bbf-684652039e15</uuid>
+  <metadata>
+    <nova:instance xmlns:nova="http://openstack.org/xmlns/libvirt/nova/1.0">
+      <nova:package version="20.1.2-805.900.fsv2r12"/>
+      <nova:name>vnf-mae-1-node3-1793319644</nova:name>
+      <nova:creationTime>2026-10-30 11:52:02</nova:creationTime>
+      <nova:flavor name="caas_plugin_fs-1793361107312373794">
+        <nova:memory>245760</nova:memory>
+        <nova:disk>0</nova:disk>
+        <nova:swap>0</nova:swap>
+        <nova:ephemeral>0</nova:ephemeral>
+        <nova:vcpus>48</nova:vcpus>
+      </nova:flavor>
+      <nova:owner>
+        <nova:user uuid="30d1b15a38e0498b800962e6c2f4675b">hwvpc</nova:user>
+        <nova:project uuid="600de606452a44dda7a224ecaf0a363c">OSSVPC</nova:project>
+      </nova:owner>
+      <nova:extend_properties>
+        <nova:realtime>False</nova:realtime>
+      </nova:extend_properties>
+    </nova:instance>
+  </metadata>
+  <memory unit='KiB'>251658240</memory>
+  <currentMemory unit='KiB'>251658240</currentMemory>
+  <memtune>
+    <min_guarantee unit='KiB'>251658240</min_guarantee>
+  </memtune>
+  <vcpu placement='static'>48</vcpu>
+  <cputune>
+    <shares>49152</shares>
+    <vcpupin vcpu='0' cpuset='128'/>
+    <vcpupin vcpu='1' cpuset='129'/>
+    <vcpupin vcpu='2' cpuset='130'/>
+    <vcpupin vcpu='3' cpuset='131'/>
+    <vcpupin vcpu='4' cpuset='132'/>
+    <vcpupin vcpu='5' cpuset='133'/>
+    <vcpupin vcpu='6' cpuset='134'/>
+    <vcpupin vcpu='7' cpuset='135'/>
+    <vcpupin vcpu='8' cpuset='136'/>
+    <vcpupin vcpu='9' cpuset='137'/>
+    <vcpupin vcpu='10' cpuset='138'/>
+    <vcpupin vcpu='11' cpuset='139'/>
+    <vcpupin vcpu='12' cpuset='140'/>
+    <vcpupin vcpu='13' cpuset='141'/>
+    <vcpupin vcpu='14' cpuset='142'/>
+    <vcpupin vcpu='15' cpuset='143'/>
+    <vcpupin vcpu='16' cpuset='144'/>
+    <vcpupin vcpu='17' cpuset='145'/>
+    <vcpupin vcpu='18' cpuset='146'/>
+    <vcpupin vcpu='19' cpuset='147'/>
+    <vcpupin vcpu='20' cpuset='148'/>
+    <vcpupin vcpu='21' cpuset='149'/>
+    <vcpupin vcpu='22' cpuset='150'/>
+    <vcpupin vcpu='23' cpuset='151'/>
+    <vcpupin vcpu='24' cpuset='152'/>
+    <vcpupin vcpu='25' cpuset='153'/>
+    <vcpupin vcpu='26' cpuset='154'/>
+    <vcpupin vcpu='27' cpuset='155'/>
+    <vcpupin vcpu='28' cpuset='156'/>
+    <vcpupin vcpu='29' cpuset='157'/>
+    <vcpupin vcpu='30' cpuset='158'/>
+    <vcpupin vcpu='31' cpuset='159'/>
+    <vcpupin vcpu='32' cpuset='160'/>
+    <vcpupin vcpu='33' cpuset='161'/>
+    <vcpupin vcpu='34' cpuset='162'/>
+    <vcpupin vcpu='35' cpuset='163'/>
+    <vcpupin vcpu='36' cpuset='164'/>
+    <vcpupin vcpu='37' cpuset='165'/>
+    <vcpupin vcpu='38' cpuset='166'/>
+    <vcpupin vcpu='39' cpuset='167'/>
+    <vcpupin vcpu='40' cpuset='168'/>
+    <vcpupin vcpu='41' cpuset='169'/>
+    <vcpupin vcpu='42' cpuset='170'/>
+    <vcpupin vcpu='43' cpuset='171'/>
+    <vcpupin vcpu='44' cpuset='172'/>
+    <vcpupin vcpu='45' cpuset='173'/>
+    <vcpupin vcpu='46' cpuset='174'/>
+    <vcpupin vcpu='47' cpuset='175'/>
+    <emulatorpin cpuset='128-175'/>
+  </cputune>
+  <numatune>
+    <memory mode='interleave' nodeset='2'/>
+    <memnode cellid='0' mode='strict' nodeset='2'/>
+  </numatune>
+  <resource>
+    <partition>/machine</partition>
+  </resource>
+  <os>
+    <type arch='aarch64' machine='virt-6.2'>hvm</type>
+    <loader readonly='yes' type='pflash'>/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw</loader>
+    <nvram template='/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw'>/opt/HUAWEI/image/instances/instance-00000950_VARS.fd</nvram>
+  </os>
+  <features>
+    <acpi/>
+    <gic version='3'/>
+  </features>
+  <cpu mode='host-passthrough' check='none'>
+    <topology sockets='48' dies='1' clusters='1' cores='1' threads='1'/>
+    <numa>
+      <cell id='0' cpus='0-47' memory='251658240' unit='KiB'/>
+    </numa>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup' track='guest'/>
+    <timer name='hpet' present='no'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-kvm</emulator>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f921ffb294000002a1'/>
+      <backingStore/>
+      <target dev='sda' bus='scsi'/>
+      <serial>c5df4a61-fc2c-460a-b3da-76b2a2b89f2b</serial>
+      <boot order='1'/>
+      <alias name='scsi0-0-0-0'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f921ffbe68000002a2'/>
+      <backingStore/>
+      <target dev='sdb' bus='scsi'/>
+      <serial>945fd8ef-d60b-4fa0-8f33-42805b94628c</serial>
+      <alias name='scsi0-0-1-0'/>
+      <address type='drive' controller='0' bus='0' target='1' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f921ffc3d5000002a5'/>
+      <backingStore/>
+      <target dev='sdc' bus='scsi'/>
+      <serial>35f73fa7-1046-40d1-b1cf-a7ab5b486f07</serial>
+      <alias name='scsi0-0-2-0'/>
+      <address type='drive' controller='0' bus='0' target='2' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f921ffc966000002a8'/>
+      <backingStore/>
+      <target dev='sdd' bus='scsi'/>
+      <serial>75c47f2e-72dd-42aa-a1b8-7cef41d92f65</serial>
+      <alias name='scsi0-0-3-0'/>
+      <address type='drive' controller='0' bus='0' target='3' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56ed22013151000005c3'/>
+      <backingStore/>
+      <target dev='sde' bus='scsi'/>
+      <shareable/>
+      <serial>8e5d4b28-75e2-4f84-b326-e42cf0c079f6</serial>
+      <alias name='scsi0-0-4-0'/>
+      <address type='drive' controller='0' bus='0' target='4' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56ed2201336d000005c7'/>
+      <backingStore/>
+      <target dev='sdf' bus='scsi'/>
+      <shareable/>
+      <serial>d1d9dacd-d740-46c4-861e-6d3fad9dcdd1</serial>
+      <alias name='scsi0-0-5-0'/>
+      <address type='drive' controller='0' bus='0' target='5' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f92204876f0000031a'/>
+      <backingStore/>
+      <target dev='sdg' bus='scsi'/>
+      <shareable/>
+      <serial>11976763-58db-4009-980b-53bd3d1247e4</serial>
+      <alias name='scsi0-0-6-0'/>
+      <address type='drive' controller='0' bus='0' target='6' unit='0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw' cache='none'/>
+      <source file='/opt/HUAWEI/image/instances/b90fe589-3cad-4ffa-9bbf-684652039e15/disk.config'/>
+      <backingStore/>
+      <target dev='sdbh' bus='scsi'/>
+      <alias name='scsi3-0-14-0'/>
+      <address type='drive' controller='3' bus='0' target='14' unit='0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' cache='none' io='threads'/>
+      <target dev='hdb' bus='sata'/>
+      <readonly/>
+      <boot order='2'/>
+      <alias name='sata0-0-1'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='1'/>
+    </disk>
+    <controller type='usb' index='0' model='piix3-uhci'>
+      <alias name='usb'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x05' function='0x0'/>
+    </controller>
+    <controller type='usb' index='1' model='ehci'>
+      <alias name='usb1'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x06' function='0x0'/>
+    </controller>
+    <controller type='usb' index='2' model='nec-xhci'>
+      <alias name='usb2'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x07' function='0x0'/>
+    </controller>
+    <controller type='pci' index='0' model='pcie-root'>
+      <alias name='pcie.0'/>
+    </controller>
+    <controller type='pci' index='1' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='1' port='0x8'/>
+      <alias name='pci.1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='2' model='pcie-to-pci-bridge'>
+      <model name='pcie-pci-bridge'/>
+      <alias name='pci.2'/>
+      <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
+    </controller>
+    <controller type='pci' index='3' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='3' port='0x9'/>
+      <alias name='pci.3'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
+    </controller>
+    <controller type='pci' index='4' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='4' port='0xa'/>
+      <alias name='pci.4'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x2'/>
+    </controller>
+    <controller type='pci' index='5' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='5' port='0xb'/>
+      <alias name='pci.5'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x3'/>
+    </controller>
+    <controller type='pci' index='6' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='6' port='0xc'/>
+      <alias name='pci.6'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x4'/>
+    </controller>
+    <controller type='pci' index='7' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='7' port='0xd'/>
+      <alias name='pci.7'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x5'/>
+    </controller>
+    <controller type='pci' index='8' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='8' port='0xe'/>
+      <alias name='pci.8'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x6'/>
+    </controller>
+    <controller type='pci' index='9' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='9' port='0xf'/>
+      <alias name='pci.9'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x7'/>
+    </controller>
+    <controller type='pci' index='10' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='10' port='0x10'/>
+      <alias name='pci.10'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='11' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='11' port='0x11'/>
+      <alias name='pci.11'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x1'/>
+    </controller>
+    <controller type='pci' index='12' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='12' port='0x12'/>
+      <alias name='pci.12'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x2'/>
+    </controller>
+    <controller type='pci' index='13' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='13' port='0x13'/>
+      <alias name='pci.13'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x3'/>
+    </controller>
+    <controller type='pci' index='14' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='14' port='0x14'/>
+      <alias name='pci.14'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x4'/>
+    </controller>
+    <controller type='pci' index='15' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='15' port='0x15'/>
+      <alias name='pci.15'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x5'/>
+    </controller>
+    <controller type='pci' index='16' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='16' port='0x16'/>
+      <alias name='pci.16'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x6'/>
+    </controller>
+    <controller type='pci' index='17' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='17' port='0x17'/>
+      <alias name='pci.17'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x7'/>
+    </controller>
+    <controller type='pci' index='18' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='18' port='0x18'/>
+      <alias name='pci.18'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='19' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='19' port='0x19'/>
+      <alias name='pci.19'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x1'/>
+    </controller>
+    <controller type='pci' index='20' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='20' port='0x1a'/>
+      <alias name='pci.20'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x2'/>
+    </controller>
+    <controller type='pci' index='21' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='21' port='0x1b'/>
+      <alias name='pci.21'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x3'/>
+    </controller>
+    <controller type='pci' index='22' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='22' port='0x1c'/>
+      <alias name='pci.22'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x4'/>
+    </controller>
+    <controller type='pci' index='23' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='23' port='0x1d'/>
+      <alias name='pci.23'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x5'/>
+    </controller>
+    <controller type='pci' index='24' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='24' port='0x1e'/>
+      <alias name='pci.24'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x6'/>
+    </controller>
+    <controller type='pci' index='25' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='25' port='0x1f'/>
+      <alias name='pci.25'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x7'/>
+    </controller>
+    <controller type='pci' index='26' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='26' port='0x20'/>
+      <alias name='pci.26'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='27' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='27' port='0x21'/>
+      <alias name='pci.27'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x1'/>
+    </controller>
+    <controller type='pci' index='28' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='28' port='0x22'/>
+      <alias name='pci.28'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x2'/>
+    </controller>
+    <controller type='pci' index='29' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='29' port='0x23'/>
+      <alias name='pci.29'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x3'/>
+    </controller>
+    <controller type='pci' index='30' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='30' port='0x24'/>
+      <alias name='pci.30'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x4'/>
+    </controller>
+    <controller type='virtio-serial' index='0'>
+      <alias name='virtio-serial0'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x03' function='0x0'/>
+    </controller>
+    <controller type='sata' index='0'>
+      <alias name='sata0'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x04' function='0x0'/>
+    </controller>
+    <controller type='scsi' index='0' model='virtio-scsi'>
+      <alias name='scsi0'/>
+      <address type='pci' domain='0x0000' bus='0x05' slot='0x00' function='0x0'/>
+    </controller>
+    <controller type='scsi' index='1' model='virtio-scsi'>
+      <alias name='scsi1'/>
+      <address type='pci' domain='0x0000' bus='0x06' slot='0x00' function='0x0'/>
+    </controller>
+    <controller type='scsi' index='2' model='virtio-scsi'>
+      <alias name='scsi2'/>
+      <address type='pci' domain='0x0000' bus='0x07' slot='0x00' function='0x0'/>
+    </controller>
+    <controller type='scsi' index='3' model='virtio-scsi'>
+      <alias name='scsi3'/>
+      <address type='pci' domain='0x0000' bus='0x08' slot='0x00' function='0x0'/>
+    </controller>
+    <interface type='bridge'>
+      <mac address='fa:16:3e:a8:dc:01'/>
+      <source bridge='plyedf134f4-c8'/>
+      <virtualport type='openvswitch'>
+        <parameters interfaceid='edf134f4-c8f1-4547-8506-8412ae9d2a42'/>
+      </virtualport>
+      <target dev='tapedf134f4-c8'/>
+      <model type='virtio'/>
+      <driver name='vhost' rx_queue_size='4096' tx_queue_size='4096'/>
+      <boot order='3'/>
+      <alias name='net0'/>
+      <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
+    </interface>
+    <interface type='bridge'>
+      <mac address='fa:16:3e:92:e7:b4'/>
+      <source bridge='ply6421b987-29'/>
+      <virtualport type='openvswitch'>
+        <parameters interfaceid='6421b987-29fb-4035-9f9b-b210408618e8'/>
+      </virtualport>
+      <target dev='tap6421b987-29'/>
+      <model type='virtio'/>
+      <driver name='vhost' rx_queue_size='4096' tx_queue_size='4096'/>
+      <boot order='4'/>
+      <alias name='net1'/>
+      <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <source path='/dev/pts/0'/>
+      <log file='/var/log/libvirt/qemu/instance-00000950.seriallog' append='on'/>
+      <target type='system-serial' port='0'>
+        <model name='pl011'/>
+      </target>
+      <alias name='serial0'/>
+    </serial>
+    <console type='pty' tty='/dev/pts/0'>
+      <source path='/dev/pts/0'/>
+      <log file='/var/log/libvirt/qemu/instance-00000950.seriallog' append='on'/>
+      <target type='serial' port='0'/>
+      <alias name='serial0'/>
+    </console>
+    <channel type='unix'>
+      <source mode='bind' path='/var/run/libvirt/qemu/instance-00000950.extend'/>
+      <target type='virtio' name='org.qemu.guest_agent.1' state='disconnected'/>
+      <alias name='channel0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='1'/>
+    </channel>
+    <channel type='unix'>
+      <source mode='bind' path='/var/run/libvirt/qemu/instance-00000950.agent'/>
+      <target type='virtio' name='org.qemu.guest_agent.0' state='disconnected'/>
+      <alias name='channel1'/>
+      <address type='virtio-serial' controller='0' bus='0' port='2'/>
+    </channel>
+    <channel type='unix'>
+      <source mode='bind' path='/var/run/libvirt/qemu/instance-00000950.hostd'/>
+      <target type='virtio' name='org.qemu.guest_agent.2' state='disconnected'/>
+      <alias name='channel2'/>
+      <address type='virtio-serial' controller='0' bus='0' port='3'/>
+    </channel>
+    <channel type='unix'>
+      <source mode='bind' path='/var/run/libvirt/qemu/instance-00000950.upgraded'/>
+      <target type='virtio' name='org.qemu.guest_agent.3' state='disconnected'/>
+      <alias name='channel3'/>
+      <address type='virtio-serial' controller='0' bus='0' port='4'/>
+    </channel>
+    <input type='tablet' bus='usb'>
+      <alias name='input0'/>
+      <address type='usb' bus='1' port='2'/>
+    </input>
+    <input type='keyboard' bus='usb'>
+      <alias name='input1'/>
+      <address type='usb' bus='1' port='1'/>
+    </input>
+    <graphics type='vnc' port='5900' autoport='yes' listen='172.28.0.12' keymap='en-us'>
+      <listen type='address' address='172.28.0.12'/>
+    </graphics>
+    <video>
+      <model type='virtio' heads='1' primary='yes'/>
+      <alias name='video0'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x02' function='0x0'/>
+    </video>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <driver name='vfio'/>
+      <source>
+        <address domain='0x0000' bus='0x82' slot='0x00' function='0x0'/>
+      </source>
+      <alias name='hostdev0'/>
+      <address type='pci' domain='0x0000' bus='0x0e' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <driver name='vfio'/>
+      <source>
+        <address domain='0x0000' bus='0x81' slot='0x00' function='0x0'/>
+      </source>
+      <alias name='hostdev1'/>
+      <address type='pci' domain='0x0000' bus='0x0d' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <driver name='vfio'/>
+      <source>
+        <address domain='0x0000' bus='0xc2' slot='0x00' function='0x0'/>
+      </source>
+      <alias name='hostdev2'/>
+      <address type='pci' domain='0x0000' bus='0x10' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <driver name='vfio'/>
+      <source>
+        <address domain='0x0000' bus='0xc1' slot='0x00' function='0x0'/>
+      </source>
+      <alias name='hostdev3'/>
+      <address type='pci' domain='0x0000' bus='0x0f' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <driver name='vfio'/>
+      <source>
+        <address domain='0x0000' bus='0x02' slot='0x00' function='0x0'/>
+      </source>
+      <alias name='hostdev4'/>
+      <address type='pci' domain='0x0000' bus='0x0a' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <driver name='vfio'/>
+      <source>
+        <address domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
+      </source>
+      <alias name='hostdev5'/>
+      <address type='pci' domain='0x0000' bus='0x09' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <driver name='vfio'/>
+      <source>
+        <address domain='0x0000' bus='0x42' slot='0x00' function='0x0'/>
+      </source>
+      <alias name='hostdev6'/>
+      <address type='pci' domain='0x0000' bus='0x0c' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <driver name='vfio'/>
+      <source>
+        <address domain='0x0000' bus='0x41' slot='0x00' function='0x0'/>
+      </source>
+      <alias name='hostdev7'/>
+      <address type='pci' domain='0x0000' bus='0x0b' slot='0x00' function='0x0'/>
+    </hostdev>
+    <ivshmem role='master'>
+      <memory name='ramkbox_b90fe589-3cad-4ffa-9bbf-684652039e15' size='16'/>
+      <alias name='ivshmem0'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x09' function='0x0'/>
+    </ivshmem>
+    <watchdog model='i6300esb' action='reset' pretimeout='240' timeout='480' startmode='auto'>
+      <alias name='watchdog0'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x08' function='0x0'/>
+    </watchdog>
+    <memballoon model='virtio'>
+      <stats period='10'/>
+      <alias name='balloon0'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x01' function='0x0'/>
+    </memballoon>
+  </devices>
+  <seclabel type='dynamic' model='dac' relabel='yes'>
+    <label>+107:+107</label>
+    <imagelabel>+107:+107</imagelabel>
+  </seclabel>
+  <qemu:commandline>
+    <qemu:arg value='-NetInterruptAutobind'/>
+    <qemu:arg value='-device'/>
+    <qemu:arg value='pv_channel,bus=pci.2,addr=0x1f'/>
+    <qemu:arg value='-extend_pcie_mmio'/>
+  </qemu:commandline>
+</domain>
+
+
+===== domains/instance-00000950/inactive.xml =====
+<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
+  <name>instance-00000950</name>
+  <uuid>b90fe589-3cad-4ffa-9bbf-684652039e15</uuid>
+  <metadata>
+    <nova:instance xmlns:nova="http://openstack.org/xmlns/libvirt/nova/1.0">
+      <nova:package version="20.1.2-805.900.fsv2r12"/>
+      <nova:name>vnf-mae-1-node3-1793319644</nova:name>
+      <nova:creationTime>2026-10-30 11:52:02</nova:creationTime>
+      <nova:flavor name="caas_plugin_fs-1793361107312373794">
+        <nova:memory>245760</nova:memory>
+        <nova:disk>0</nova:disk>
+        <nova:swap>0</nova:swap>
+        <nova:ephemeral>0</nova:ephemeral>
+        <nova:vcpus>48</nova:vcpus>
+      </nova:flavor>
+      <nova:owner>
+        <nova:user uuid="30d1b15a38e0498b800962e6c2f4675b">hwvpc</nova:user>
+        <nova:project uuid="600de606452a44dda7a224ecaf0a363c">OSSVPC</nova:project>
+      </nova:owner>
+      <nova:extend_properties>
+        <nova:realtime>False</nova:realtime>
+      </nova:extend_properties>
+    </nova:instance>
+  </metadata>
+  <memory unit='KiB'>251658240</memory>
+  <currentMemory unit='KiB'>251658240</currentMemory>
+  <memtune>
+    <min_guarantee unit='KiB'>251658240</min_guarantee>
+  </memtune>
+  <vcpu placement='static'>48</vcpu>
+  <cputune>
+    <shares>49152</shares>
+    <vcpupin vcpu='0' cpuset='128'/>
+    <vcpupin vcpu='1' cpuset='129'/>
+    <vcpupin vcpu='2' cpuset='130'/>
+    <vcpupin vcpu='3' cpuset='131'/>
+    <vcpupin vcpu='4' cpuset='132'/>
+    <vcpupin vcpu='5' cpuset='133'/>
+    <vcpupin vcpu='6' cpuset='134'/>
+    <vcpupin vcpu='7' cpuset='135'/>
+    <vcpupin vcpu='8' cpuset='136'/>
+    <vcpupin vcpu='9' cpuset='137'/>
+    <vcpupin vcpu='10' cpuset='138'/>
+    <vcpupin vcpu='11' cpuset='139'/>
+    <vcpupin vcpu='12' cpuset='140'/>
+    <vcpupin vcpu='13' cpuset='141'/>
+    <vcpupin vcpu='14' cpuset='142'/>
+    <vcpupin vcpu='15' cpuset='143'/>
+    <vcpupin vcpu='16' cpuset='144'/>
+    <vcpupin vcpu='17' cpuset='145'/>
+    <vcpupin vcpu='18' cpuset='146'/>
+    <vcpupin vcpu='19' cpuset='147'/>
+    <vcpupin vcpu='20' cpuset='148'/>
+    <vcpupin vcpu='21' cpuset='149'/>
+    <vcpupin vcpu='22' cpuset='150'/>
+    <vcpupin vcpu='23' cpuset='151'/>
+    <vcpupin vcpu='24' cpuset='152'/>
+    <vcpupin vcpu='25' cpuset='153'/>
+    <vcpupin vcpu='26' cpuset='154'/>
+    <vcpupin vcpu='27' cpuset='155'/>
+    <vcpupin vcpu='28' cpuset='156'/>
+    <vcpupin vcpu='29' cpuset='157'/>
+    <vcpupin vcpu='30' cpuset='158'/>
+    <vcpupin vcpu='31' cpuset='159'/>
+    <vcpupin vcpu='32' cpuset='160'/>
+    <vcpupin vcpu='33' cpuset='161'/>
+    <vcpupin vcpu='34' cpuset='162'/>
+    <vcpupin vcpu='35' cpuset='163'/>
+    <vcpupin vcpu='36' cpuset='164'/>
+    <vcpupin vcpu='37' cpuset='165'/>
+    <vcpupin vcpu='38' cpuset='166'/>
+    <vcpupin vcpu='39' cpuset='167'/>
+    <vcpupin vcpu='40' cpuset='168'/>
+    <vcpupin vcpu='41' cpuset='169'/>
+    <vcpupin vcpu='42' cpuset='170'/>
+    <vcpupin vcpu='43' cpuset='171'/>
+    <vcpupin vcpu='44' cpuset='172'/>
+    <vcpupin vcpu='45' cpuset='173'/>
+    <vcpupin vcpu='46' cpuset='174'/>
+    <vcpupin vcpu='47' cpuset='175'/>
+    <emulatorpin cpuset='128-175'/>
+  </cputune>
+  <numatune>
+    <memory mode='interleave' nodeset='2'/>
+    <memnode cellid='0' mode='strict' nodeset='2'/>
+  </numatune>
+  <os>
+    <type arch='aarch64' machine='virt-6.2'>hvm</type>
+    <loader readonly='yes' type='pflash'>/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw</loader>
+    <nvram template='/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw'>/opt/HUAWEI/image/instances/instance-00000950_VARS.fd</nvram>
+  </os>
+  <features>
+    <acpi/>
+    <gic version='3'/>
+  </features>
+  <cpu mode='host-passthrough' check='none'>
+    <topology sockets='48' dies='1' clusters='1' cores='1' threads='1'/>
+    <numa>
+      <cell id='0' cpus='0-47' memory='251658240' unit='KiB'/>
+    </numa>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='rtc' tickpolicy='catchup' track='guest'/>
+    <timer name='hpet' present='no'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-kvm</emulator>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f921ffb294000002a1'/>
+      <target dev='sda' bus='scsi'/>
+      <serial>c5df4a61-fc2c-460a-b3da-76b2a2b89f2b</serial>
+      <boot order='1'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f921ffbe68000002a2'/>
+      <target dev='sdb' bus='scsi'/>
+      <serial>945fd8ef-d60b-4fa0-8f33-42805b94628c</serial>
+      <address type='drive' controller='0' bus='0' target='1' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f921ffc3d5000002a5'/>
+      <target dev='sdc' bus='scsi'/>
+      <serial>35f73fa7-1046-40d1-b1cf-a7ab5b486f07</serial>
+      <address type='drive' controller='0' bus='0' target='2' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f921ffc966000002a8'/>
+      <target dev='sdd' bus='scsi'/>
+      <serial>75c47f2e-72dd-42aa-a1b8-7cef41d92f65</serial>
+      <address type='drive' controller='0' bus='0' target='3' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56ed22013151000005c3'/>
+      <target dev='sde' bus='scsi'/>
+      <shareable/>
+      <serial>8e5d4b28-75e2-4f84-b326-e42cf0c079f6</serial>
+      <address type='drive' controller='0' bus='0' target='4' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56ed2201336d000005c7'/>
+      <target dev='sdf' bus='scsi'/>
+      <shareable/>
+      <serial>d1d9dacd-d740-46c4-861e-6d3fad9dcdd1</serial>
+      <address type='drive' controller='0' bus='0' target='5' unit='0'/>
+    </disk>
+    <disk type='block' device='disk'>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <source dev='/dev/disk/by-id/wwn-0x6e8ac23100be56f92204876f0000031a'/>
+      <target dev='sdg' bus='scsi'/>
+      <shareable/>
+      <serial>11976763-58db-4009-980b-53bd3d1247e4</serial>
+      <address type='drive' controller='0' bus='0' target='6' unit='0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='raw' cache='none'/>
+      <source file='/opt/HUAWEI/image/instances/b90fe589-3cad-4ffa-9bbf-684652039e15/disk.config'/>
+      <target dev='sdbh' bus='scsi'/>
+      <address type='drive' controller='3' bus='0' target='14' unit='0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw' cache='none' io='threads'/>
+      <target dev='hdb' bus='sata'/>
+      <readonly/>
+      <boot order='2'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='1'/>
+    </disk>
+    <controller type='usb' index='0' model='piix3-uhci'>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x05' function='0x0'/>
+    </controller>
+    <controller type='usb' index='1' model='ehci'>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x06' function='0x0'/>
+    </controller>
+    <controller type='usb' index='2' model='nec-xhci'>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x07' function='0x0'/>
+    </controller>
+    <controller type='pci' index='0' model='pcie-root'/>
+    <controller type='pci' index='1' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='1' port='0x8'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='2' model='pcie-to-pci-bridge'>
+      <model name='pcie-pci-bridge'/>
+      <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
+    </controller>
+    <controller type='pci' index='3' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='3' port='0x9'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
+    </controller>
+    <controller type='pci' index='4' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='4' port='0xa'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x2'/>
+    </controller>
+    <controller type='pci' index='5' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='5' port='0xb'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x3'/>
+    </controller>
+    <controller type='pci' index='6' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='6' port='0xc'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x4'/>
+    </controller>
+    <controller type='pci' index='7' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='7' port='0xd'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x5'/>
+    </controller>
+    <controller type='pci' index='8' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='8' port='0xe'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x6'/>
+    </controller>
+    <controller type='pci' index='9' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='9' port='0xf'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x7'/>
+    </controller>
+    <controller type='pci' index='10' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='10' port='0x10'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='11' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='11' port='0x11'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x1'/>
+    </controller>
+    <controller type='pci' index='12' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='12' port='0x12'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x2'/>
+    </controller>
+    <controller type='pci' index='13' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='13' port='0x13'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x3'/>
+    </controller>
+    <controller type='pci' index='14' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='14' port='0x14'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x4'/>
+    </controller>
+    <controller type='pci' index='15' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='15' port='0x15'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x5'/>
+    </controller>
+    <controller type='pci' index='16' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='16' port='0x16'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x6'/>
+    </controller>
+    <controller type='pci' index='17' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='17' port='0x17'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x7'/>
+    </controller>
+    <controller type='pci' index='18' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='18' port='0x18'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='19' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='19' port='0x19'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x1'/>
+    </controller>
+    <controller type='pci' index='20' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='20' port='0x1a'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x2'/>
+    </controller>
+    <controller type='pci' index='21' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='21' port='0x1b'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x3'/>
+    </controller>
+    <controller type='pci' index='22' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='22' port='0x1c'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x4'/>
+    </controller>
+    <controller type='pci' index='23' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='23' port='0x1d'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x5'/>
+    </controller>
+    <controller type='pci' index='24' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='24' port='0x1e'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x6'/>
+    </controller>
+    <controller type='pci' index='25' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='25' port='0x1f'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x7'/>
+    </controller>
+    <controller type='pci' index='26' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='26' port='0x20'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='27' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='27' port='0x21'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x1'/>
+    </controller>
+    <controller type='pci' index='28' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='28' port='0x22'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x2'/>
+    </controller>
+    <controller type='pci' index='29' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='29' port='0x23'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x3'/>
+    </controller>
+    <controller type='pci' index='30' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='30' port='0x24'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x4'/>
+    </controller>
+    <controller type='virtio-serial' index='0'>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x03' function='0x0'/>
+    </controller>
+    <controller type='sata' index='0'>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x04' function='0x0'/>
+    </controller>
+    <controller type='scsi' index='0' model='virtio-scsi'>
+      <address type='pci' domain='0x0000' bus='0x05' slot='0x00' function='0x0'/>
+    </controller>
+    <controller type='scsi' index='1' model='virtio-scsi'>
+      <address type='pci' domain='0x0000' bus='0x06' slot='0x00' function='0x0'/>
+    </controller>
+    <controller type='scsi' index='2' model='virtio-scsi'>
+      <address type='pci' domain='0x0000' bus='0x07' slot='0x00' function='0x0'/>
+    </controller>
+    <controller type='scsi' index='3' model='virtio-scsi'>
+      <address type='pci' domain='0x0000' bus='0x08' slot='0x00' function='0x0'/>
+    </controller>
+    <interface type='bridge'>
+      <mac address='fa:16:3e:a8:dc:01'/>
+      <source bridge='plyedf134f4-c8'/>
+      <virtualport type='openvswitch'>
+        <parameters interfaceid='edf134f4-c8f1-4547-8506-8412ae9d2a42'/>
+      </virtualport>
+      <target dev='tapedf134f4-c8'/>
+      <model type='virtio'/>
+      <driver name='vhost' rx_queue_size='4096' tx_queue_size='4096'/>
+      <boot order='3'/>
+      <address type='pci' domain='0x0000' bus='0x03' slot='0x00' function='0x0'/>
+    </interface>
+    <interface type='bridge'>
+      <mac address='fa:16:3e:92:e7:b4'/>
+      <source bridge='ply6421b987-29'/>
+      <virtualport type='openvswitch'>
+        <parameters interfaceid='6421b987-29fb-4035-9f9b-b210408618e8'/>
+      </virtualport>
+      <target dev='tap6421b987-29'/>
+      <model type='virtio'/>
+      <driver name='vhost' rx_queue_size='4096' tx_queue_size='4096'/>
+      <boot order='4'/>
+      <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <log file='/var/log/libvirt/qemu/instance-00000950.seriallog' append='on'/>
+      <target type='system-serial' port='0'>
+        <model name='pl011'/>
+      </target>
+    </serial>
+    <console type='pty'>
+      <log file='/var/log/libvirt/qemu/instance-00000950.seriallog' append='on'/>
+      <target type='serial' port='0'/>
+    </console>
+    <channel type='unix'>
+      <source mode='bind' path='/var/run/libvirt/qemu/instance-00000950.extend'/>
+      <target type='virtio' name='org.qemu.guest_agent.1'/>
+      <address type='virtio-serial' controller='0' bus='0' port='1'/>
+    </channel>
+    <channel type='unix'>
+      <source mode='bind' path='/var/run/libvirt/qemu/instance-00000950.agent'/>
+      <target type='virtio' name='org.qemu.guest_agent.0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='2'/>
+    </channel>
+    <channel type='unix'>
+      <source mode='bind' path='/var/run/libvirt/qemu/instance-00000950.hostd'/>
+      <target type='virtio' name='org.qemu.guest_agent.2'/>
+      <address type='virtio-serial' controller='0' bus='0' port='3'/>
+    </channel>
+    <channel type='unix'>
+      <source mode='bind' path='/var/run/libvirt/qemu/instance-00000950.upgraded'/>
+      <target type='virtio' name='org.qemu.guest_agent.3'/>
+      <address type='virtio-serial' controller='0' bus='0' port='4'/>
+    </channel>
+    <input type='tablet' bus='usb'>
+      <address type='usb' bus='1' port='2'/>
+    </input>
+    <input type='keyboard' bus='usb'>
+      <address type='usb' bus='1' port='1'/>
+    </input>
+    <graphics type='vnc' port='-1' autoport='yes' listen='172.28.0.12' keymap='en-us'>
+      <listen type='address' address='172.28.0.12'/>
+    </graphics>
+    <video>
+      <model type='virtio' heads='1' primary='yes'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x02' function='0x0'/>
+    </video>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0x82' slot='0x00' function='0x0'/>
+      </source>
+      <address type='pci' domain='0x0000' bus='0x0e' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0x81' slot='0x00' function='0x0'/>
+      </source>
+      <address type='pci' domain='0x0000' bus='0x0d' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0xc2' slot='0x00' function='0x0'/>
+      </source>
+      <address type='pci' domain='0x0000' bus='0x10' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0xc1' slot='0x00' function='0x0'/>
+      </source>
+      <address type='pci' domain='0x0000' bus='0x0f' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0x02' slot='0x00' function='0x0'/>
+      </source>
+      <address type='pci' domain='0x0000' bus='0x0a' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
+      </source>
+      <address type='pci' domain='0x0000' bus='0x09' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0x42' slot='0x00' function='0x0'/>
+      </source>
+      <address type='pci' domain='0x0000' bus='0x0c' slot='0x00' function='0x0'/>
+    </hostdev>
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0x41' slot='0x00' function='0x0'/>
+      </source>
+      <address type='pci' domain='0x0000' bus='0x0b' slot='0x00' function='0x0'/>
+    </hostdev>
+    <ivshmem role='master'>
+      <memory name='ramkbox_b90fe589-3cad-4ffa-9bbf-684652039e15' size='16'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x09' function='0x0'/>
+    </ivshmem>
+    <watchdog model='i6300esb' action='reset' pretimeout='240' timeout='480' startmode='auto'>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x08' function='0x0'/>
+    </watchdog>
+    <memballoon model='virtio'>
+      <stats period='10'/>
+      <address type='pci' domain='0x0000' bus='0x02' slot='0x01' function='0x0'/>
+    </memballoon>
+  </devices>
+  <qemu:commandline>
+    <qemu:arg value='-NetInterruptAutobind'/>
+    <qemu:arg value='-device'/>
+    <qemu:arg value='pv_channel,bus=pci.2,addr=0x1f'/>
+    <qemu:arg value='-extend_pcie_mmio'/>
+  </qemu:commandline>
+</domain>
+
+F1S6-shengteng:/tmp/z00927893/f1s6_numa_host_20261106_112027_262234 # 

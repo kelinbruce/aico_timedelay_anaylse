@@ -1,0 +1,14 @@
+[root@vnf-mae-1-node3-1793319644 tmp]# 
+[root@vnf-mae-1-node3-1793319644 tmp]# python3 ./f1s6_numa_collect.py container
+Sampling /proc/stat for 10 seconds...
+Report directory: /opt/z00927893/tmp/f1s6_numa_container_20261106_031544_127481
+Archive: /opt/z00927893/tmp/f1s6_numa_container_20261106_031544_127481.tar.gz
+[root@vnf-mae-1-node3-1793319644 tmp]# 
+
+
+[root@vnf-mae-1-node3-1793319644 tmp]# python3 ./f1s6_numa_collect.py guest
+Sampling /proc/stat for 10 seconds...
+Report directory: /opt/nfs/nfs1/mae/z00927893/tmp/f1s6_numa_guest_20261106_111119_330841
+Archive: /opt/nfs/nfs1/mae/z00927893/tmp/f1s6_numa_guest_20261106_111119_330841.tar.gz
+[root@vnf-mae-1-node3-1793319644 tmp]# 
+[root@vnf-mae-1-node3-1793319644 tmp]# 
